@@ -6,6 +6,16 @@ Fundament aplikacji klubu fitness zgodny z punktem 3 w [specyfikacji architektur
 
 Wymagany Docker z Compose. Kontener dostarcza PHP 8.4 z rozszerzeniami, Composer 2 oraz Node.js 24; nie trzeba zmieniać systemowego PHP. Polecenia wykonuj w głównym katalogu projektu `fitnesclub` — aplikacja jest już utworzona, nie uruchamiaj ponownie `laravel new`.
 
+Po wykonaniu pierwszej instalacji uruchom aplikację jedną komendą (wymagany `make`):
+
+```bash
+make up
+```
+
+Samo `make` również uruchamia aplikację. `make down` zatrzymuje środowisko bez usuwania danych bazy, `make restart` restartuje aplikację, `make logs` pokazuje logi, a `make status` wyświetla stan kontenerów.
+
+Pierwsza instalacja na nowym komputerze:
+
 ```bash
 cp .env.example .env  # tylko przy pierwszej instalacji, jeśli .env nie istnieje
 docker compose build app
