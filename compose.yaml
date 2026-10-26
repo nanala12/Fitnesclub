@@ -1,0 +1,48 @@
+name: activefit
+
+services:
+    app:
+        build:
+            context: .
+            dockerfile: docker/local/Dockerfile
+        image: activefit-dev
+        user: '${LOCAL_UID:-1000}:${LOCAL_GID:-1000}'
+        working_dir: /app
+        volumes:
+            - .:/app
+        ports:
+            - '127.0.0.1:${APP_PORT:-8000}:8000'
+            - '127.0.0.1:${VITE_PORT:-5173}:5173'
+        environment:
+            DB_HOST: mysql
+            VITE_PORT: '${VITE_PORT:-5173}'
+        depends_on:
+            mysql:
+                condition: service_healthy
+        command: composer run dev
+        init: true
+        stdin_open: true
+        tty: true
+
+    mysql:
+        image: mysql:8.4
+        environment:
+            MYSQL_DATABASE: '${DB_DATABASE:-activefit}'
+            MYSQL_USER: '${DB_USERNAME:-activefit}'
+            MYSQL_PASSWORD: '${DB_PASSWORD:-activefit_local}'
+            MYSQL_ROOT_PASSWORD: '${DB_ROOT_PASSWORD:-activefit_root_local}'
+        volumes:
+            - mysql_data:/var/lib/mysql
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'MYSQL_PWD="$$MYSQL_PASSWORD" mysql -h 127.0.0.1 -u"$$MYSQL_USER" "$$MYSQL_DATABASE" -e ''SELECT 1'' >/dev/null 2>&1',
+                ]
+            interval: 5s
+            timeout: 5s
+            retries: 30
+            start_period: 20s
+
+volumes:
+    mysql_data:
