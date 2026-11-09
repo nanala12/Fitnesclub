@@ -65,7 +65,10 @@ return [
     |
     */
 
-    'timezone' => env('APP_TIMEZONE', 'Europe/Warsaw'),
+    'timezone' => 'UTC',
+
+    // Interpret membership calendar dates in the club's local timezone.
+    'business_timezone' => 'Europe/Warsaw',
 
     /*
     |--------------------------------------------------------------------------

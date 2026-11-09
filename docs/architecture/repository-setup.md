@@ -28,7 +28,7 @@ Pojedyncze repozytorium aplikacji **ActiveFit**: publiczna strona klubu, CMS, pa
 | Queue | Laravel Queue (początkowo database), worker na produkcji | RECOMMENDED |
 | Płatności | Przelewy24 | CONFIRMED; integracja po konfiguracji sandbox |
 | Pliki/PDF | Laravel Storage + generator PDF do wyboru na etapie implementacji | PDF wymagany; biblioteka OPEN |
-| Język UI | polski (`pl`), strefa czasowa `Europe/Warsaw` | RECOMMENDED; zapisy czasu transakcji w UTC |
+| Język UI / czas | polski (`pl`), runtime i sesja MySQL `UTC`, daty biznesowe `Europe/Warsaw` | Implemented in TASK-002; `config('app.business_timezone')` for business dates |
 
 Źródła wersji: [Laravel 13 release notes](https://laravel.com/docs/13.x/releases), [oficjalny Vue starter kit](https://laravel.com/docs/13.x/starter-kits). **Nie przypinaj najnowszych patchy na sztywno w tym dokumencie:** źródłem prawdy są wersjonowane `composer.lock` i `package-lock.json`.
 
@@ -152,6 +152,8 @@ To **katalogi docelowe**, nie wszystkie muszą istnieć po wygenerowaniu starter
 
 ## 7. Środowiska i konfiguracja
 
+**Stan implementacji — TASK-002 (2026-11-09):** aktualne polecenia instalacji, resetu i kontroli jakości są w `README.md`. Runtime Laravel i sesja MySQL mają stałą strefę UTC; dni biznesowe korzystają z `config('app.business_timezone') = Europe/Warsaw`. Jest to doprecyzowanie wcześniejszej rekomendacji pojedynczej strefy aplikacji, zgodne z ACT-01. Kolejka `database` ma `after_commit=true`, a lokalny transport poczty to `log`. Domyślny seeder nie tworzy danych demonstracyjnych; jawny `LocalDatabaseSeeder` odmawia pracy poza `local`. Testy SQLite działają w pamięci, a testy MySQL w osobnej usłudze Compose `mysql-test` z bazą/użytkownikiem `activefit_testing`. Konfiguracja testów wymusza bezpieczne transporty i odmawia użycia bazy developerskiej.
+
 | Środowisko | Przeznaczenie | Zasady |
 |---|---|---|
 | local | development | `APP_DEBUG=true`; testowy SMTP i sandbox P24; dane fikcyjne |
@@ -165,7 +167,7 @@ Minimalna lista ustawień w `.env.example` (bez wartości sekretów):
 APP_NAME=ActiveFit
 APP_ENV=local
 APP_URL=http://localhost:8000
-APP_TIMEZONE=Europe/Warsaw
+# Runtime timezone is fixed to UTC; business dates use Europe/Warsaw.
 APP_LOCALE=pl
 DB_CONNECTION=mysql
 DB_HOST=127.0.0.1

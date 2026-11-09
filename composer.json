@@ -62,9 +62,13 @@
         ],
         "ci:check": [
             "Composer\\Config::disableProcessTimeout",
+            "@composer validate --strict",
+            "npm run build",
             "npm run check",
             "npm run types:check",
-            "@test"
+            "@lint:check",
+            "@types:check",
+            "@test:mysql"
         ],
         "types:check": [
             "phpstan analyse --memory-limit=512M"
@@ -74,6 +78,10 @@
             "@lint:check",
             "@types:check",
             "@php artisan test"
+        ],
+        "test:mysql": [
+            "@php artisan config:clear --ansi",
+            "@php vendor/bin/pest --configuration=phpunit.mysql.xml"
         ],
         "post-autoload-dump": [
             "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",

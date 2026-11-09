@@ -37,6 +37,8 @@ When implementation and documentation differ, **do not silently change the busin
 
 **Environment:** Always use an isolated testing database, fake mail/storage/queue, and a fake or sandbox Przelewy24 gateway. Never call production Przelewy24 or send real customer emails from automated tests. Never use production personal data in fixtures.
 
+**Implemented baseline (TASK-002):** `composer test` runs Pint, PHPStan and Pest with in-memory SQLite. `make test-mysql` starts the isolated Compose `mysql-test` service and runs `composer test:mysql` using `phpunit.mysql.xml`; native setup is documented in `README.md`. The MySQL test database/user are `activefit_testing`, independent of development. Do not run concurrent suites against that same database. Both PHPUnit configurations force in-memory mail/cache/session drivers and synchronous queues; `EnvironmentTest` explicitly exercises the real database queue with the array mail transport, including commit/rollback and worker processing. Test bootstrap refuses non-testing configuration or a database outside the allowed test targets. Default seeders contain no demo accounts; tests create their own fixtures through factories.
+
 ## 3. Non-negotiable domain invariants
 
 These invariants must be exercised at the API/DB boundary, not only in Vue:
@@ -224,6 +226,8 @@ Run E2E against isolated seeded fixtures and deterministic fake payment service.
 Check keyboard-only operation, visible focus, form labels and errors, modal focus management, sufficient contrast, meaningful status text besides color, no horizontal page overflow at 320px, and responsive admin tables. Prefer automated axe checks supplemented with manual verification for critical journeys. Public route navigation and metadata must remain functional without relying on browser-only state; measure SSR/SEO configuration once chosen.
 
 ## 11. CI/CD gates and quality thresholds
+
+**Implemented baseline (TASK-003):** `.github/workflows/tests.yml` defines check **CI** for pull requests, pushes to `main`, and manual dispatch. It installs locked dependencies on PHP 8.4 / Node 24 and runs `composer ci:check`: strict Composer validation, production frontend build (before checking generated route types), Vite+ formatting/lint, Vue/TypeScript typecheck, Pint, PHPStan, then Pest with `phpunit.mysql.xml` and disposable MySQL 8.4. Composer/npm download caches depend on lockfiles; `.env`, application keys and installed dependency directories are not cached. Actions are pinned to commit SHAs, token permissions are `contents: read`, duplicate runs are cancelled, and the job times out after 15 minutes. No production secret is referenced. Repository settings must separately require **CI** and PR approval on `main` after the first hosted run; publishing and hosted-run verification are not implied by local validation.
 
 **Minimum PR checks** (enable as tools enter repository):
 

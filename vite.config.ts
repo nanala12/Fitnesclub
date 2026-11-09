@@ -64,6 +64,8 @@ export default defineConfig({
         singleAttributePerLine: false,
         htmlWhitespaceSensitivity: 'css',
         ignorePatterns: [
+            'AGENTS.md',
+            '**/reference-html/**',
             'docs/**',
             '.github/**',
             'composer.json',

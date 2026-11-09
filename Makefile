@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := up
 
-.PHONY: up down restart logs status
+.PHONY: up down restart logs status test-mysql
 
 up:
 	docker compose up -d --build app
@@ -17,3 +17,7 @@ logs:
 
 status:
 	docker compose ps
+
+test-mysql:
+	docker compose --profile testing up -d --wait mysql-test
+	docker compose run --rm --no-deps -e DB_HOST=mysql-test app composer test:mysql
