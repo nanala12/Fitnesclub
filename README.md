@@ -1,61 +1,35 @@
-# ActiveFit
+# ActiveFit — repozytorium projektu
 
-Fundament aplikacji klubu fitness zgodny z punktem 3 w [specyfikacji architektury](docs/architecture/repository-setup.md): Laravel 13, oficjalny starter Vue 3 + Inertia, TypeScript, Tailwind CSS, sesyjne logowanie Laravel Fortify, MySQL i Pest. Starter zawiera rejestrację, reset hasła, weryfikację e-mail oraz 2FA. Nie korzysta z WorkOS.
+Aplikacja: Laravel + Inertia.js + Vue 3 + TypeScript + Tailwind CSS + MySQL.  
+Repozytorium: GitHub. Testy backendu: Pest. Płatności: Przelewy24.
 
-## Uruchomienie przez Docker Compose
+> **Stan paczki:** dokumentacja AI SDLC i referencyjne widoki HTML. **Nie zawiera** jeszcze wygenerowanej aplikacji Laravel, migracji ani działających testów. To materiały do umieszczenia w katalogu głównym istniejącego lub nowego repozytorium.
 
-Wymagany Docker z Compose. Kontener dostarcza PHP 8.4 z rozszerzeniami, Composer 2 oraz Node.js 24; nie trzeba zmieniać systemowego PHP. Polecenia wykonuj w głównym katalogu projektu `fitnesclub` — aplikacja jest już utworzona, nie uruchamiaj ponownie `laravel new`.
+## Gdzie zacząć
 
-Po wykonaniu pierwszej instalacji uruchom aplikację jedną komendą (wymagany `make`):
+1. `AGENTS.md` — zasady pracy agentów AI.
+2. `docs/product/requirements.md` — zakres i zatwierdzone reguły.
+3. `docs/architecture/decisions/ADR-001-activation.md` — zatwierdzona aktywacja podczas pierwszej wizyty.
+4. `docs/architecture/overview.md` — architektura aplikacji.
+5. `docs/architecture/database.md`, `docs/architecture/cms.md`, `docs/architecture/security.md`, `docs/architecture/frontend.md`, `docs/architecture/business-flows.md` — szczegóły projektowe.
+6. `docs/development/testing-strategy.md` — strategia testów.
+7. `docs/development/implementation-plan.md` — zadania TASK-001–040.
+8. `docs/architecture/repository-setup.md` — instrukcje konfiguracji projektu.
+9. `design/reference-html/` — otrzymane, niezmodyfikowane widoki UX/UI; **referencja**, nie kod produkcyjny.
 
-```bash
-make up
-```
+## Kluczowe ustalenia
 
-Samo `make` również uruchamia aplikację. `make down` zatrzymuje środowisko bez usuwania danych bazy, `make restart` restartuje aplikację, `make logs` pokazuje logi, a `make status` wyświetla stan kontenerów.
+- Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.
+- PDF jest wysyłany po skutecznym potwierdzeniu płatności również dla karnetu oczekującego na aktywację. Nie pokazuje dat, których jeszcze nie znamy.
+- Przedłużenie już aktywnego karnetu (w zatwierdzonym scenariuszu) zaczyna się po końcu bieżącego okresu.
+- Jedno zamówienie = jeden karnet; kupujący i posiadacz mogą być różnymi osobami; zakupy gościnne nie są łączone z późniejszym kontem.
+- Kwoty w bazie zapisujemy w groszach jako liczby całkowite.
+- Otwarte decyzje biznesowe pozostają oznaczone `OPEN` — agent nie powinien ich rozstrzygać samodzielnie.
 
-Pierwsza instalacja na nowym komputerze:
+## Pierwszy etap implementacji
 
-```bash
-cp .env.example .env  # tylko przy pierwszej instalacji, jeśli .env nie istnieje
-docker compose build app
-docker compose up -d mysql
-docker compose run --rm app composer setup
-docker compose up -d app
-```
+Rozpocznij od `TASK-001` w `docs/development/implementation-plan.md`. Wygeneruj projekt Laravel z oficjalnym starterem Vue/Inertia i skonfiguruj MySQL; **nie** nadpisuj `AGENTS.md`, `docs/` ani `design/`. Dopiero po instalacji aplikacji dostępne będą polecenia `composer`, `artisan` i `npm` odnoszące się do właściwego kodu.
 
-`composer setup` instaluje zależności z plików lock, ustawia klucz wyłącznie wtedy, gdy jest pusty, wykonuje migracje i buduje frontend. MySQL musi być dostępny przed tym krokiem. `.env.example` ma ustawienia lokalnej bazy Compose i poczty w logach. Podane hasła są wyłącznie do lokalnego developmentu. Dla innego UID/GID ustaw `LOCAL_UID` i `LOCAL_GID` w `.env` (na tym komputerze oba wynoszą 1000).
+## Wersjonowanie dokumentów
 
-Aplikacja: **http://localhost:8000**. Vite: port 5173. W razie konfliktu ustaw `APP_PORT`, odpowiedni `APP_URL` oraz `VITE_PORT` w `.env`. Dane MySQL pozostają w wolumenie `mysql_data` po zatrzymaniu kontenerów.
-
-```bash
-docker compose logs -f app
-docker compose exec app php artisan migrate
-docker compose exec app php artisan test
-docker compose exec app composer lint:check
-docker compose exec app composer types:check
-docker compose exec app npm run check
-docker compose exec app npm run types:check
-docker compose exec app npm run build
-docker compose down
-```
-
-Testy używają izolowanej bazy SQLite w pamięci, zgodnie z `phpunit.xml`. Nie modyfikują lokalnej bazy MySQL. Weryfikacja e-mail i reset hasła trafiają do `storage/logs/laravel.log`; do prawdziwej wysyłki skonfiguruj SMTP w `.env`.
-
-## Uruchomienie bez Dockera
-
-Wymagane PHP 8.4 z rozszerzeniami Laravel oraz `pdo_mysql`, `pdo_sqlite`, `intl`, `mbstring`, `zip`, `pcntl`, Composer 2, Node.js 24 (`.nvmrc`), npm i MySQL 8.x. Utwórz bazę i użytkownika z uprawnieniami do niej. Skopiuj `.env.example` tylko jeśli `.env` nie istnieje, ustaw `DB_HOST=127.0.0.1` i własne dane bazy, a następnie:
-
-```bash
-composer install
-npm ci
-php scripts/ensure-app-key.php
-php artisan migrate
-composer run dev
-```
-
-## Zakres
-
-To inicjalizacja projektu i standardowy interfejs startera. Moduły karnetów, sprzedaży i Przelewy24 wymagają dalszej implementacji. Dokument `docs/product/requirements.md` przywołany w architekturze nie został jeszcze dostarczony. Lokalne repozytorium Git korzysta z gałęzi `main`. Repozytorium zdalne i ochrona gałęzi wymagają wskazania docelowego konta/organizacji GitHub.
-
-Źródło startera: [laravel/vue-starter-kit](https://github.com/laravel/vue-starter-kit), licencja MIT. Wersje zależności zapisane są w `composer.lock` i `package-lock.json`.
+Ostatni przegląd paczki: 2026-11-05. Szczegóły rozbieżności i decyzji znaleźć można w `docs/architecture/decisions/` oraz w polach `OPEN` dokumentacji. Przed wykonaniem zadania należy zweryfikować wymogi jego modułu i przygotować testy.

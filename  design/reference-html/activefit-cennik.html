@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+
+<html lang="pl"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Cennik | ActiveFit Pleszew</title><style>
+:root{--bg:#f3f4f3;--surface:#fff;--text:#333b3b;--secondary:#697272;--line:#dfe3e2;--dark:#46504e;--accent:#918e86}*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Arial,sans-serif;line-height:1.5}a{color:inherit;text-decoration:none}.wrap{max-width:1200px;padding:0 28px;margin:auto}.top{background:white;border-bottom:1px solid var(--line)}.nav{height:82px;display:flex;align-items:center;justify-content:space-between;gap:22px}.brand{font-size:27px;font-weight:800;letter-spacing:-1.6px}.brand span{color:var(--accent)}.links{display:flex;gap:29px;align-items:center;font-size:14px;color:var(--dark)}.links a:hover,.footer a:hover{text-decoration:underline}.btn{display:inline-block;background:var(--dark);color:#fff;border:0;border-radius:9px;padding:13px 20px;font-weight:700;font-size:14px;cursor:pointer}.btn.secondary{background:white;border:1px solid var(--line);color:var(--dark)}.hero{padding:78px 0 62px}.eyebrow{color:#7d8580;text-transform:uppercase;letter-spacing:2px;font-size:12px;font-weight:800}.hero h1{font-size:clamp(36px,5.2vw,62px);line-height:1.08;letter-spacing:-2.5px;max-width:760px;margin:17px 0 20px}.lead{font-size:18px;color:var(--secondary);max-width:720px}.hero .badge{display:inline-block;background:#e6e8e5;border-radius:999px;padding:8px 16px;color:var(--dark);font-size:12px;margin-top:15px}.section{padding:26px 0 58px}h2{font-size:32px;letter-spacing:-.9px;margin:0 0 9px}.sub{margin:0 0 27px;color:var(--secondary)}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.plan{border:1px solid var(--line);border-radius:18px;background:white;padding:26px;display:flex;flex-direction:column;min-height:319px}.plan.featured{border:2px solid #8e9b96;background:#e7ebe8}.tag{font-size:11px;font-weight:800;letter-spacing:1.2px;color:#677572}.plan h3{font-size:21px;margin:17px 0 8px}.plan p{margin:0;color:var(--secondary);font-size:14px}.price{font-weight:800;font-size:37px;margin:24px 0 0;letter-spacing:-1px}.unit{color:var(--secondary);font-size:13px}.plan .btn{margin-top:auto;text-align:center}.notice{font-size:13px;color:var(--secondary);margin-top:20px}.filter-wrap{display:flex;flex-wrap:wrap;gap:8px;overflow:visible;white-space:normal;margin:26px 0 22px;padding-bottom:4px}.filter{max-width:100%;white-space:normal;text-align:center}.filter{border:1px solid #d9dddb;border-radius:999px;background:white;padding:12px 17px;cursor:pointer;font:600 13px inherit;color:var(--dark);font-size:13px;font-weight:650}.filter[aria-selected="true"]{background:var(--dark);border-color:var(--dark);color:white}.rows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}.group{background:white;border:1px solid var(--line);border-radius:17px;padding:26px}.group h3{font-size:20px;margin:0 0 16px}.row{display:flex;justify-content:space-between;align-items:baseline;gap:18px;padding:12px 0;border-top:1px solid #edf0ee;font-size:14px}.row span:first-child{color:#596361}.row strong{white-space:nowrap;font-size:15px}.group[hidden]{display:none}.info{background:#e7eae8;border-radius:18px;padding:29px;margin:13px 0 70px}.info h2{font-size:23px}.info p{color:var(--secondary);margin:9px 0 0;font-size:14px}.footer{background:#343b3b;color:#f4f6f5;padding:49px 0 24px}.footer-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px}.footer h3{margin:0 0 17px;font-size:14px}.footer p{font-size:14px;color:#d3dbd7;margin:8px 0}.bottom{border-top:1px solid #69716e;padding-top:20px;margin-top:44px;font-size:12px;color:#c9d0ce}.mobile{display:none}
+@media(max-width:800px){.links{display:none}.mobile{display:inline-flex}.hero{padding:50px 0 40px}.grid{grid-template-columns:1fr}.rows{grid-template-columns:1fr}.footer-grid{grid-template-columns:1fr;gap:27px}h2{font-size:28px}.section{padding-bottom:38px}.plan{min-height:290px}.wrap{padding:0 20px}.hero h1{letter-spacing:-1.5px}.lead{font-size:16px}.nav{height:68px}}
+
+/* ActiveFit shared warm-gray palette — matched to approved purchase flow */
+:root {
+  --bg: #F3F0ED;
+  --surface: #FFFDFB;
+  --text: #393633;
+  --secondary: #706963;
+  --line: #E1DAD4;
+  --dark: #5B514B;
+  --accent: #88776A;
+  --soft: #ECE6E0;
+}
+.top { background: #FFFDFA; }
+.btn { background: var(--dark); color: #fff; }
+.btn:hover { background: #443A35; }
+.btn.secondary { background: var(--surface); border-color: var(--line); color: var(--dark); }
+.hero .badge { background: var(--soft); color: var(--dark); }
+.eyebrow, .tag { color: var(--accent); }
+.plan, .group, .filter { background: var(--surface); border-color: var(--line); }
+.plan.featured { background: #F0EAE4; border-color: var(--dark); }
+.filter[aria-selected="true"] { background: var(--dark); border-color: var(--dark); color: #fff; }
+.row { border-top-color: #ECE6E0; }
+.row span:first-child { color: var(--secondary); }
+.info { background: var(--soft); }
+.footer { background: #403934; color: #F6F0EB; }
+.footer p { color: #D9CEC5; }
+.bottom { border-top-color: #746B64; color: #D9CEC5; }
+.links { color: var(--muted, #706963); }
+:where(a, button):focus-visible { outline: 3px solid #A69383; outline-offset: 3px; }
+
+:root{--bg:#f3f0ed;--surface:#fffdfb;--text:#393633;--secondary:#706963;--line:#e1dad4;--dark:#5b514b;--accent:#88776a;--soft:#ece6e0}
+
+/* Shared ActiveFit layout – aligned with the checkout page */
+.wrap{width:min(1130px,calc(100% - 40px));max-width:none;padding:0;margin-inline:auto}
+.top{background:#fffdfa;border-bottom:1px solid var(--line)}
+.nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{font-size:27px;font-weight:800;letter-spacing:-1.5px}
+.brand span{color:var(--accent)}
+.links{display:flex;gap:17px;align-items:center;font-size:14px;color:var(--secondary);white-space:nowrap}
+.links a:hover,.footer a:hover{text-decoration:underline}
+.nav-cta{display:inline-block;background:var(--dark);color:white;border:0;border-radius:9px;padding:13px 20px;font-size:13px;font-weight:700;white-space:nowrap}
+.nav-cta:hover{background:#443a35}
+.mobile-menu{display:none;border:0;background:transparent;font-size:23px;color:var(--text);cursor:pointer}
+#mobileNav:not([hidden]){display:flex;flex-direction:column;gap:0;padding:4px 0 18px}
+#mobileNav a{display:block;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px;color:var(--text)}
+#mobileNav a:hover{background:var(--soft)}
+.footer{background:#403934;color:#f6f0eb;padding:38px 0;font-size:13px}
+.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.footer h3{font-size:13px;letter-spacing:.07em;margin:0 0 12px}
+.footer p{margin:5px 0;color:#d9cec5;font-size:13px}
+@media(max-width:1090px){.links{display:none}.mobile-menu{display:block}.nav-cta{margin-left:auto}}
+@media(max-width:900px){.footer-grid{grid-template-columns:1fr}.nav{height:76px}}
+@media(max-width:430px){.wrap{width:calc(100% - 30px)}.nav{height:66px}.nav-cta{padding:10px;font-size:11px}}
+@media(max-width:480px){.filter-wrap{gap:9px}.filter{flex:1 1 auto;min-height:44px}}
+</style></head><body>
+<header class="top"><div class="wrap nav"><a aria-label="ActiveFit - strona główna" class="brand" href="https://www.activefit.pl/">active<span>fit.</span></a><nav aria-label="Nawigacja" class="links"><a href="https://www.activefit.pl/">Start</a><a href="#cennik">Cennik</a><a href="activefit-galeria.html">Galeria</a><a href="https://www.activefit.pl/aktualnosci">Aktualności</a><a href="activefit-regulamin.html">Regulamin</a><a href="activefit-kontakt.html">Kontakt</a></nav><a class="nav-cta" href="activefit-zakup-karnetu-pelne-menu.html">Kup karnet →</a><button aria-expanded="false" aria-label="Otwórz menu" class="mobile-menu" id="menuButton" type="button">☰</button></div><nav class="wrap" hidden="" id="mobileNav" style="padding-bottom:15px"><a href="https://www.activefit.pl/">Start</a><a href="#cennik">Cennik</a><a href="activefit-galeria.html">Galeria</a><a href="https://www.activefit.pl/aktualnosci">Aktualności</a><a href="activefit-regulamin.html">Regulamin</a><a href="activefit-kontakt.html">Kontakt</a></nav></header>
+<main><div class="wrap"><section class="hero"><div class="eyebrow">ACTIVEFIT / CENNIK</div><h1>Wybierz aktywność.<br/>Sprawdź cenę.</h1><p class="lead">Siłownia, trening personalny, fizjoterapia i zabiegi. Wszystkie najważniejsze ceny znajdziesz w jednym miejscu.</p><span class="badge">Przejrzysta oferta • bez zbędnych formalności</span></section>
+<section class="section" id="cennik"><div class="eyebrow">PEŁNA OFERTA</div><h2>Poznaj cały cennik</h2><p class="sub">Wybierz kategorię, aby znaleźć interesującą Cię usługę.</p><div aria-label="Kategorie cennika" class="filter-wrap" role="tablist"><button aria-selected="true" class="filter" data-filter="all" role="tab">Wszystkie</button><button aria-selected="false" class="filter" data-filter="gym" role="tab">Siłownia</button><button aria-selected="false" class="filter" data-filter="training" role="tab">Trening personalny</button><button aria-selected="false" class="filter" data-filter="therapy" role="tab">Fizjoterapia</button><button aria-selected="false" class="filter" data-filter="care" role="tab">Zabiegi</button><button aria-selected="false" class="filter" data-filter="other" role="tab">Pozostałe</button></div><div class="rows">
+<div class="group" data-category="gym"><h3>Siłownia i karnety</h3><div class="row"><span>Miesięczny całodzienny (do 22:00)</span><strong>165 zł</strong></div><div class="row"><span>Miesięczny dzienny (do 16:00)</span><strong>145 zł</strong></div><div class="row"><span>Miesięczny ulgowy</span><strong>145 zł</strong></div><div class="row"><span>8 treningów / ważny 2 miesiące</span><strong>165 zł</strong></div><div class="row"><span>4 treningi / ważny 1 miesiąc</span><strong>120 zł</strong></div><div class="row"><span>Karta PPL 60+ / miesięczny</span><strong>120 zł</strong></div><div class="row"><span>Karta PPL 3+ / miesięczny</span><strong>120 zł</strong></div><div class="row"><span>Wejście normalne</span><strong>45 zł</strong></div><div class="row"><span>Wejście ulgowe</span><strong>35 zł</strong></div></div>
+<div class="group" data-category="training"><h3>Trening indywidualny</h3><div class="row"><span>1 trening</span><strong>120 zł</strong></div><div class="row"><span>4 treningi + pomiar składu ciała</span><strong>420 zł</strong></div><div class="row"><span>8 treningów + pomiar składu ciała</span><strong>720 zł</strong></div><div class="row"><span>Plan treningowy</span><strong>145 zł</strong></div><div class="row"><span>Pomiar składu ciała</span><strong>45 zł</strong></div></div>
+<div class="group" data-category="therapy"><h3>Fizjoterapia dzieci</h3><div class="row"><span>Konsultacja</span><strong>120 zł</strong></div><div class="row"><span>Gimnastyka korekcyjna — 1 dziecko</span><strong>90 zł</strong></div><div class="row"><span>Gimnastyka korekcyjna — 2+ dzieci (za dziecko)</span><strong>60 zł</strong></div></div>
+<div class="group" data-category="therapy"><h3>Fizjoterapia / terapia TECAR</h3><div class="row"><span>15 minut</span><strong>70 zł</strong></div><div class="row"><span>30 minut</span><strong>110 zł</strong></div><div class="row"><span>50 minut</span><strong>140 zł</strong></div><div class="row"><span>Elektroterapia Compex</span><strong>50 zł</strong></div></div>
+<div class="group" data-category="care"><h3>Dermomasaż i zabiegi</h3><div class="row"><span>Dermomasaż — 10 minut</span><strong>50 zł</strong></div><div class="row"><span>Dermomasaż — 20 minut</span><strong>80 zł</strong></div><div class="row"><span>Dermomasaż — 30 minut</span><strong>100 zł</strong></div><div class="row"><span>Osteopatia estetyczna twarzy — masaż transbukalny</span><strong>190 zł</strong></div><div class="row"><span>Kinesiotaping</span><strong>50 zł</strong></div></div>
+<div class="group" data-category="other"><h3>Nordic Walking</h3><div class="row"><span>Wypożyczenie kijków</span><strong>20 zł</strong></div></div>
+</div></section><section class="info"><h2>Masz pytania o zajęcia lub zabiegi?</h2><p>Skontaktuj się z nami. Chętnie pomożemy wybrać odpowiednią usługę. Ceny mogą ulec zmianie — przed zakupem sprawdź aktualną ofertę.</p><p><a class="btn" href="tel:+48693388508" style="margin-top:12px;color:white">Zadzwoń: 693 388 508 →</a></p></section><section class="section" id="karnety"><div class="eyebrow">SIŁOWNIA</div><h2>Najpopularniejsze karnety</h2><p class="sub">Wybierz opcję dopasowaną do częstotliwości i godzin treningu.</p><div class="grid">
+<article class="plan"><div class="tag">ELASTYCZNY WYBÓR</div><h3>Wejście jednorazowe</h3><p>Jednorazowy trening bez kupowania karnetu.</p><div class="price">45 zł</div><div class="unit">za jedno wejście</div><a class="btn" href="#kontakt">Zapytaj o wejście →</a></article>
+<article class="plan featured"><div class="tag">NAJWIĘKSZA SWOBODA</div><h3>Karnet całodzienny</h3><p>Miesięczny dostęp do siłowni do godz. 22:00.</p><div class="price">165 zł</div><div class="unit">za miesiąc</div><a class="btn" href="#kontakt">Wybierz karnet →</a></article>
+<article class="plan"><div class="tag">DLA RANNYCH PTAKÓW</div><h3>Karnet dzienny</h3><p>Miesięczny dostęp do siłowni do godz. 16:00.</p><div class="price">145 zł</div><div class="unit">za miesiąc</div><a class="btn" href="#kontakt">Wybierz karnet →</a></article>
+</div><p class="notice">Projekt poglądowy: przyciski zakupowe zostaną podłączone do systemu karnetów. Ceny na podstawie activefit.pl/cennik.</p></section></div></main>
+<footer class="footer" id="kontakt"><div class="wrap footer-grid"><div><h3>KARTY PARTNERSKIE</h3><p>MultiSport / Benefit Systems</p><p>Medicover Sport</p></div><div><h3>GODZINY OTWARCIA</h3><p>Pon.–pt. 8:00–22:00</p><p>Sobota 9:00–17:00</p><p>Niedziela nieczynne</p></div><div><h3>KONTAKT</h3><p>ul. Traugutta 30, 63-300 Pleszew</p><p><a href="tel:+48693388508">693 388 508</a></p><p><a href="mailto:magda@activefit.pl">magda@activefit.pl</a></p></div></div></footer><script>const buttons=[...document.querySelectorAll('[data-filter]')];const groups=[...document.querySelectorAll('[data-category]')];buttons.forEach(button=>button.addEventListener('click',()=>{const value=button.dataset.filter;buttons.forEach(b=>b.setAttribute('aria-selected',String(b===button)));groups.forEach(g=>g.hidden=value!=='all'&&g.dataset.category!==value)}));</script><script>(() => {
+  const toggle = document.getElementById('menuButton');
+  const menu = document.getElementById('mobileNav');
+  if (!toggle || !menu) return;
+  const close = () => {
+    menu.hidden = true;
+    toggle.setAttribute('aria-expanded', 'false');
+    toggle.setAttribute('aria-label', 'Otwórz menu');
+  };
+  toggle.addEventListener('click', () => {
+    const isOpen = toggle.getAttribute('aria-expanded') === 'true';
+    menu.hidden = isOpen;
+    toggle.setAttribute('aria-expanded', String(!isOpen));
+    toggle.setAttribute('aria-label', isOpen ? 'Otwórz menu' : 'Zamknij menu');
+  });
+  menu.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+  window.addEventListener('keydown', event => { if (event.key === 'Escape') close(); });
+})();</script></body></html>

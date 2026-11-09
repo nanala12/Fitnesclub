@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+
+<html lang="pl">
+<head>
+<meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="Galeria ActiveFit – zobacz przestrzenie treningowe, zajęcia, fizjoterapię i zabiegi." name="description"/>
+<title>Galeria | ActiveFit Pleszew</title>
+<style>
+:root{--bg:#f3f4f3;--surface:#fff;--ink:#343b3b;--sub:#6f7776;--line:#dfe3e2;--dark:#46504e;--accent:#98948b;--focus:#344e86}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Arial,sans-serif;line-height:1.5;background:var(--bg);color:var(--ink)}body.modal-open{overflow:hidden}a{color:inherit;text-decoration:none}button{font:inherit;cursor:pointer}button:focus-visible,a:focus-visible{outline:3px solid var(--focus);outline-offset:3px}.wrap{max-width:1216px;padding-inline:28px;margin:auto}
+.top{background:#fff;border-bottom:1px solid var(--line)}.nav{display:flex;justify-content:space-between;align-items:center;min-height:82px;gap:18px}.brand{font-size:27px;font-weight:800;letter-spacing:-1.5px;white-space:nowrap}.brand span{color:var(--accent)}.links{display:flex;align-items:center;gap:25px;font-size:14px;color:var(--dark)}.links .active{font-weight:800;border-bottom:2px solid var(--dark);padding-bottom:4px}.btn{border:0;background:var(--dark);color:#fff;border-radius:9px;padding:13px 20px;font-weight:700;font-size:14px;display:inline-flex;justify-content:center;align-items:center}.menu{display:none;background:transparent;border:0;color:var(--ink);font-size:28px}.mobile-nav{display:none}
+.hero{padding:79px 0 43px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.16em;color:#7b837f}.hero h1{margin:14px 0 15px;font-size:clamp(36px,5vw,60px);letter-spacing:-.045em;line-height:1.1}.hero p{max-width:685px;color:var(--sub);font-size:17px;margin:0}.hero-accent{display:block;width:60px;height:4px;border-radius:4px;background:var(--accent);margin-top:28px}
+.gallery-wrap{padding:22px 0 90px}.bar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}.filters{display:flex;flex-wrap:wrap;gap:9px}.filter{border:1px solid var(--line);border-radius:999px;padding:10px 19px;background:#fff;color:var(--ink);font-size:14px;font-weight:650}.filter[aria-pressed=true]{color:#fff;background:var(--dark);border-color:var(--dark)}.count{font-size:13px;color:var(--sub);white-space:nowrap}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}.tile{position:relative;min-width:0;background:#fff;border:1px solid #e5e9e7;border-radius:16px;overflow:hidden;text-align:left;padding:0;box-shadow:0 2px 9px rgba(31,43,40,.025);transition:transform .18s,box-shadow .18s}.tile:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(31,43,40,.1)}.tile[hidden]{display:none}.photo{height:225px;position:relative;overflow:hidden;background:linear-gradient(145deg,#e0e3df,#aeb8b4)}.photo img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .25s}.tile:hover .photo img{transform:scale(1.035)}.placeholder{position:absolute;inset:0;z-index:0;display:grid;place-items:center;pointer-events:none;font-size:44px;opacity:.35}.photo img{position:relative;z-index:1}.body{padding:18px 19px 20px}.category{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#828a86}.body h2{margin:7px 0 5px;font-size:19px;line-height:1.28;letter-spacing:-.02em}.body p{margin:0;font-size:13px;color:var(--sub)}.more{display:block;font-size:13px;color:var(--dark);font-weight:700;margin-top:14px}
+.note{margin:28px 0 0;color:var(--sub);font-size:12px}.cta{background:#e6eae8;border-radius:18px;padding:36px 44px;display:flex;align-items:center;justify-content:space-between;gap:26px;margin-bottom:75px}.cta h2{font-size:27px;margin:0 0 8px}.cta p{margin:0;color:var(--sub)}.footer{background:#343b3b;color:#d9e0dc;padding:50px 0 22px}.footer h3{color:#fff;font-size:14px;letter-spacing:.02em;margin:0 0 20px}.footer-grid{display:grid;grid-template-columns:1.2fr 1fr 1.1fr;gap:48px}.footer p{font-size:14px;line-height:1.95;margin:0}.footer .brand{display:block;color:white;margin-bottom:10px}.bottom{margin-top:36px;padding-top:20px;border-top:1px solid #616b67;color:#b7c1bb;font-size:12px}
+.lightbox[hidden]{display:none}.lightbox{position:fixed;z-index:30;inset:0;background:rgba(24,29,29,.94);display:grid;grid-template-rows:auto 1fr auto;color:#fff}.lightbox-top{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 22px}.lightbox button{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);color:#fff;border-radius:8px;width:44px;height:44px;font-size:23px}.view{display:flex;align-items:center;justify-content:center;gap:10px;min-height:0;padding:0 18px}.view img{object-fit:contain;max-height:min(75vh,900px);max-width:min(85vw,1100px);border-radius:6px}.caption{text-align:center;padding:14px 20px 25px;font-size:14px;color:#e4e8e6}.counter{font-size:13px;color:#c2cbc6}.empty{display:none;padding:45px;text-align:center;border-radius:12px;background:white;color:var(--sub)}
+@media(max-width:1080px){.links{gap:14px;font-size:13px}.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:700px){.wrap{padding-inline:20px}.nav{min-height:68px}.nav>.links,.nav>.btn{display:none}.menu{display:block}.mobile-nav.open{display:flex;flex-direction:column;padding:14px 20px 25px;gap:3px;background:#fff;border-top:1px solid var(--line)}.mobile-nav a{padding:12px 4px;font-weight:600;border-bottom:1px solid #edf0ee}.mobile-nav .btn{margin-top:16px}.hero{padding:48px 0 28px}.hero p{font-size:15px}.gallery-wrap{padding:15px 0 55px}.bar{display:block}.filters{gap:8px;margin-bottom:13px}.filter{padding:9px 14px;font-size:12px}.count{display:block}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.photo{height:137px}.body{padding:13px 12px 15px}.body h2{font-size:15px}.body p{font-size:12px}.category{font-size:10px}.more{font-size:12px}.cta{padding:25px 22px;display:block;margin-bottom:40px}.cta h2{font-size:22px}.cta .btn{margin-top:20px}.footer-grid{grid-template-columns:1fr;gap:27px}.lightbox-top{padding:12px}.view{gap:5px;padding:0 6px}.view img{max-width:76vw}.lightbox button{width:38px;height:42px}.caption{padding-bottom:28px}}
+@media(max-width:375px){.grid{grid-template-columns:1fr}.photo{height:200px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Responsive category filters: wrap into additional rows instead of scrolling. */
+.bar{display:flex;flex-wrap:wrap;align-items:flex-start;gap:12px 20px;min-width:0}
+.filters{display:flex;flex:1 1 520px;flex-wrap:wrap;align-items:center;gap:9px;min-width:0;max-width:100%;overflow:visible;white-space:normal}
+.filter{flex:0 1 auto;max-width:100%;white-space:normal;text-align:center;line-height:1.3;min-height:42px}
+.count{flex:0 0 auto;margin-top:11px}
+@media(max-width:700px){
+ .bar{display:flex;flex-direction:column;align-items:stretch;gap:8px}
+ .filters{flex:0 1 auto;width:100%;gap:8px;margin-bottom:0}
+ .filter{min-height:44px;padding:10px 14px;font-size:13px}
+ .count{margin:2px 0 0;white-space:normal}
+}
+@media(max-width:375px){.filters{gap:7px}.filter{padding:10px 12px}}
+
+/* Shared navigation, palette, spacing and footer from checkout */
+:root{--bg:#f3f0ed;--surface:#fffdfb;--ink:#393633;--sub:#706963;--line:#e1dad4;--dark:#5b514b;--accent:#88776a;--soft:#ece6e0;--focus:#a69383}
+body{background:var(--bg);color:var(--ink);line-height:1.55}
+.wrap{width:min(1130px,calc(100% - 40px));max-width:none;padding:0;margin-inline:auto}
+.top{background:#fffdfa;border-bottom:1px solid var(--line)}
+.nav{height:76px;min-height:0;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{font-size:27px;font-weight:800;letter-spacing:-1.5px}
+.brand span{color:var(--accent)}
+.links{display:flex;align-items:center;gap:17px;font-size:14px;color:var(--sub);white-space:nowrap}
+.links a:hover,.footer a:hover{text-decoration:underline}
+.links [aria-current=page]{font-weight:800;color:var(--ink)}
+.nav-cta{display:inline-block;background:var(--dark);color:white;border:0;border-radius:9px;padding:13px 20px;font-size:13px;font-weight:700;white-space:nowrap}
+.nav-cta:hover{background:#443a35}
+.mobile-menu{display:none;background:transparent;color:var(--ink);border:0;font-size:23px;cursor:pointer}
+#mobileNav:not([hidden]){display:flex;flex-direction:column;gap:0;padding:4px 0 18px}
+#mobileNav a{display:block;padding:11px 8px;border-bottom:1px solid var(--line);font-size:14px;color:var(--ink)}
+#mobileNav a:hover{background:var(--soft)}
+.hero{padding:64px 0 40px}.hero h1{letter-spacing:-1.5px}
+.hero .eyebrow{color:var(--accent)}
+.hero-accent{background:var(--accent)}
+.filters{display:flex;flex-wrap:wrap;overflow:visible;min-width:0;gap:9px}
+.bar{display:flex;flex-direction:column;align-items:flex-start;gap:12px}
+.filter{flex:0 0 auto;border-color:var(--line);background:var(--surface);color:var(--ink)}
+.filter[aria-pressed=true]{background:var(--dark);border-color:var(--dark);color:white}
+.count{white-space:normal}
+.tile{background:var(--surface);border-color:var(--line);box-shadow:0 5px 22px rgba(70,58,47,.035)}
+.tile:hover{box-shadow:0 12px 32px rgba(70,58,47,.11)}
+.photo{background:linear-gradient(145deg,#eee8e1,#c3b9b0)}
+.category{color:var(--accent)}
+.cta{background:var(--soft);border-radius:16px;padding:32px 35px}
+.cta .btn{background:var(--dark);border-radius:9px}
+.footer{background:#403934;color:#f6f0eb;padding:38px 0;font-size:13px}
+.footer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px}
+.footer h3{color:#f6f0eb;font-size:13px;letter-spacing:.07em;margin:0 0 12px}
+.footer p{margin:5px 0;color:#d9cec5;font-size:13px;line-height:1.55}
+@media(max-width:1090px){.links{display:none}.mobile-menu{display:block}.nav-cta{margin-left:auto}}
+@media(max-width:900px){.footer-grid{grid-template-columns:1fr}.nav{height:76px}}
+@media(max-width:700px){.wrap{width:calc(100% - 40px);padding:0}.nav{min-height:0;height:76px}.nav>.nav-cta{display:inline-block}.hero{padding:46px 0 30px}.filters{gap:8px}.filter{font-size:12px;padding:10px 14px;min-height:42px}.bar{display:flex;flex-direction:column;align-items:flex-start}.cta{padding:25px 22px}}
+@media(max-width:430px){.wrap{width:calc(100% - 30px)}.nav{height:66px}.nav-cta{padding:10px;font-size:11px}.filter{padding:10px 12px}}
+/* Layout fix: the filters are stacked vertically in .bar. Prevent the old
+   flex-basis: 520px from reserving a huge empty height above the photos. */
+.bar{display:flex;flex-direction:column;align-items:stretch;gap:10px;margin-bottom:22px}
+.filters{flex:0 0 auto;width:100%;max-width:100%;min-height:0;align-content:start;gap:9px}
+.count{flex:0 0 auto;margin:0;line-height:1.35}
+@media(max-width:700px){.bar{gap:9px;margin-bottom:18px}.filters{flex:0 0 auto;min-height:0}}
+
+</style>
+</head>
+<body>
+<header class="top"><div class="wrap nav"><a aria-label="ActiveFit - strona główna" class="brand" href="https://www.activefit.pl/">active<span>fit.</span></a><nav aria-label="Nawigacja" class="links"><a href="https://www.activefit.pl/">Start</a><a href="activefit-cennik-kategorie-bez-suwaka.html">Cennik</a><a aria-current="page" href="activefit-galeria-ujednolicona.html">Galeria</a><a href="https://www.activefit.pl/aktualnosci">Aktualności</a><a href="activefit-regulamin.html">Regulamin</a><a href="activefit-kontakt.html">Kontakt</a></nav><a class="nav-cta" href="activefit-zakup-karnetu-pelne-menu.html">Kup karnet →</a><button aria-expanded="false" aria-label="Otwórz menu" class="mobile-menu" id="menuButton" type="button">☰</button></div><nav class="wrap" hidden="" id="mobileNav" style="padding-bottom:15px"><a href="https://www.activefit.pl/">Start</a><a href="activefit-cennik-kategorie-bez-suwaka.html">Cennik</a><a aria-current="page" href="activefit-galeria-ujednolicona.html">Galeria</a><a href="https://www.activefit.pl/aktualnosci">Aktualności</a><a href="activefit-regulamin.html">Regulamin</a><a href="activefit-kontakt.html">Kontakt</a></nav></header>
+<main><section class="wrap hero"><span class="eyebrow">ZOBACZ ACTIVEFIT OD ŚRODKA</span><h1>Galeria</h1><p>Zajrzyj do naszej przestrzeni. Zobacz, jak wygląda trening, zajęcia oraz miejsca, w których dbamy o zdrowie i dobre samopoczucie.</p><span class="hero-accent"></span></section>
+<section aria-label="Galeria zdjęć" class="wrap gallery-wrap"><div class="bar"><div aria-label="Filtr kategorii" class="filters" role="group"><button aria-pressed="true" class="filter" data-filter="all" type="button">Wszystkie zdjęcia</button><button aria-pressed="false" class="filter" data-filter="gym" type="button">Siłownia</button><button aria-pressed="false" class="filter" data-filter="classes" type="button">Zajęcia</button><button aria-pressed="false" class="filter" data-filter="therapy" type="button">Fizjoterapia</button><button aria-pressed="false" class="filter" data-filter="wellness" type="button">Zabiegi</button></div><span class="count" id="count" role="status"></span></div><div class="grid" id="gallery"></div><p class="empty" id="empty">Nie znaleziono zdjęć w tej kategorii.</p><p class="note">Zdjęcia są poglądowe i nie przedstawiają konkretnych pomieszczeń ActiveFit. Przed publikacją zastąpimy je autentycznymi fotografiami klubu.</p></section>
+<section class="wrap"><div class="cta"><div><h2>Poczuj się dobrze w ruchu.</h2><p>Sprawdź dostępne karnety i wybierz opcję dla siebie.</p></div><a class="btn" href="activefit-zakup-karnetu-pelne-menu.html">Sprawdź karnety →</a></div></section></main>
+<footer class="footer" id="kontakt"><div class="wrap footer-grid"><div><h3>KARTY PARTNERSKIE</h3><p>MultiSport / Benefit Systems</p><p>Medicover Sport</p></div><div><h3>GODZINY OTWARCIA</h3><p>Pon.–pt. 8:00–22:00</p><p>Sobota 9:00–17:00</p><p>Niedziela nieczynne</p></div><div><h3>KONTAKT</h3><p>ul. Traugutta 30, 63-300 Pleszew</p><p><a href="tel:+48693388508">693 388 508</a></p><p><a href="mailto:magda@activefit.pl">magda@activefit.pl</a></p></div></div></footer>
+<div aria-label="Podgląd zdjęcia" aria-modal="true" class="lightbox" hidden="" id="lightbox" role="dialog"><div class="lightbox-top"><span class="counter" id="lb-counter"></span><button aria-label="Zamknij podgląd" id="lb-close" type="button">×</button></div><div class="view"><button aria-label="Poprzednie zdjęcie" id="lb-prev" type="button">‹</button><img alt="" id="lb-image"/><button aria-label="Następne zdjęcie" id="lb-next" type="button">›</button></div><div class="caption" id="lb-caption"></div></div>
+<script>
+'use strict';
+const photos=[
+{title:'Strefa treningu siłowego',description:'Przestrzeń na Twój trening',cat:'gym',image:'photo-1534438327276-14e5300c3a48'},
+{title:'Trening z wolnymi ciężarami',description:'Siła i sprawność',cat:'gym',image:'photo-1517836357463-d25dfeac3438'},
+{title:'Zajęcia grupowe',description:'Energia i wspólna motywacja',cat:'classes',image:'photo-1518611012118-696072aa579a'},
+{title:'Zadbaj o mobilność',description:'Zdrowy ruch każdego dnia',cat:'therapy',image:'photo-1571019613454-1cb2f99b2d8b'},
+{title:'Trening funkcjonalny',description:'Różnorodność ćwiczeń',cat:'classes',image:'photo-1571019614242-c5c5dee9f50b'},
+{title:'Miejsce na regenerację',description:'Chwila tylko dla Ciebie',cat:'wellness',image:'photo-1540555700478-4be289fbecef'},
+{title:'Sala ćwiczeń',description:'Komfortowe miejsce do ruchu',cat:'gym',image:'photo-1599058917212-d750089bc07e'},
+{title:'Rozciąganie i stabilizacja',description:'Równowaga i dobre samopoczucie',cat:'classes',image:'photo-1517836357463-d25dfeac3438'},
+{title:'Troska o ciało',description:'Wsparcie i regeneracja',cat:'therapy',image:'photo-1544367567-0f2fcb009e0b'},
+{title:'Relaks i pielęgnacja',description:'Zabiegi na ciało',cat:'wellness',image:'photo-1519823551278-64ac92734fb1'},
+{title:'Aktywność i energia',description:'Trenuj we własnym tempie',cat:'gym',image:'photo-1534258936925-c58bed479fcb'},
+{title:'Świadomy ruch',description:'Zdrowy kręgosłup',cat:'therapy',image:'photo-1599447421416-3414500d18a5'}
+];
+const names={gym:'Siłownia',classes:'Zajęcia',therapy:'Fizjoterapia',wellness:'Zabiegi'};
+const grid=document.getElementById('gallery'),filters=[...document.querySelectorAll('.filter')],modal=document.getElementById('lightbox');let visible=photos,position=0,previousFocus=null;
+function url(photo,size=700){return `https://images.unsplash.com/${photo.image}?auto=format&fit=crop&w=${size}&q=82`}
+function render(cat='all'){visible=photos.filter(x=>cat==='all'||x.cat===cat);grid.replaceChildren();visible.forEach((p,i)=>{const item=document.createElement('button');item.type='button';item.className='tile';item.setAttribute('aria-label',`Otwórz zdjęcie: ${p.title}`);item.innerHTML=`<div class="photo"><span class="placeholder" aria-hidden="true">◈</span><img src="${url(p)}" alt="${p.title} — fotografia poglądowa" loading="lazy" onerror="this.style.opacity='0'"></div><div class="body"><div class="category">${names[p.cat]}</div><h2>${p.title}</h2><p>${p.description}</p><span class="more">Zobacz zdjęcie ↗</span></div>`;item.addEventListener('click',()=>open(i));grid.append(item)});document.getElementById('count').textContent=`${visible.length} zdjęć`;document.getElementById('empty').style.display=visible.length?'none':'block';filters.forEach(f=>f.setAttribute('aria-pressed',String(f.dataset.filter===cat)))}
+function display(){const p=visible[position];document.getElementById('lb-image').src=url(p,1600);document.getElementById('lb-image').alt=p.title+' — fotografia poglądowa';document.getElementById('lb-caption').textContent=p.title+' · '+p.description;document.getElementById('lb-counter').textContent=`${position+1} / ${visible.length}`}
+function open(i){if(!visible.length)return;previousFocus=document.activeElement;position=i;display();modal.hidden=false;document.body.classList.add('modal-open');document.getElementById('lb-close').focus()}
+function close(){modal.hidden=true;document.body.classList.remove('modal-open');if(previousFocus&&previousFocus.isConnected)previousFocus.focus()}
+function move(n){position=(position+n+visible.length)%visible.length;display()}
+filters.forEach(f=>f.addEventListener('click',()=>render(f.dataset.filter)));document.getElementById('lb-close').addEventListener('click',close);document.getElementById('lb-prev').addEventListener('click',()=>move(-1));document.getElementById('lb-next').addEventListener('click',()=>move(1));document.addEventListener('keydown',e=>{if(modal.hidden)return;if(e.key==='Escape')close();if(e.key==='ArrowRight')move(1);if(e.key==='ArrowLeft')move(-1);if(e.key==='Tab'){const controls=[document.getElementById('lb-close'),document.getElementById('lb-prev'),document.getElementById('lb-next')];const i=controls.indexOf(document.activeElement);if(e.shiftKey&&i===0){controls[2].focus();e.preventDefault()}else if(!e.shiftKey&&i===2){controls[0].focus();e.preventDefault()}}});
+render();
+</script><script>(() => {
+ const toggle = document.getElementById('menuButton');
+ const menu = document.getElementById('mobileNav');
+ if (!toggle || !menu) return;
+ function close() { menu.hidden = true; toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-label', 'Otwórz menu'); }
+ toggle.addEventListener('click', () => { const open = menu.hidden; menu.hidden = !open; toggle.setAttribute('aria-expanded', String(open)); toggle.setAttribute('aria-label', open ? 'Zamknij menu' : 'Otwórz menu'); });
+ menu.querySelectorAll('a').forEach(a => a.addEventListener('click', close));
+ document.addEventListener('keydown', e => { if (e.key === 'Escape') close(); });
+})();</script></body></html>

@@ -145,7 +145,7 @@ To **katalogi docelowe**, nie wszystkie muszą istnieć po wygenerowaniu starter
 - Backend: `FormRequest` do walidacji, `Policy` do autoryzacji, `Action` dla logiki kupna/aktywacji/przedłużenia; kontroler koordynuje, nie implementuje reguł.
 - Jedna aplikacja, jedna baza danych. Nie tworzyć osobnego REST API na potrzeby Inertia bez konkretnego przypadku użycia.
 - Waluta: **integer w groszach (CONFIRMED)** dla wszystkich kwot w bazie, DTO i logice biznesowej (np. `price_grosz`, `total_grosz`). Nigdy `float` do obliczeń pieniężnych. Na granicy integracji z Przelewy24 stosuj jednostkę wymaganą przez API; przy formatowaniu PLN pokazuj dwie cyfry po przecinku.
-- Daty: instants transakcyjne UTC; reguły ważności w polskiej strefie i z testami 29/30/31, DST. Dla `OD-01`–`OD-03` **nie implementować domyślnej interpretacji**.
+- Daty: instants transakcyjne UTC; reguły ważności w polskiej strefie i z testami 29/30/31, DST. `OD-01`: dla daty stanowiącej ostatni dzień miesiąca stosować ostatni dzień kolejnego miesiąca; szczegóły granicy ważności pozostają do zatwierdzenia. `OD-02`: przedłużenie czasowe po zakończeniu obecnego okresu, niewykorzystane wejścia dodawać do nowego pakietu; nie zakładać zachowania przy mieszanych typach. `OD-03` pozostaje otwarte.
 - Nazwy klas/zmiennych/komentarzy w kodzie po angielsku; teksty interfejsu po polsku.
 - Frontend nie jest źródłem autoryzacji; backend ogranicza dostęp do każdego widoku i działania.
 - Dane historyczne zamówienia i zakupionego karnetu nie mogą zmieniać się po aktualizacji planu.
@@ -264,7 +264,7 @@ Dodatkowo: `npm run lint`, `npm run types` / `typecheck` oraz skan zależności,
 | TECH-03 | **CONFIRMED: TypeScript, Tailwind CSS, MySQL, Pest** | finalny zestaw narzędzi |
 | TECH-04 | Storage plików, dostawca SMTP i sposób wysyłania PDF | powiadomienia i bezpieczeństwo |
 | TECH-05 | P24 sandbox, proces rozliczania płatności i konfiguracja merchant | integracja płatności |
-| TECH-06 | `OD-01`–`OD-11` w requirements.md, szczególnie daty, zwroty, PDF, tożsamość | nie implementować na podstawie domysłów |
+| TECH-06 | Otwarte decyzje w requirements.md (`OD-05` rozstrzygnięte) | nie implementować na podstawie domysłów |
 | TECH-07 | **CONFIRMED: integer (grosze)**; bez float/DECIMAL dla kwot domenowych | typy pól, migracje i kontrakty |
 | TECH-08 | SSR publicznych stron vs standardowy rendering Inertia | SEO i proces produkcyjny |
 
@@ -283,3 +283,30 @@ Dodatkowo: `npm run lint`, `npm run types` / `typecheck` oraz skan zależności,
 ---
 
 **Zasada nadrzędna:** repozytorium i fundament można utworzyć teraz, ale nie wolno uznawać niezatwierdzonych reguł biznesowych za finalne. Każda zmiana architektoniczna powinna wskazywać odpowiedni identyfikator wymagania (`MEM-*`, `PAY-*`, `CMS-*`, itd.).
+
+## Decyzja OD-05 — konta i zakupy gościnne (zatwierdzona)
+
+- Dla `users`: unikalny adres e-mail oraz unikalny numer telefonu przechowywany w ujednoliconym formacie (np. E.164). Wymusić to również indeksami `UNIQUE` w bazie.
+- Dane kupującego i posiadacza przy zakupach bez konta nie muszą być unikalne. Nie należy wiązać ich z `users` na podstawie zgodności telefonu lub e-maila.
+- Osoba, która kupowała bez konta, może później zarejestrować konto z tym samym kontaktem, o ile nie należy już do innego zarejestrowanego konta. Historia gościnna pozostaje niezależna i niedostępna z nowego konta.
+- Wyszukiwanie pracownicze po numerze telefonu może zwrócić wiele osobnych rekordów; przy prezentowaniu wyników nie scalać automatycznie tożsamości.
+- Testy: unikalność e-maila i znormalizowanego telefonu w `users`, dozwolone powtórzenia danych w zamówieniach gościnnych, brak przejęcia historii przy rejestracji oraz wyszukiwanie wielu rekordów.
+
+## 14. Decyzje implementacyjne potwierdzone 2026-11-04
+
+- Uruchomienie produkcyjne wymaga jawnego, idempotentnego seedera początkowego konta `admin`. Sekrety tylko w env/secret managerze, nigdy w commicie.
+- Każda rola ma trasę własnego profilu; zmiana e-maila wymaga potwierdzenia.
+- PDF ma być wysyłany przez kolejkę po potwierdzeniu płatności, także dla przedłużeń z przyszłym startem; nie wymagamy zadania „wyślij na starts_on”.
+- `ACT-01` zatwierdzone: nowy opłacony karnet pozostaje `pending_activation` aż do pierwszej wizyty, gdy pracownik/admin zapisze okres ważności; PDF wysyłamy już po płatności, bez nieznanych dat.
+- Źródła prawdy: `docs/product/requirements.md`, `docs/architecture/database.md`, `cms.md`, `business-flows.md`, `decisions/ADR-001-activation.md`.
+
+
+## Potwierdzona reguła aktywacji — ACT-01 (2026-11-05)
+
+**CONFIRMED:** opłacenie zakupu wydaje karnet o statusie `pending_activation`, ale **nie uruchamia** jego okresu ważności. Przy **pierwszej wizycie posiadacza** pracownik lub administrator weryfikuje właściwy karnet i uruchamia okres ważności; zapisujemy `activated_at` (UTC), `activated_by_user_id`, `starts_on` (lokalny dzień wizyty według `Europe/Warsaw`) i wyliczone `expires_on` (włącznie) według zakupionego snapshotu planu. Nie można aktywować nieopłaconego karnetu. Powtórzenie aktywacji niczego nie przelicza. Zapis aktywacji i audytu jest atomowy.
+
+**Przedłużenia:** opłacone przedłużenie aktywnego karnetu o tym samym obsługiwanym typie ma przyszły okres od `previous.expires_on + 1 day` — **bez ponownej wizyty aktywacyjnej**. Dla karnetu, który sam jeszcze nie został aktywowany, sposób kolejkowania następnych zakupów pozostaje `OPEN`; nie przypisujemy automatycznie dat bez znanej daty startu źródła.
+
+**PDF po opłacie:** generujemy i wysyłamy także dla `pending_activation`. Zawiera imię i nazwisko posiadacza, dane planu i komunikat „Ważność rozpocznie się przy pierwszej wizycie w klubie”; **nie zawiera fikcyjnych dat**. Dla opłaconego przedłużenia ze znanym przyszłym okresem PDF pokazuje rzeczywiste daty. Nie wymagamy automatycznej drugiej wysyłki PDF po aktywacji; ewentualne późniejsze pobranie aktualnego PDF może uwzględniać ustalone daty. Błąd e-maila nie cofa zakupu ani nie tworzy nowego karnetu.
+
+**Granica stanów:** `orders/payments: paid` ≠ `memberships: active`. Statusy UI obejmują `awaiting_payment`, `pending_activation`, `scheduled` (przedłużenie) i `active`, a także `expired`/`exhausted` w odpowiednim kontekście. Faktyczną aktywację i wejście do klubu zapisujemy jako **różne zdarzenia**; odliczenie wejścia z karnetu limitowanego wymaga osobnej świadomej akcji, nawet jeśli odbywa się podczas tej samej wizyty.

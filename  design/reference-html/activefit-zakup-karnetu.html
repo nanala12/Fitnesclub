@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html lang="pl"><head><meta charset="utf-8"/><meta content="width=device-width,initial-scale=1" name="viewport"/><title>Kup karnet | ActiveFit Pleszew</title><meta content="Wybierz karnet ActiveFit i sprawdź podsumowanie zakupu." name="description"/><style>
+:root{--bg:#f3f0ed;--surface:#fffdfb;--text:#393633;--muted:#706963;--line:#e1dad4;--dark:#5b514b;--accent:#88776a;--soft:#ece6e0}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,'Segoe UI',sans-serif;line-height:1.55}a{color:inherit;text-decoration:none}button,input{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,a:focus-visible{outline:3px solid #a69383;outline-offset:3px}.wrap{width:min(1130px,calc(100% - 40px));margin:auto}.top{background:#fffdfa;border-bottom:1px solid var(--line)}.nav{height:76px;display:flex;align-items:center;justify-content:space-between;gap:20px}.brand{font-size:27px;font-weight:800;letter-spacing:-1.5px}.brand span{color:var(--accent)}.links{display:flex;align-items:center;gap:27px;font-size:14px;color:var(--muted)}.links a:hover,.footer a:hover{text-decoration:underline}.nav-cta,.primary{background:var(--dark);color:white;border:0;border-radius:9px;padding:13px 20px;font-weight:700}.nav-cta{font-size:13px}.back{font-size:13px;color:var(--muted);display:inline-block;margin-top:35px}.header{padding:18px 0 32px}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.14em;color:var(--accent)}h1{font-size:clamp(31px,4vw,48px);line-height:1.12;letter-spacing:-1.5px;margin:12px 0}h2{font-size:23px;letter-spacing:-.6px;margin:0 0 19px}p{margin:0}.lead{color:var(--muted);max-width:690px}.layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(300px,.85fr);gap:26px;align-items:start;padding-bottom:75px}.panel{background:var(--surface);box-shadow:0 10px 30px rgba(70,58,47,.035);border:1px solid var(--line);border-radius:16px;padding:29px;margin-bottom:20px}.step{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;margin-right:10px;border-radius:50%;background:var(--soft);font-size:13px}.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.plan{position:relative;display:block;border:2px solid var(--line);border-radius:12px;padding:17px;cursor:pointer;transition:border-color .15s,background .15s}.plan:has(input:checked){border-color:var(--dark);background:#f0eae4;box-shadow:0 0 0 2px rgba(91,81,75,.06)}.plan input{position:absolute;right:15px;top:16px;accent-color:var(--dark);width:17px;height:17px}.plan strong{display:block;font-size:16px;margin:17px 0 5px;padding-right:10px}.plan .cost{font-size:26px;font-weight:800;letter-spacing:-.8px;margin:10px 0 7px}.plan small{display:block;color:var(--muted);font-size:12px}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{display:flex;flex-direction:column;gap:7px;margin-bottom:15px}.field label{font-weight:600;font-size:13px}.field input{border:1px solid #c9c0b8;padding:13px 14px;border-radius:8px;min-height:46px;background:#fffdfb;min-width:0}.field input[aria-invalid="true"]{border-color:#a04740}.error{font-size:12px;color:#a04740;min-height:17px}.note{font-size:13px;color:var(--muted);background:var(--soft);padding:14px;border-radius:9px}.checkbox{display:flex;gap:11px;align-items:start;font-size:13px;line-height:1.5;margin:19px 0}.checkbox input{margin-top:4px;accent-color:var(--dark)}.checkbox a{text-decoration:underline}.summary{position:sticky;top:22px}.summary .title{font-size:15px;font-weight:800;margin:0 0 22px}.summary-row{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);font-size:14px}.summary-row span:first-child{color:var(--muted)}.total{display:flex;justify-content:space-between;align-items:end;padding:20px 0;font-weight:700}.total strong{font-size:27px}.primary{width:100%;padding:15px;border-radius:9px}.primary:hover,.nav-cta:hover{background:#443a35}.primary:disabled{opacity:.55;cursor:not-allowed}.fine{font-size:12px;color:var(--muted);margin-top:14px}.message{display:none;padding:15px;border-radius:10px;margin-top:17px;background:#efe9e2;border:1px solid #c9b8a9;font-size:14px}.message.show{display:block}.footer{background:#403934;color:#f6f0eb;padding:38px 0;font-size:13px}.footer-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}.footer h3{font-size:13px;letter-spacing:.07em;margin:0 0 12px}.footer p{margin:5px 0;color:#d9cec5}.mobile-menu{display:none;border:0;background:transparent;font-size:23px;color:var(--text)}@media(max-width:900px){.layout{grid-template-columns:1fr}.summary{position:static}.plans{grid-template-columns:1fr}.plan strong{margin-top:2px}.plan .cost{margin:5px 0}.field-grid{grid-template-columns:1fr}.links{display:none}.mobile-menu{display:block}.nav-cta{margin-left:auto}.footer-grid{grid-template-columns:1fr}.panel{padding:22px}.header{padding-bottom:24px}}@media(max-width:430px){.wrap{width:calc(100% - 30px)}.nav{height:66px}.nav-cta{padding:10px;font-size:11px}h1{font-size:34px}}
+
+/* Buyer path selection, aligned with the existing warm-grey palette. */
+.account-choice{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 16px}
+.account-tab{min-height:52px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--text);font-weight:650;font-size:13px;padding:10px 8px;text-align:center;transition:background .15s,border-color .15s}
+.account-tab:hover{background:var(--soft)}
+.account-tab.is-active{background:#eee7e0;border-color:var(--dark);box-shadow:inset 0 0 0 1px var(--dark)}
+.account-help{color:var(--muted);font-size:13px;margin:0 0 22px}
+.account-panel[hidden]{display:none!important}
+.account-action{margin-top:4px}
+@media(max-width:520px){.account-choice{grid-template-columns:1fr}.account-tab{min-height:43px;text-align:left;padding-left:16px}}
+
+/* Consistent responsive navigation */
+.links { gap: 17px; white-space: nowrap; }
+#mobileNav:not([hidden]) {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 0 18px;
+}
+#mobileNav a {
+  display: block;
+  padding: 11px 8px;
+  border-bottom: 1px solid var(--line);
+  font-size: 14px;
+  color: var(--text);
+}
+#mobileNav a:hover { background: var(--soft); }
+@media (max-width: 1090px) {
+  .links { display: none; }
+  .mobile-menu { display: block; }
+  .nav-cta { margin-left: auto; }
+}
+</style></head><body>
+<header class="top"><div class="wrap nav"><a aria-label="ActiveFit - strona główna" class="brand" href="https://www.activefit.pl/">active<span>fit.</span></a><nav aria-label="Nawigacja" class="links"><a href="https://www.activefit.pl/">Start</a><a href="activefit-cennik.html">Cennik</a><a href="activefit-galeria.html">Galeria</a><a href="https://www.activefit.pl/aktualnosci">Aktualności</a><a href="activefit-regulamin.html">Regulamin</a><a href="activefit-kontakt.html">Kontakt</a></nav><a class="nav-cta" href="activefit-cennik.html">Zobacz cennik</a><button aria-expanded="false" aria-label="Otwórz menu" class="mobile-menu" id="menuButton" type="button">☰</button></div><nav class="wrap" hidden="" id="mobileNav" style="padding-bottom:15px"><a href="https://www.activefit.pl/">Start</a><a href="activefit-cennik.html">Cennik</a><a href="activefit-galeria.html">Galeria</a><a href="https://www.activefit.pl/aktualnosci">Aktualności</a><a href="activefit-regulamin.html">Regulamin</a><a href="activefit-kontakt.html">Kontakt</a></nav></header>
+<main class="wrap"><a class="back" href="activefit-cennik.html">← Wróć do cennika</a><div class="header"><span class="eyebrow">ACTIVEFIT / KARNETY ONLINE</span><h1>Kup karnet</h1><p class="lead">Wybierz opcję dla siebie i uzupełnij dane. Karnet będzie ważny od dnia zakupu po potwierdzeniu płatności.</p></div>
+<div class="layout"><div><section class="panel"><h2><span class="step">1</span>Wybierz karnet</h2><div aria-label="Rodzaj karnetu" class="plans" role="radiogroup"><label class="plan"><input checked="" name="pass" type="radio" value="day"/><strong>Karnet dzienny</strong><small>Trening do godziny 16:00</small><div class="cost">145 zł</div><small>30 dni</small></label><label class="plan"><input name="pass" type="radio" value="full"/><strong>Karnet całodzienny</strong><small>Trening do godziny 22:00</small><div class="cost">165 zł</div><small>30 dni</small></label><label class="plan"><input name="pass" type="radio" value="entry"/><strong>Karnet na 8 wejść</strong><small>Pakiet ośmiu treningów</small><div class="cost">100 zł</div><small>8 wejść</small></label></div></section>
+<section class="panel"><h2><span class="step">2</span>Dane kupującego</h2>
+<div aria-label="Sposób zakupu" class="account-choice" role="group">
+<button aria-pressed="true" class="account-tab is-active" data-mode="guest" type="button">Kup bez rejestracji</button>
+<button aria-pressed="false" class="account-tab" data-mode="login" type="button">Zaloguj się</button>
+<button aria-pressed="false" class="account-tab" data-mode="register" type="button">Zarejestruj się</button>
+</div>
+<p class="account-help" id="accountHelp">Nie potrzebujesz konta. Podaj dane do wysłania potwierdzenia zakupu.</p>
+<form class="account-panel" data-panel="guest" id="purchase" novalidate=""><div class="field-grid"><div class="field"><label for="firstName">Imię *</label><input autocomplete="given-name" id="firstName" maxlength="80" name="firstName" required=""/><span class="error" id="firstNameError"></span></div><div class="field"><label for="lastName">Nazwisko *</label><input autocomplete="family-name" id="lastName" maxlength="100" name="lastName" required=""/><span class="error" id="lastNameError"></span></div><div class="field"><label for="email">E-mail *</label><input autocomplete="email" id="email" maxlength="254" name="email" required="" type="email"/><span class="error" id="emailError"></span></div><div class="field"><label for="phone">Numer telefonu *</label><input autocomplete="tel" id="phone" inputmode="tel" maxlength="24" name="phone" required="" type="tel"/><span class="error" id="phoneError"></span></div></div><div class="note">Karnet i potwierdzenie zakupu otrzymasz na podany adres e-mail. Konto klienta nie jest wymagane.</div><label class="checkbox"><input id="rules" required="" type="checkbox"/><span>Zapoznałem/am się z <a href="activefit-regulamin.html" rel="noopener" target="_blank">regulaminem klubu</a> oraz warunkami zakupu karnetu. *</span></label><span class="error" id="rulesError"></span></form>
+<form class="account-panel" data-panel="login" hidden="" id="loginForm" novalidate="">
+<div class="field"><label for="loginEmail">Adres e-mail *</label><input autocomplete="username" id="loginEmail" maxlength="254" required="" type="email"/></div>
+<div class="field"><label for="loginPassword">Hasło *</label><input autocomplete="current-password" id="loginPassword" minlength="8" required="" type="password"/></div>
+<button class="primary account-action" type="submit">Zaloguj się</button>
+<p class="fine">Po wdrożeniu zalogowanie uzupełni dane kupującego. Ten podgląd nie łączy się z kontami klientów.</p>
+<div aria-live="polite" class="message" id="loginMessage" role="status"></div>
+</form>
+<form class="account-panel" data-panel="register" hidden="" id="registerForm" novalidate="">
+<div class="field-grid">
+<div class="field"><label for="registerFirst">Imię *</label><input autocomplete="given-name" id="registerFirst" maxlength="80" minlength="2" required=""/></div>
+<div class="field"><label for="registerLast">Nazwisko *</label><input autocomplete="family-name" id="registerLast" maxlength="100" minlength="2" required=""/></div>
+<div class="field"><label for="registerEmail">Adres e-mail *</label><input autocomplete="email" id="registerEmail" maxlength="254" required="" type="email"/></div>
+<div class="field"><label for="registerPhone">Numer telefonu *</label><input autocomplete="tel" id="registerPhone" inputmode="tel" maxlength="24" required="" type="tel"/></div>
+<div class="field"><label for="registerPassword">Hasło *</label><input autocomplete="new-password" id="registerPassword" minlength="8" required="" type="password"/></div>
+<div class="field"><label for="registerConfirm">Powtórz hasło *</label><input autocomplete="new-password" id="registerConfirm" minlength="8" required="" type="password"/></div>
+</div>
+<button class="primary account-action" type="submit">Utwórz konto</button>
+<p class="fine">Po wdrożeniu utworzenie konta pozwoli korzystać z historii zakupów i panelu klienta. Demonstracja nie zapisuje danych.</p>
+<div aria-live="polite" class="message" id="registerMessage" role="status"></div>
+</form>
+</section></div>
+<aside aria-label="Podsumowanie zakupu" class="panel summary"><p class="title">Podsumowanie zakupu</p><div class="summary-row"><span>Wybrany karnet</span><strong id="chosenName">Karnet dzienny</strong></div><div class="summary-row"><span>Data rozpoczęcia</span><strong id="startDate">—</strong></div><div class="summary-row"><span>Ważność</span><strong id="validity">30 dni</strong></div><div class="summary-row"><span>Opłata dodatkowa</span><strong>0 zł</strong></div><div class="total"><span>Do zapłaty</span><strong id="chosenPrice">145 zł</strong></div><button class="primary" form="purchase" type="submit">Przejdź do płatności →</button><p class="fine">Bezpieczna płatność online zostanie udostępniona po integracji operatora. Ten widok jest demonstracją — nie pobiera płatności ani nie zapisuje danych.</p><div aria-live="polite" class="message" id="result" role="status"></div></aside></div></main>
+<footer class="footer"><div class="wrap footer-grid"><div><h3>KARTY PARTNERSKIE</h3><p>MultiSport / Benefit Systems</p><p>Medicover Sport</p></div><div><h3>GODZINY OTWARCIA</h3><p>Pon.–pt. 8:00–22:00</p><p>Sobota 9:00–17:00</p><p>Niedziela nieczynne</p></div><div><h3>KONTAKT</h3><p>ul. Traugutta 30, 63-300 Pleszew</p><p><a href="tel:+48693388508">693 388 508</a></p><p><a href="mailto:magda@activefit.pl">magda@activefit.pl</a></p></div></div></footer>
+<script>
+(() => {
+  'use strict';
+  const offers = {
+    day: { name: 'Karnet dzienny', price: 145, validity: '30 dni' },
+    full: { name: 'Karnet całodzienny', price: 165, validity: '30 dni' },
+    entry: { name: 'Karnet na 8 wejść', price: 100, validity: '8 wejść' }
+  };
+  const $ = id => document.getElementById(id);
+  const formatPrice = amount => new Intl.NumberFormat('pl-PL', {
+    style: 'currency', currency: 'PLN', maximumFractionDigits: 0
+  }).format(amount);
+  const selectedOffer = () => offers[document.querySelector('input[name="pass"]:checked')?.value ?? 'day'];
+  const paymentButton = document.querySelector('.summary button[form="purchase"]');
+
+  function updateSummary() {
+    const offer = selectedOffer();
+    $('chosenName').textContent = offer.name;
+    $('chosenPrice').textContent = formatPrice(offer.price);
+    $('validity').textContent = offer.validity;
+    $('result').classList.remove('show');
+  }
+  document.querySelectorAll('input[name="pass"]').forEach(input => input.addEventListener('change', updateSummary));
+  $('startDate').textContent = new Intl.DateTimeFormat('pl-PL', {
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).format(new Date());
+
+  const descriptions = {
+    guest: 'Nie potrzebujesz konta. Podaj dane do wysłania potwierdzenia zakupu.',
+    login: 'Masz już konto? Zaloguj się, aby skorzystać z zapisanych danych w docelowym systemie.',
+    register: 'Załóż konto, aby w przyszłości zarządzać karnetami i historią zakupów.'
+  };
+  function switchMode(mode) {
+    document.querySelectorAll('.account-tab').forEach(button => {
+      const active = button.dataset.mode === mode;
+      button.classList.toggle('is-active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+    document.querySelectorAll('.account-panel').forEach(panel => { panel.hidden = panel.dataset.panel !== mode; });
+    $('accountHelp').textContent = descriptions[mode];
+    paymentButton.disabled = mode !== 'guest';
+    paymentButton.textContent = mode === 'guest' ? 'Przejdź do płatności →' : 'Najpierw zaloguj się lub zarejestruj';
+    $('result').classList.remove('show');
+  }
+  document.querySelectorAll('.account-tab').forEach(button => {
+    button.addEventListener('click', () => switchMode(button.dataset.mode));
+  });
+
+  $('menuButton').addEventListener('click', () => {
+    const nav = $('mobileNav');
+    nav.hidden = !nav.hidden;
+    $('menuButton').setAttribute('aria-expanded', String(!nav.hidden));
+  });
+
+  $('purchase').addEventListener('submit', event => {
+    event.preventDefault();
+    if (document.querySelector('.account-tab.is-active')?.dataset.mode !== 'guest') return;
+    let valid = true;
+    const checks = {
+      firstName: value => value.trim().length >= 2,
+      lastName: value => value.trim().length >= 2,
+      email: value => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim()),
+      phone: value => { const digits = value.replace(/\D/g, ''); return digits.length >= 9 && digits.length <= 15; }
+    };
+    for (const [key, check] of Object.entries(checks)) {
+      const input = $(key);
+      const ok = check(input.value);
+      $(key + 'Error').textContent = ok ? '' : 'Sprawdź poprawność tego pola.';
+      input.setAttribute('aria-invalid', String(!ok));
+      if (!ok) valid = false;
+    }
+    const accepted = $('rules').checked;
+    $('rulesError').textContent = accepted ? '' : 'Zaakceptuj regulamin, aby kontynuować.';
+    if (!accepted) valid = false;
+    if (!valid) {
+      document.querySelector('[aria-invalid="true"]')?.focus();
+      return;
+    }
+    const offer = selectedOffer();
+    const message = $('result');
+    message.textContent = `Wersja demonstracyjna: wybrano „${offer.name}” (${formatPrice(offer.price)}). Po wdrożeniu nastąpi przekierowanie do operatora płatności. Żadne dane nie zostały wysłane.`;
+    message.classList.add('show');
+  });
+
+  $('loginForm').addEventListener('submit', event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form.reportValidity()) return;
+    const message = $('loginMessage');
+    message.textContent = 'To podgląd UX. Logowanie zostanie uruchomione po integracji z systemem kont ActiveFit.';
+    message.classList.add('show');
+  });
+  $('registerForm').addEventListener('submit', event => {
+    event.preventDefault();
+    const form = event.currentTarget;
+    if (!form.reportValidity()) return;
+    if ($('registerPassword').value !== $('registerConfirm').value) {
+      $('registerConfirm').setCustomValidity('Hasła muszą być identyczne.');
+      $('registerConfirm').reportValidity();
+      return;
+    }
+    const phone = $('registerPhone').value.replace(/\D/g, '');
+    if (phone.length < 9 || phone.length > 15) {
+      $('registerPhone').setCustomValidity('Podaj prawidłowy numer telefonu.');
+      $('registerPhone').reportValidity();
+      return;
+    }
+    const message = $('registerMessage');
+    message.textContent = 'To podgląd UX. Rejestracja zostanie uruchomiona po integracji z systemem ActiveFit.';
+    message.classList.add('show');
+  });
+  ['registerConfirm', 'registerPhone'].forEach(id => $(id).addEventListener('input', event => event.target.setCustomValidity('')));
+  switchMode('guest');
+  updateSummary();
+})();
+</script></body></html>
