@@ -56,7 +56,33 @@ The starter's existing page names, layouts and route names are preserved. `route
 - Shared fields: `name`, `businessTimezone`, `sidebarOpen`, and `auth.user` (null for guests, otherwise only `id`, `name`, `email`, `email_verified_at`). The middleware explicitly selects these fields instead of serializing an entire model; timestamps and internal/security attributes are not automatically shared.
 - `AuthenticatedPageProps` narrows `auth.user` only inside components rendered behind Laravel's `auth` middleware. The narrower TypeScript type does not authorize access.
 - Home page props: `canRegister`, derived from Fortify configuration. Dashboard page props: nullable ISO UTC `accountCreatedAt`; the page formats it in the server-provided business timezone and handles a missing date.
-- Keep the existing `AppLayout`, `AuthLayout`, settings layout and starter components until TASK-005 introduces the shared product shells. Controllers remain thin. Add a Form Request, Policy, Action or Job when a real feature requires validation, resource authorization, business logic or asynchronous work; do not add empty layers for this read-only baseline.
+- Controllers remain thin. Add a Form Request, Policy, Action or Job when a real feature requires validation, resource authorization, business logic or asynchronous work; do not add empty layers for this read-only baseline.
+
+### Shared UI — TASK-005
+
+`resources/css/app.css` maps semantic tokens to the reference HTML's warm palette: background `#f3f0ed`, surface `#fffdfb`, text `#393633`, muted text `#706963`, border `#e1dad4`, primary `#5b514b`, and sidebar `#403934`. The existing light/dark preference remains supported, with warm dark tokens and reduced-motion handling. Original HTML stays unchanged, including its initial-space directory name (` design/reference-html/`). Do not copy its fake sales, prices, contacts or remote image dependencies into production pages.
+
+- `PublicLayout` supplies the wordmark, responsive navigation and footer for `Welcome` and `public/*`. The welcome view is an account entry point until TASK-011 supplies real public content.
+- `PanelLayout` supplies the shared 246px desktop sidebar, mobile sheet, account identity, logout and skip link. `CustomerLayout` supplies existing account/profile/security links and is the target of the compatibility `AppLayout` wrapper. Settings retain their nested layout.
+- `AdminLayout` and `StaffLayout` reuse `PanelLayout` with distinct headings and caller-supplied navigation; `app.ts` selects them for `admin/*` and `staff/*`. They add no routes or authorization. Backend role guards remain TASK-006, and later modules provide actual, authorized navigation. Never infer permissions from a selected layout.
+- `AuthLayout` retains the existing authentication forms with the shared wordmark/tokens. Positive tab indices were removed from login/registration; the password-visibility button participates in natural keyboard order. Full authentication copy is part of TASK-006.
+
+Reusable components live in `resources/js/components/shared/` and build on the installed Button/Input/Label/Dialog/Sheet primitives:
+
+| Component | Contract |
+| --- | --- |
+| `ActionButton` | Native button; defaults to `type="button"`. Set `type="submit"` in forms. `loading` disables repeats, announces `loadingText` and sets `aria-busy`; `disabled` handles unavailable actions. Link buttons continue using the base `Button as-child`. |
+| `FormField` | Required `id` and `label`, optional `name` (defaults to `id`), `hint`, `error`, `defaultValue` or `v-model`. Input attributes pass to the actual input; label, hint/error IDs and `aria-invalid`/`aria-describedby` are associated automatically. `InputError` announces errors. |
+| `FeedbackMessage` | Required title, optional body slot; info/success/warning/error appearance and status/alert announcements. |
+| `EmptyState`, `LoadingState` | Empty-result explanation with optional action slot; loading status with visible text. Caller supplies meaningful copy and real loading state. |
+| `ConfirmDialog` | Required trigger slot, title, description and explicit `confirmLabel`; `v-model:open`, `processing`, `error` and optional `destructive`. Emits `confirm` without closing. Caller starts the request, resets processing on failure, and closes after success. Reka traps/restores focus; closing is blocked while processing. Server authorization/idempotency remain mandatory. |
+| `Pagination` | Laravel-style `PaginationLink[]` (`url`, `label`, `active`) and optional `loading`. Uses supplied URLs, Polish previous/next labels, disabled boundaries and current-page semantics. Labels render as text; no `v-html`. |
+| `ContentImage` | Public image `src` (nullable), required `alt` (empty for decoration), optional dimensions/aspect ratio/loading mode. Reserves layout space, loads lazily by default, and shows accessible missing/error fallbacks. Never use it to expose private PDFs. |
+| `BrandLogo`, `NavigationLinks` | Shared wordmark and keyboard-operable, current-page navigation. Layouts only link implemented destinations. |
+
+The profile form demonstrates `FormField` and `ActionButton` with real Inertia validation/submission states. Polish profile validation and save feedback live in `lang/pl/validation.php` and `lang/pl.json`; the existing account-removal UI is localized without changing its backend operation. No new package, database field or business rule is introduced.
+
+Vitest/Playwright are not configured. TASK-005 uses the existing PHP/TS/build checks plus Chrome smoke in a temporary checkout: responsive shells, menu/dialog keyboard trapping and focus return, loading/error/empty/image states, safe pagination labels, real profile save/validation and logout. Component harness routes and synthetic fixtures exist only in that temporary checkout and must not ship with production routes.
 
 The directory tree below is the target organization for later product modules, not a list of empty files to generate in advance.
 

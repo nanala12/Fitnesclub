@@ -33,12 +33,12 @@ const accountCreatedOn = computed(() =>
 <template>
     <Head title="Moje konto" />
 
-    <div class="flex flex-1 flex-col gap-6 p-4 sm:p-6">
+    <div class="flex flex-1 flex-col gap-6">
         <h1 class="text-2xl font-semibold">Moje konto</h1>
 
         <section
             aria-labelledby="account-details-heading"
-            class="w-full max-w-2xl rounded-xl border border-border p-4 sm:p-6"
+            class="w-full max-w-2xl rounded-2xl border border-border bg-card p-4 sm:p-6"
         >
             <h2 id="account-details-heading" class="text-lg font-medium">
                 Dane Twojego konta

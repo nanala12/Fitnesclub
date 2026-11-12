@@ -121,6 +121,8 @@ Po opublikowaniu zmian sprawdź wynik w zakładce **Actions**. Po pierwszym ziel
 
 ## Gdzie zacząć
 
+Wspólne UI (TASK-005): kolory i kształty odpowiadają referencjom HTML. Komponenty w `resources/js/components/shared/` obsługują przyciski, pola, komunikaty, puste wyniki, ładowanie, potwierdzenia, paginację i zdjęcia. Layouty publiczny, klienta, pracownika i administratora opisuje [architektura frontendu](docs/architecture/frontend.md#shared-ui--task-005). Layouty pracownika/administratora są gotowe do podłączenia przyszłych widoków; nie dodają uprawnień ani tras paneli.
+
 Szkielet aplikacji (TASK-004): `/` jest obsługiwane przez `HomeController`, a `/dashboard` przez `DashboardController` z middleware `auth` i `verified`. Panel pokazuje dane bieżącego konta i link do edycji profilu. Wspólne propsy Inertia są zdefiniowane w `resources/js/types/shared.ts`, a propsy stron w `resources/js/types/pages.ts`; do przeglądarki trafiają wyłącznie jawnie wskazane pola użytkownika. Role i docelowe panele klubu pozostają zakresem kolejnych zadań.
 
 1. `AGENTS.md` — zasady pracy agentów AI.

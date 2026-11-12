@@ -5,7 +5,7 @@ import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileCo
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
-import { Button } from '@/components/ui/button';
+import ActionButton from '@/components/shared/ActionButton.vue';
 import {
     Dialog,
     DialogClose,
@@ -25,22 +25,22 @@ const passwordInput = useTemplateRef('passwordInput');
     <div class="space-y-6">
         <Heading
             variant="small"
-            title="Delete account"
-            description="Delete your account and all of its resources"
+            title="Usuń konto"
+            description="Potwierdź usunięcie konta swoim hasłem."
         />
         <div
             class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
         >
             <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
-                <p class="font-medium">Warning</p>
-                <p class="text-sm">
-                    Please proceed with caution, this cannot be undone.
-                </p>
+                <p class="font-medium">Uwaga</p>
+                <p class="text-sm">Tej operacji nie można cofnąć.</p>
             </div>
             <Dialog>
                 <DialogTrigger as-child>
-                    <Button variant="destructive" data-test="delete-user-button"
-                        >Delete account</Button
+                    <ActionButton
+                        variant="destructive"
+                        data-test="delete-user-button"
+                        >Usuń konto</ActionButton
                     >
                 </DialogTrigger>
                 <DialogContent>
@@ -56,34 +56,39 @@ const passwordInput = useTemplateRef('passwordInput');
                     >
                         <DialogHeader class="space-y-3">
                             <DialogTitle
-                                >Are you sure you want to delete your
-                                account?</DialogTitle
+                                >Czy chcesz usunąć swoje konto?</DialogTitle
                             >
                             <DialogDescription>
-                                Once your account is deleted, all of its
-                                resources and data will also be permanently
-                                deleted. Please enter your password to confirm
-                                you would like to permanently delete your
-                                account.
+                                Wpisz aktualne hasło, aby potwierdzić usunięcie
+                                konta.
                             </DialogDescription>
                         </DialogHeader>
 
                         <div class="grid gap-2">
-                            <Label for="password" class="sr-only"
-                                >Password</Label
-                            >
+                            <Label for="password" class="sr-only">Hasło</Label>
                             <PasswordInput
                                 id="password"
                                 name="password"
                                 ref="passwordInput"
-                                placeholder="Password"
+                                placeholder="Hasło"
+                                :aria-invalid="
+                                    errors.password ? true : undefined
+                                "
+                                :aria-describedby="
+                                    errors.password
+                                        ? 'delete-password-error'
+                                        : undefined
+                                "
                             />
-                            <InputError :message="errors.password" />
+                            <InputError
+                                id="delete-password-error"
+                                :message="errors.password"
+                            />
                         </div>
 
                         <DialogFooter class="gap-2">
                             <DialogClose as-child>
-                                <Button
+                                <ActionButton
                                     variant="secondary"
                                     @click="
                                         () => {
@@ -92,18 +97,19 @@ const passwordInput = useTemplateRef('passwordInput');
                                         }
                                     "
                                 >
-                                    Cancel
-                                </Button>
+                                    Anuluj
+                                </ActionButton>
                             </DialogClose>
 
-                            <Button
+                            <ActionButton
                                 type="submit"
                                 variant="destructive"
-                                :disabled="processing"
+                                :loading="processing"
+                                loading-text="Usuwanie…"
                                 data-test="confirm-delete-user-button"
                             >
-                                Delete account
-                            </Button>
+                                Usuń konto
+                            </ActionButton>
                         </DialogFooter>
                     </Form>
                 </DialogContent>

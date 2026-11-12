@@ -1,14 +1,11 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
-import type { BreadcrumbItem } from '@/types';
-
-const { breadcrumbs = [] } = defineProps<{
-    breadcrumbs?: BreadcrumbItem[];
-}>();
+import CustomerLayout from '@/layouts/CustomerLayout.vue';
+import type { PanelLayoutProps } from '@/types';
+defineProps<PanelLayoutProps>();
 </script>
 
 <template>
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <slot />
-    </AppLayout>
+    <CustomerLayout :breadcrumbs="breadcrumbs" :navigation="navigation"
+        ><slot
+    /></CustomerLayout>
 </template>
