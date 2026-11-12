@@ -49,6 +49,17 @@ Build missing views using the same brand elements, spacing and interaction patte
 
 ## 4. Suggested folder layout
 
+### Implemented baseline — TASK-004
+
+The starter's existing page names, layouts and route names are preserved. `routes/web.php` maps `/` to `HomeController` → `Welcome.vue`, and authenticated/verified `/dashboard` to `DashboardController` → `Dashboard.vue`. The dashboard is a read-only account overview from the current authenticated user, not a sales dashboard or membership listing. Shared props are defined in `resources/js/types/shared.ts`, page-specific contracts in `types/pages.ts`, and registered through the Inertia module augmentation in `types/global.d.ts`.
+
+- Shared fields: `name`, `businessTimezone`, `sidebarOpen`, and `auth.user` (null for guests, otherwise only `id`, `name`, `email`, `email_verified_at`). The middleware explicitly selects these fields instead of serializing an entire model; timestamps and internal/security attributes are not automatically shared.
+- `AuthenticatedPageProps` narrows `auth.user` only inside components rendered behind Laravel's `auth` middleware. The narrower TypeScript type does not authorize access.
+- Home page props: `canRegister`, derived from Fortify configuration. Dashboard page props: nullable ISO UTC `accountCreatedAt`; the page formats it in the server-provided business timezone and handles a missing date.
+- Keep the existing `AppLayout`, `AuthLayout`, settings layout and starter components until TASK-005 introduces the shared product shells. Controllers remain thin. Add a Form Request, Policy, Action or Job when a real feature requires validation, resource authorization, business logic or asynchronous work; do not add empty layers for this read-only baseline.
+
+The directory tree below is the target organization for later product modules, not a list of empty files to generate in advance.
+
 ```text
 resources/js/
 ├── app.ts

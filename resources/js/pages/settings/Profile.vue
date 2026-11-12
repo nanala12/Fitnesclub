@@ -11,6 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/profile';
 import { send } from '@/routes/verification';
+import type { AuthenticatedPageProps } from '@/types';
 
 defineOptions({
     layout: {
@@ -23,7 +24,7 @@ defineOptions({
     },
 });
 
-const page = usePage();
+const page = usePage<AuthenticatedPageProps>();
 const user = computed(() => page.props.auth.user);
 </script>
 

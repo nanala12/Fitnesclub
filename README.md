@@ -121,6 +121,8 @@ Po opublikowaniu zmian sprawdź wynik w zakładce **Actions**. Po pierwszym ziel
 
 ## Gdzie zacząć
 
+Szkielet aplikacji (TASK-004): `/` jest obsługiwane przez `HomeController`, a `/dashboard` przez `DashboardController` z middleware `auth` i `verified`. Panel pokazuje dane bieżącego konta i link do edycji profilu. Wspólne propsy Inertia są zdefiniowane w `resources/js/types/shared.ts`, a propsy stron w `resources/js/types/pages.ts`; do przeglądarki trafiają wyłącznie jawnie wskazane pola użytkownika. Role i docelowe panele klubu pozostają zakresem kolejnych zadań.
+
 1. `AGENTS.md` — zasady pracy agentów AI.
 2. `docs/product/requirements.md` — zakres i zatwierdzone reguły.
 3. `docs/architecture/decisions/ADR-001-activation.md` — zatwierdzona aktywacja podczas pierwszej wizyty.
