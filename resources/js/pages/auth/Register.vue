@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
 import InputError from '@/components/InputError.vue';
+import FormField from '@/components/shared/FormField.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
@@ -16,14 +17,14 @@ defineProps<{
 
 defineOptions({
     layout: {
-        title: 'Create an account',
-        description: 'Enter your details below to create your account',
+        title: 'Załóż konto',
+        description: 'Podaj swoje dane, aby założyć konto.',
     },
 });
 </script>
 
 <template>
-    <Head title="Register" />
+    <Head title="Rejestracja" />
 
     <Form
         v-bind="store.form()"
@@ -33,7 +34,7 @@ defineOptions({
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="name">Name</Label>
+                <Label for="name">Imię i nazwisko</Label>
                 <Input
                     id="name"
                     type="text"
@@ -41,13 +42,13 @@ defineOptions({
                     v-focus
                     autocomplete="name"
                     name="name"
-                    placeholder="Full name"
+                    placeholder="Imię i nazwisko"
                 />
                 <InputError :message="errors.name" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Adres e-mail</Label>
                 <Input
                     id="email"
                     type="email"
@@ -59,27 +60,39 @@ defineOptions({
                 <InputError :message="errors.email" />
             </div>
 
+            <FormField
+                id="phone"
+                label="Telefon z kierunkowym kraju"
+                type="tel"
+                name="phone"
+                autocomplete="tel"
+                placeholder="+48 600 700 800"
+                hint="Podaj numer razem z kierunkowym kraju, np. +48."
+                :error="errors.phone"
+                required
+            />
+
             <div class="grid gap-2">
-                <Label for="password">Password</Label>
+                <Label for="password">Hasło</Label>
                 <PasswordInput
                     id="password"
                     required
                     autocomplete="new-password"
                     name="password"
-                    placeholder="Password"
+                    placeholder="Hasło"
                     :passwordrules="passwordRules"
                 />
                 <InputError :message="errors.password" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password_confirmation">Confirm password</Label>
+                <Label for="password_confirmation">Powtórz hasło</Label>
                 <PasswordInput
                     id="password_confirmation"
                     required
                     autocomplete="new-password"
                     name="password_confirmation"
-                    placeholder="Confirm password"
+                    placeholder="Powtórz hasło"
                     :passwordrules="passwordRules"
                 />
                 <InputError :message="errors.password_confirmation" />
@@ -88,19 +101,18 @@ defineOptions({
             <Button
                 type="submit"
                 class="mt-2 w-full"
-                tabindex="5"
                 :disabled="processing"
                 data-test="register-user-button"
             >
                 <Spinner v-if="processing" />
-                Create account
+                Załóż konto
             </Button>
         </div>
 
         <div class="text-center text-sm text-muted-foreground">
-            Already have an account?
+            Masz już konto?
             <TextLink :href="login()" class="underline underline-offset-4"
-                >Log in</TextLink
+                >Zaloguj się</TextLink
             >
         </div>
     </Form>

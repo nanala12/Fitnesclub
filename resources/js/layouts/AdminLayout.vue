@@ -1,9 +1,22 @@
 <script setup lang="ts">
+import { LayoutGrid, UserRound, Users } from '@lucide/vue';
 import PanelLayout from '@/layouts/PanelLayout.vue';
+import { dashboard as adminDashboard } from '@/routes/admin';
+import { dashboard as staffDashboard } from '@/routes/staff';
+import { edit } from '@/routes/profile';
 import type { PanelLayoutProps } from '@/types';
-defineProps<PanelLayoutProps>();
+withDefaults(defineProps<PanelLayoutProps>(), {
+    navigation: () => [
+        {
+            title: 'Panel administratora',
+            href: adminDashboard(),
+            icon: LayoutGrid,
+        },
+        { title: 'Panel pracownika', href: staffDashboard(), icon: Users },
+        { title: 'Mój profil', href: edit(), icon: UserRound },
+    ],
+});
 </script>
-
 <template>
     <PanelLayout
         title="Panel administratora"

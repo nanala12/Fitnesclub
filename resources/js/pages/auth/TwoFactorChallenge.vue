@@ -18,18 +18,16 @@ const code = ref<string>('');
 const authConfigContent = computed<TwoFactorConfigContent>(() => {
     if (showRecoveryInput.value) {
         return {
-            title: 'Recovery code',
-            description:
-                'Please confirm access to your account by entering one of your emergency recovery codes.',
-            buttonText: 'login using an authentication code',
+            title: 'Kod odzyskiwania',
+            description: 'Wpisz jeden z zapisanych kodów odzyskiwania dostępu.',
+            buttonText: 'użyć kodu z aplikacji',
         };
     }
 
     return {
-        title: 'Authentication code',
-        description:
-            'Enter the authentication code provided by your authenticator application.',
-        buttonText: 'login using a recovery code',
+        title: 'Kod uwierzytelniający',
+        description: 'Wpisz kod z aplikacji uwierzytelniającej.',
+        buttonText: 'użyć kodu odzyskiwania',
     };
 });
 
@@ -48,7 +46,7 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
 </script>
 
 <template>
-    <Head title="Two-factor authentication" />
+    <Head title="Weryfikacja dwuetapowa" />
 
     <div class="space-y-6">
         <template v-if="!showRecoveryInput">
@@ -66,6 +64,11 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                     <div class="flex w-full items-center justify-center">
                         <InputOTP
                             id="otp"
+                            aria-label="Kod z aplikacji uwierzytelniającej"
+                            :aria-invalid="errors.code ? true : undefined"
+                            :aria-describedby="
+                                errors.code ? 'code-error' : undefined
+                            "
                             v-model="code"
                             :maxlength="6"
                             :disabled="processing"
@@ -80,13 +83,13 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
                             </InputOTPGroup>
                         </InputOTP>
                     </div>
-                    <InputError :message="errors.code" />
+                    <InputError id="code-error" :message="errors.code" />
                 </div>
                 <Button type="submit" class="w-full" :disabled="processing"
-                    >Continue</Button
+                    >Kontynuuj</Button
                 >
                 <div class="text-center text-sm text-muted-foreground">
-                    <span>or you can </span>
+                    <span>Możesz też </span>
                     <button
                         type="button"
                         class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"
@@ -107,18 +110,26 @@ const toggleRecoveryMode = (clearErrors: () => void): void => {
             >
                 <Input
                     name="recovery_code"
+                    aria-label="Kod odzyskiwania"
+                    :aria-invalid="errors.recovery_code ? true : undefined"
+                    :aria-describedby="
+                        errors.recovery_code ? 'recovery-code-error' : undefined
+                    "
                     type="text"
-                    placeholder="Enter recovery code"
+                    placeholder="Wpisz kod odzyskiwania"
                     v-focus
                     required
                 />
-                <InputError :message="errors.recovery_code" />
+                <InputError
+                    id="recovery-code-error"
+                    :message="errors.recovery_code"
+                />
                 <Button type="submit" class="w-full" :disabled="processing"
-                    >Continue</Button
+                    >Kontynuuj</Button
                 >
 
                 <div class="text-center text-sm text-muted-foreground">
-                    <span>or you can </span>
+                    <span>Możesz też </span>
                     <button
                         type="button"
                         class="text-foreground underline decoration-neutral-300 underline-offset-4 transition-colors duration-300 ease-out hover:decoration-current! dark:decoration-neutral-500"

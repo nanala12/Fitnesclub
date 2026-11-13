@@ -10,6 +10,11 @@ class ProfileDeleteRequest extends FormRequest
 {
     use PasswordValidationRules;
 
+    public function authorize(): bool
+    {
+        return $this->user()?->can('update', $this->user()) ?? false;
+    }
+
     /**
      * Get the validation rules that apply to the request.
      *

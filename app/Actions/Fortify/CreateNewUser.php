@@ -5,7 +5,11 @@ namespace App\Actions\Fortify;
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
 use App\Models\User;
+use App\Support\PhoneNumber;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -15,19 +19,46 @@ class CreateNewUser implements CreatesNewUsers
     /**
      * Validate and create a newly registered user.
      *
-     * @param  array<string, string>  $input
+     * @param  array<string, mixed>  $input
      */
     public function create(array $input): User
     {
-        Validator::make($input, [
+        if (isset($input['email']) && is_string($input['email'])) {
+            $input['email'] = mb_strtolower(trim($input['email']));
+        }
+        if (isset($input['phone']) && is_string($input['phone'])) {
+            $input['phone'] = PhoneNumber::normalize($input['phone']);
+        }
+
+        $validated = Validator::make($input, [
             ...$this->profileRules(),
+            'phone' => ['required', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/D', Rule::unique(User::class)],
             'password' => $this->passwordRules(),
+            'role' => ['prohibited'],
+            'is_active' => ['prohibited'],
+            'suspended_at' => ['prohibited'],
+            'email_verified_at' => ['prohibited'],
+            'id' => ['prohibited'],
         ])->validate();
 
-        return User::create([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'password' => $input['password'],
-        ]);
+        try {
+            return User::create([
+                'name' => $validated['name'],
+                'email' => $validated['email'],
+                'phone' => $validated['phone'],
+                'password' => $validated['password'],
+            ]);
+        } catch (UniqueConstraintViolationException $exception) {
+            $errors = [];
+            foreach (['email', 'phone'] as $field) {
+                if (User::where($field, $validated[$field])->exists()) {
+                    $errors[$field] = __('validation.unique', ['attribute' => __('validation.attributes.'.$field)]);
+                }
+            }
+            if ($errors === []) {
+                throw $exception;
+            }
+            throw ValidationException::withMessages($errors);
+        }
     }
 }

@@ -15,19 +15,20 @@ import PasskeyVerify from '@/components/PasskeyVerify.vue';
 
 defineOptions({
     layout: {
-        title: 'Log in to your account',
-        description: 'Enter your email and password below to log in',
+        title: 'Zaloguj się do konta',
+        description: 'Wpisz adres e-mail i hasło.',
     },
 });
 
 defineProps<{
     status?: string;
     canResetPassword: boolean;
+    canRegister: boolean;
 }>();
 </script>
 
 <template>
-    <Head title="Log in" />
+    <Head title="Zaloguj się" />
 
     <div
         v-if="status"
@@ -46,7 +47,7 @@ defineProps<{
     >
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="email">Email address</Label>
+                <Label for="email">Adres e-mail</Label>
                 <Input
                     id="email"
                     type="email"
@@ -61,13 +62,13 @@ defineProps<{
 
             <div class="grid gap-2">
                 <div class="flex items-center justify-between">
-                    <Label for="password">Password</Label>
+                    <Label for="password">Hasło</Label>
                     <TextLink
                         v-if="canResetPassword"
                         :href="request()"
                         class="text-sm"
                     >
-                        Forgot your password?
+                        Nie pamiętasz hasła?
                     </TextLink>
                 </div>
                 <PasswordInput
@@ -75,7 +76,7 @@ defineProps<{
                     name="password"
                     required
                     autocomplete="current-password"
-                    placeholder="Password"
+                    placeholder="Hasło"
                 />
                 <InputError :message="errors.password" />
             </div>
@@ -83,7 +84,7 @@ defineProps<{
             <div class="flex items-center justify-between">
                 <Label for="remember" class="flex items-center space-x-3">
                     <Checkbox id="remember" name="remember" />
-                    <span>Remember me</span>
+                    <span>Zapamiętaj mnie</span>
                 </Label>
             </div>
 
@@ -94,13 +95,16 @@ defineProps<{
                 data-test="login-button"
             >
                 <Spinner v-if="processing" />
-                Log in
+                Zaloguj się
             </Button>
         </div>
 
-        <div class="text-center text-sm text-muted-foreground">
-            Don't have an account?
-            <TextLink :href="register()">Sign up</TextLink>
+        <div
+            v-if="canRegister"
+            class="text-center text-sm text-muted-foreground"
+        >
+            Nie masz konta?
+            <TextLink :href="register()">Załóż konto</TextLink>
         </div>
     </Form>
 </template>
