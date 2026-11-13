@@ -230,10 +230,14 @@ erDiagram
 | `password` | VARCHAR(255) | nullable until invited employee sets password, only if auth flow supports this securely |
 | `role` | VARCHAR(20) | `customer`, `employee`, `admin` |
 | `suspended_at` | DATETIME(6) | NULL or suspended |
+| `staff_invited_at` | TIMESTAMP(6) | nullable; set only for explicitly invited team accounts |
+| `staff_invitation_accepted_at` | TIMESTAMP(6) | nullable until initial password setup |
 | `email_verified_at` | DATETIME(6) | nullable |
 | `created_at`, `updated_at` | DATETIME(6) | standard |
 
 **Rules:** database uniqueness on email and phone, not only Laravel validation. A family may use one phone across *holders* stored in orders, while separate registered accounts cannot duplicate phone. Employee suspension must be enforced on each protected request, including existing sessions. The exact login / invited-password flow will be described in `security.md`.
+
+**Implementation note — TASK-009 (2026-11-13):** the invitation timestamps are guarded from public mass assignment. Existing accounts keep NULL; no invitations are backfilled. A pending invitation has an invited timestamp and no acceptance timestamp; setup uses the existing hashed `password_reset_tokens` table, consuming its token transactionally. Password remains NOT NULL with a cryptographically random hashed placeholder until the email owner sets one; no nullable-password authentication path is introduced.
 
 ### 4.2 `membership_plans` — current editable catalog
 
@@ -401,6 +405,8 @@ For a supported entry-pass renewal: compute unspent entries **under locks**, cre
 **Rules:** enqueue only **after DB commit**. Scheduler picks due deliveries; queue workers use an atomic claim/lock. Failure retries **only delivery**. Manual resend creates a traceable new attempt (and possibly a new delivery request with its own key), never a new purchase or membership. Keep PDFs outside publicly accessible storage and set a retention policy before production.
 
 ### 5.4 `audit_logs` — append-only business event journal
+
+**Implementation — TASK-009 prerequisite for TASK-010 (2026-11-13):** migration adds this table with the columns below, subject/action/time indexes and nullable actor FK (`nullOnDelete`). Employee events write through `RecordEmployeeAudit` in the same transaction as the account change. Metadata contains only allowlisted changed-field names; role/suspension values are safe before/after summaries. The `AuditLog` model rejects instance updates/deletes; no audit mutation endpoint exists. Generic writer/reader, system actors and broader query-level protections are reserved for TASK-010. Preservation is enforced at the application layer, not claimed against raw SQL or privileged DB administrators.
 
 | Column | Type | Constraints / meaning |
 |---|---|---|

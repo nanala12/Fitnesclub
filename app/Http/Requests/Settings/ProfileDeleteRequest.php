@@ -12,7 +12,7 @@ class ProfileDeleteRequest extends FormRequest
 
     public function authorize(): bool
     {
-        return $this->user()?->can('update', $this->user()) ?? false;
+        return $this->user()?->can('delete', $this->user()) ?? false;
     }
 
     /**

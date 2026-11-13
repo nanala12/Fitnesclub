@@ -38,6 +38,8 @@ class CreateNewUser implements CreatesNewUsers
             'email_verified_at' => ['prohibited'],
             'id' => ['prohibited'],
             'bootstrap_key' => ['prohibited'],
+            'staff_invited_at' => ['prohibited'],
+            'staff_invitation_accepted_at' => ['prohibited'],
         ])->validate();
 
         try {

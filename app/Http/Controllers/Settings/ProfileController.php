@@ -25,6 +25,7 @@ class ProfileController extends Controller
 
         return Inertia::render('settings/Profile', [
             'profile' => $request->user()->only(['first_name', 'last_name', 'email', 'phone']),
+            'canDeleteAccount' => $request->user()->can('delete', $request->user()),
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
         ]);

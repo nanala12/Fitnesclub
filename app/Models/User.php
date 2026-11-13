@@ -34,6 +34,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property string|null $remember_token
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property Carbon|null $staff_invited_at
+ * @property Carbon|null $staff_invitation_accepted_at
  */
 #[Fillable(['name', 'first_name', 'last_name', 'email', 'phone', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'bootstrap_key'])]
@@ -67,12 +69,19 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
             'two_factor_confirmed_at' => 'datetime',
             'suspended_at' => 'datetime',
             'role' => UserRole::class,
+            'staff_invited_at' => 'datetime',
+            'staff_invitation_accepted_at' => 'datetime',
         ];
     }
 
     public function isSuspended(): bool
     {
         return $this->suspended_at !== null;
+    }
+
+    public function hasPendingStaffInvitation(): bool
+    {
+        return $this->staff_invited_at !== null && $this->staff_invitation_accepted_at === null;
     }
 
     /** @return Attribute<string, string> */

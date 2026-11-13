@@ -19,6 +19,7 @@ const props = defineProps<{
         phone: string | null;
     };
     mustVerifyEmail: boolean;
+    canDeleteAccount: boolean;
     status?: string;
 }>();
 
@@ -148,5 +149,5 @@ function save() {
             />
         </div>
     </div>
-    <DeleteUser />
+    <DeleteUser v-if="canDeleteAccount" />
 </template>

@@ -44,6 +44,8 @@ class ProfileUpdateRequest extends FormRequest
             'bootstrap_key' => ['prohibited'],
             'permissions' => ['prohibited'],
             'name' => ['prohibited'],
+            'staff_invited_at' => ['prohibited'],
+            'staff_invitation_accepted_at' => ['prohibited'],
         ];
     }
 }

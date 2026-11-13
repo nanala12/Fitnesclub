@@ -88,6 +88,14 @@ Zmiana e-maila wymaga potwierdzenia nowego adresu i ogranicza dostęp do chronio
 
 Hasło zmienisz w `/settings/security`, podając obecne hasło i dwukrotnie nowe. Edycja własnego konta nie pozwala zmienić roli, zawieszenia ani znacznika administratora.
 
+## Konta pracowników (TASK-009)
+
+Administrator zarządza zespołem pod `/admin/pracownicy` (po aktualizacji kodu uruchom lokalne `docker compose run --rm app php artisan migrate`). Lista obejmuje konta pracowników i administratorów, z paginacją. Można dodać konto, edytować dane i rolę, zawiesić lub przywrócić dostęp oraz ponowić zaproszenie oczekujące na ustawienie hasła. Własne dane edytujesz przez „Mój profil”; panel nie pozwala zmienić własnej roli ani zawiesić własnego konta. Kont klientów nie przekształcamy tutaj w konta zespołu. Konta zespołu nie mają operacji usuwania, także przez własny formularz profilu.
+
+Nowe konto otrzymuje losowe, nieujawniane hasło zastępcze. Kolejka wysyła zaproszenie z jednorazowym linkiem istniejącego mechanizmu ustawiania hasła; ważność wynika z konfiguracji brokera (domyślnie 60 minut). Ustawienie hasła potwierdza własność adresu e-mail i umożliwia zalogowanie do panelu. Token jest hashowany w bazie. Wiadomość nigdy nie zawiera hasła. Wysyłka wymaga działającego workera; lokalnie uruchamia go `composer run dev`, a `MAIL_MAILER=log` zapisuje wiadomość w logu. Błędy wysyłki są ponawiane do trzech prób; ponowne zaproszenie jest dostępne tylko dla niezawieszonego konta oczekującego na hasło. Nie zmienia ono istniejącego hasła.
+
+Zawieszenie blokuje kolejne żądania i usuwa sesje z używanego w projekcie magazynu `database`, unieważnia zapamiętane logowanie oraz link do ustawienia hasła. Przywrócenie dostępu wymaga ponownego logowania (lub nowego zaproszenia, jeśli hasło nie zostało jeszcze ustawione). Zmiana e-maila wymaga jego potwierdzenia i unieważnia wcześniejszy link do hasła. Operacje zapisują audyt w tej samej transakcji; audyt zawiera aktora, rodzaj zmiany i bezpieczne informacje o zmienionych polach, bez haseł, tokenów i surowych danych kontaktowych. Pełny podgląd audytu i wspólna infrastruktura dla kolejnych modułów pozostają TASK-010.
+
 ## Czas i lokalna kolejka poczty
 
 Runtime Laravel oraz sesje MySQL używają **UTC**. `config('app.business_timezone')` wskazuje **Europe/Warsaw** do interpretacji dni biznesowych i prezentacji czasu. Daty ważności karnetów będą liczone osobno zgodnie z ACT-01; ustawienie strefy nie uruchamia ich ważności. Dawne `APP_TIMEZONE=Europe/Warsaw` nie steruje już strefą runtime. Po aktualizacji istniejącej instalacji wykonaj `php artisan config:clear` i uruchom ponownie worker.

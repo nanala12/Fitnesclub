@@ -33,6 +33,8 @@ class PasswordUpdateRequest extends FormRequest
             'email_verified_at' => ['prohibited'],
             'bootstrap_key' => ['prohibited'],
             'permissions' => ['prohibited'],
+            'staff_invited_at' => ['prohibited'],
+            'staff_invitation_accepted_at' => ['prohibited'],
         ];
     }
 }
