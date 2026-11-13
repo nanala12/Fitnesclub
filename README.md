@@ -62,6 +62,24 @@ docker compose run --rm app php artisan migrate:fresh --seed --seeder=LocalDatab
 
 Przed resetem sprawdź, że `.env` wskazuje lokalną bazę i `APP_ENV=local`. Nie wykonuj tego polecenia dla staging ani produkcji. Bez Dockera pomiń prefiks Compose. Zwykła aktualizacja schematu bez resetu to `php artisan migrate`.
 
+## Pierwszy administrator (TASK-007)
+
+W prywatnym `.env` lub konfiguracji sekretów ustaw `BOOTSTRAP_ADMIN_NAME`, `BOOTSTRAP_ADMIN_EMAIL`, `BOOTSTRAP_ADMIN_PHONE` (format międzynarodowy z `+` lub `00`) i `BOOTSTRAP_ADMIN_PASSWORD`. Hasło musi mieć co najmniej 12 znaków, małą i wielką literę, cyfrę oraz symbol. W `.env` ujmij wartości zawierające spacje lub znaki specjalne w odpowiednie cudzysłowy. Nie umieszczaj sekretów w poleceniach zapisywanych w historii terminala.
+
+Po skonfigurowaniu lokalnej bazy wykonaj:
+
+```bash
+docker compose run --rm app php artisan config:clear
+docker compose run --rm app php artisan migrate
+docker compose run --rm app php artisan db:seed --class=AdminUserSeeder
+```
+
+Seeder jest wywoływany jawnie; zwykłe `db:seed` nie tworzy administratora. Tworzy jedno konto z rolą `admin` i zweryfikowanym e-mailem dostarczonym przez operatora wdrożenia, umożliwiając wejście do `/admin`. Nie wysyła wiadomości ani nie ujawnia hasła. Unikalny znacznik `users.bootstrap_key` pozwala rozpoznać konto utworzone przez ten seeder. Kolizja e-maila lub znormalizowanego telefonu z dowolnym innym kontem kończy operację błędem, bez przejęcia konta.
+
+Ponowne uruchomienie wymaga tego samego skonfigurowanego e-maila; nie wymaga ponownego podania hasła, imienia ani telefonu i nie zmienia żadnych danych istniejącego konta, także zawieszenia. Zmiana e-maila konta lub odebranie mu roli administratora wymaga ręcznego, autoryzowanego przeglądu przed ponownym bootstrapem. Seeder nie służy do resetowania hasła ani nadawania uprawnień istniejącym użytkownikom.
+
+Po inicjalizacji usuń dane bootstrapu z konfiguracji dostępnej aplikacji, przebuduj cache konfiguracji bez nich, jeśli jest używany, i uruchom ponownie długotrwałe procesy. Nie usuwaj znacznika w bazie. Powyższe komendy dotyczą środowiska lokalnego; migracje i inicjalizacja produkcyjna wymagają osobnej autoryzacji wdrożenia.
+
 ## Czas i lokalna kolejka poczty
 
 Runtime Laravel oraz sesje MySQL używają **UTC**. `config('app.business_timezone')` wskazuje **Europe/Warsaw** do interpretacji dni biznesowych i prezentacji czasu. Daty ważności karnetów będą liczone osobno zgodnie z ACT-01; ustawienie strefy nie uruchamia ich ważności. Dawne `APP_TIMEZONE=Europe/Warsaw` nie steruje już strefą runtime. Po aktualizacji istniejącej instalacji wykonaj `php artisan config:clear` i uruchom ponownie worker.

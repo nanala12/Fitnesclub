@@ -217,6 +217,8 @@ erDiagram
 
 ### 4.1 `users` — registered customers and staff
 
+**Implementation note — TASK-007 (2026-11-13):** additive migration introduces nullable unique `bootstrap_key VARCHAR(32)`. Only the explicit initial-admin seeder writes `initial-admin`; ordinary accounts retain NULL. This durable marker is separate from role/email, is not mass-assignable or serialized, and prevents adopting an unrelated account or creating a second marked account concurrently. Preserve the marker when editing the administrator's profile. No existing account is promoted or backfilled by this migration. The starter's combined `name` and nullable legacy `phone` remain transitional until the profile/schema work in TASK-008; new bootstrap accounts require both name and normalized phone.
+
 | Column | Type | Constraints / meaning |
 |---|---|---|
 | `id` | BIGINT UNSIGNED | PK |
