@@ -20,6 +20,8 @@ return [
     ],
     'attributes' => [
         'name' => 'imię i nazwisko',
+        'first_name' => 'imię',
+        'last_name' => 'nazwisko',
         'email' => 'adres e-mail',
         'password' => 'hasło',
         'phone' => 'telefon',

@@ -4,7 +4,8 @@ import SecurityController from '@/actions/App/Http/Controllers/Settings/Security
 import Heading from '@/components/Heading.vue';
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
-import { Button } from '@/components/ui/button';
+import ActionButton from '@/components/shared/ActionButton.vue';
+import FeedbackMessage from '@/components/shared/FeedbackMessage.vue';
 import { Label } from '@/components/ui/label';
 import { edit } from '@/routes/security';
 import type { Props as ManagePasskeysProps } from '@/components/ManagePasskeys.vue';
@@ -15,6 +16,7 @@ import ManageTwoFactor from '@/components/ManageTwoFactor.vue';
 // oxfmt-ignore
 type Props = {
     passwordRules: string;
+    status?: string;
 } & ManagePasskeysProps &
     ManageTwoFactorProps;
 
@@ -24,7 +26,7 @@ defineOptions({
     layout: {
         breadcrumbs: [
             {
-                title: 'Security settings',
+                title: 'Bezpieczeństwo konta',
                 href: edit(),
             },
         ],
@@ -33,15 +35,21 @@ defineOptions({
 </script>
 
 <template>
-    <Head title="Security settings" />
+    <Head title="Bezpieczeństwo konta" />
 
-    <h1 class="sr-only">Security settings</h1>
+    <h1 class="sr-only">Bezpieczeństwo konta</h1>
 
     <div class="space-y-6">
         <Heading
             variant="small"
-            title="Update password"
-            description="Ensure your account is using a long, random password to stay secure"
+            title="Zmień hasło"
+            description="Podaj obecne hasło i ustaw nowe, aby chronić swoje konto."
+        />
+
+        <FeedbackMessage
+            v-if="props.status === 'password-updated'"
+            title="Hasło zostało zmienione."
+            variant="success"
         />
 
         <Form
@@ -59,50 +67,79 @@ defineOptions({
             v-slot="{ errors, processing }"
         >
             <div class="grid gap-2">
-                <Label for="current_password">Current password</Label>
+                <Label for="current_password">Obecne hasło</Label>
                 <PasswordInput
                     id="current_password"
                     name="current_password"
+                    required
+                    :aria-invalid="errors.current_password ? true : undefined"
+                    :aria-describedby="
+                        errors.current_password
+                            ? 'current_password-error'
+                            : undefined
+                    "
                     class="mt-1 block w-full"
                     autocomplete="current-password"
-                    placeholder="Current password"
+                    placeholder="Obecne hasło"
                 />
-                <InputError :message="errors.current_password" />
+                <InputError
+                    id="current_password-error"
+                    :message="errors.current_password"
+                />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password">New password</Label>
+                <Label for="password">Nowe hasło</Label>
                 <PasswordInput
                     id="password"
                     name="password"
+                    required
+                    :aria-invalid="errors.password ? true : undefined"
+                    :aria-describedby="
+                        errors.password ? 'password-error' : undefined
+                    "
                     class="mt-1 block w-full"
                     autocomplete="new-password"
-                    placeholder="New password"
+                    placeholder="Nowe hasło"
                     :passwordrules="props.passwordRules"
                 />
-                <InputError :message="errors.password" />
+                <InputError id="password-error" :message="errors.password" />
             </div>
 
             <div class="grid gap-2">
-                <Label for="password_confirmation">Confirm password</Label>
+                <Label for="password_confirmation">Powtórz nowe hasło</Label>
                 <PasswordInput
                     id="password_confirmation"
                     name="password_confirmation"
+                    required
+                    :aria-invalid="
+                        errors.password_confirmation ? true : undefined
+                    "
+                    :aria-describedby="
+                        errors.password_confirmation
+                            ? 'password_confirmation-error'
+                            : undefined
+                    "
                     class="mt-1 block w-full"
                     autocomplete="new-password"
-                    placeholder="Confirm password"
+                    placeholder="Powtórz nowe hasło"
                     :passwordrules="props.passwordRules"
                 />
-                <InputError :message="errors.password_confirmation" />
+                <InputError
+                    id="password_confirmation-error"
+                    :message="errors.password_confirmation"
+                />
             </div>
 
             <div class="flex items-center gap-4">
-                <Button
-                    :disabled="processing"
+                <ActionButton
+                    type="submit"
+                    :loading="processing"
+                    loading-text="Zapisywanie…"
                     data-test="update-password-button"
                 >
-                    Save
-                </Button>
+                    Zapisz hasło
+                </ActionButton>
             </div>
         </Form>
     </div>

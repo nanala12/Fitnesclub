@@ -1,5 +1,11 @@
 {
     "Profile updated.": "Dane profilu zostały zapisane.",
+    "Verify your email address": "Potwierdź adres e-mail",
+    "Please click the button below to verify your email address.": "Kliknij poniższy przycisk, aby potwierdzić swój adres e-mail.",
+    "Verify Email Address": "Potwierdź adres e-mail",
+    "If you did not create an account, no further action is required.": "Jeśli nie proszono Cię o potwierdzenie tego adresu, zignoruj tę wiadomość.",
+    "Hello!": "Dzień dobry!",
+    "Regards,": "Pozdrawiamy,",
     "The provided two factor recovery code was invalid.": "Kod odzyskiwania jest nieprawidłowy.",
     "The provided two factor authentication code was invalid.": "Kod uwierzytelniający jest nieprawidłowy."
 }

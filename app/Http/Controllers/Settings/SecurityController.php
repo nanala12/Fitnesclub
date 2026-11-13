@@ -38,6 +38,7 @@ class SecurityController extends Controller
                     ->all()
                 : [],
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            'status' => $request->session()->get('status'),
         ];
 
         if (Features::canManageTwoFactorAuthentication()) {
@@ -59,8 +60,8 @@ class SecurityController extends Controller
             'password' => $request->password,
         ]);
 
-        Inertia::flash('toast', ['type' => 'success', 'message' => __('Password updated.')]);
+        Inertia::flash('toast', ['type' => 'success', 'message' => 'Hasło zostało zmienione.']);
 
-        return back();
+        return back()->with('status', 'password-updated');
     }
 }

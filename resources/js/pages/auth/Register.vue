@@ -33,19 +33,23 @@ defineOptions({
         class="flex flex-col gap-6"
     >
         <div class="grid gap-6">
-            <div class="grid gap-2">
-                <Label for="name">Imię i nazwisko</Label>
-                <Input
-                    id="name"
-                    type="text"
-                    required
-                    v-focus
-                    autocomplete="name"
-                    name="name"
-                    placeholder="Imię i nazwisko"
-                />
-                <InputError :message="errors.name" />
-            </div>
+            <FormField
+                id="first_name"
+                label="Imię"
+                required
+                v-focus
+                autocomplete="given-name"
+                maxlength="120"
+                :error="errors.first_name"
+            />
+            <FormField
+                id="last_name"
+                label="Nazwisko"
+                required
+                autocomplete="family-name"
+                maxlength="120"
+                :error="errors.last_name"
+            />
 
             <div class="grid gap-2">
                 <Label for="email">Adres e-mail</Label>

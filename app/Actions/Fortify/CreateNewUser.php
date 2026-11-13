@@ -8,7 +8,6 @@ use App\Models\User;
 use App\Support\PhoneNumber;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
@@ -32,18 +31,19 @@ class CreateNewUser implements CreatesNewUsers
 
         $validated = Validator::make($input, [
             ...$this->profileRules(),
-            'phone' => ['required', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/D', Rule::unique(User::class)],
             'password' => $this->passwordRules(),
             'role' => ['prohibited'],
             'is_active' => ['prohibited'],
             'suspended_at' => ['prohibited'],
             'email_verified_at' => ['prohibited'],
             'id' => ['prohibited'],
+            'bootstrap_key' => ['prohibited'],
         ])->validate();
 
         try {
             return User::create([
-                'name' => $validated['name'],
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
                 'email' => $validated['email'],
                 'phone' => $validated['phone'],
                 'password' => $validated['password'],

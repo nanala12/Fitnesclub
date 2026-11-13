@@ -20,6 +20,8 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 /**
  * @property int $id
  * @property string $name
+ * @property string|null $first_name
+ * @property string|null $last_name
  * @property string $email
  * @property string|null $phone
  * @property UserRole $role
@@ -33,7 +35,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-#[Fillable(['name', 'email', 'phone', 'password'])]
+#[Fillable(['name', 'first_name', 'last_name', 'email', 'phone', 'password'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token', 'bootstrap_key'])]
 class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 {
@@ -42,6 +44,15 @@ class User extends Authenticatable implements MustVerifyEmail, PasskeyUser
 
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    protected static function booted(): void
+    {
+        static::saving(function (User $user): void {
+            if ($user->isDirty(['first_name', 'last_name']) && $user->first_name !== null && $user->last_name !== null) {
+                $user->name = $user->first_name.' '.$user->last_name;
+            }
+        });
+    }
 
     /**
      * Get the attributes that should be cast.

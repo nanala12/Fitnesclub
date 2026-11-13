@@ -80,6 +80,14 @@ Ponowne uruchomienie wymaga tego samego skonfigurowanego e-maila; nie wymaga pon
 
 Po inicjalizacji usuń dane bootstrapu z konfiguracji dostępnej aplikacji, przebuduj cache konfiguracji bez nich, jeśli jest używany, i uruchom ponownie długotrwałe procesy. Nie usuwaj znacznika w bazie. Powyższe komendy dotyczą środowiska lokalnego; migracje i inicjalizacja produkcyjna wymagają osobnej autoryzacji wdrożenia.
 
+## Edycja własnego profilu (TASK-008)
+
+Klient, pracownik i administrator edytują swoje imię, nazwisko, e-mail i telefon w `/settings/profile`. Po aktualizacji kodu uruchom lokalnie `docker compose run --rm app php artisan migrate`. Migracja dodaje osobne pola imienia i nazwiska; zachowuje dotychczasowe dane i nie zgaduje podziału wcześniejszej wspólnej nazwy. Przy pierwszym zapisie starszego konta uzupełnij oba pola i telefon z kierunkowym kraju. Nowa rejestracja zbiera już osobno imię i nazwisko.
+
+Zmiana e-maila wymaga potwierdzenia nowego adresu i ogranicza dostęp do chronionych paneli do czasu weryfikacji. Link wysyła kolejka dopiero po zapisie danych; lokalny `composer run dev` uruchamia jej proces. Przy osobnym uruchamianiu aplikacji uruchom też worker, np. `docker compose run --rm app php artisan queue:work --tries=3`. W lokalnej konfiguracji `MAIL_MAILER=log` wiadomości trafiają do logu. Błąd wysyłki nie cofa danych; zadanie ponawia próbę, a użytkownik może też wysłać link ponownie z profilu. Zadanie dla nieaktualnego adresu jest pomijane.
+
+Hasło zmienisz w `/settings/security`, podając obecne hasło i dwukrotnie nowe. Edycja własnego konta nie pozwala zmienić roli, zawieszenia ani znacznika administratora.
+
 ## Czas i lokalna kolejka poczty
 
 Runtime Laravel oraz sesje MySQL używają **UTC**. `config('app.business_timezone')` wskazuje **Europe/Warsaw** do interpretacji dni biznesowych i prezentacji czasu. Daty ważności karnetów będą liczone osobno zgodnie z ACT-01; ustawienie strefy nie uruchamia ich ważności. Dawne `APP_TIMEZONE=Europe/Warsaw` nie steruje już strefą runtime. Po aktualizacji istniejącej instalacji wykonaj `php artisan config:clear` i uruchom ponownie worker.

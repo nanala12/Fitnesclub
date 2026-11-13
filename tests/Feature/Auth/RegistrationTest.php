@@ -27,7 +27,8 @@ class RegistrationTest extends TestCase
     public function test_new_users_can_register()
     {
         $response = $this->post(route('register.store'), [
-            'name' => 'Test User',
+            'first_name' => 'Test',
+            'last_name' => 'User',
             'email' => 'test@example.com',
             'phone' => '+48 600 700 800',
             'password' => 'password',

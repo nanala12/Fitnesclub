@@ -49,7 +49,7 @@ test('all roles can only read and edit their own profile', function (UserRole $r
 
     $this->actingAs($user)->get(route('profile.edit', ['user_id' => $other->id]))
         ->assertOk()->assertInertia(fn (Assert $page) => $page->where('auth.user.id', $user->id));
-    $this->patch(route('profile.update', ['user_id' => $other->id]), ['name' => 'Updated self', 'email' => $user->email])
+    $this->patch(route('profile.update'), ['first_name' => 'Updated', 'last_name' => 'self', 'phone' => $user->phone, 'email' => $user->email])
         ->assertSessionHasNoErrors();
     expect($user->fresh()->name)->toBe('Updated self')->and($other->fresh()->name)->toBe($other->name);
 })->with(UserRole::cases());
@@ -57,7 +57,7 @@ test('all roles can only read and edit their own profile', function (UserRole $r
 test('profile payload cannot change access fields', function (UserRole $role, string $field, mixed $value) {
     $user = User::factory()->create(['role' => $role]);
     $this->actingAs($user)->patch(route('profile.update'), [
-        'name' => $user->name, 'email' => $user->email, $field => $value,
+        'first_name' => 'Test', 'last_name' => 'User', 'phone' => $user->phone, 'email' => $user->email, $field => $value,
     ])->assertSessionHasErrors($field);
     expect($user->fresh()->role)->toBe($role)->and($user->fresh()->suspended_at)->toBeNull();
 })->with(UserRole::cases())->with([

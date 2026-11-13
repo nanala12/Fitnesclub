@@ -15,7 +15,7 @@ uses(RefreshDatabase::class);
 
 function registrationData(array $overrides = []): array
 {
-    return array_replace(['name' => 'Osoba Testowa', 'email' => 'new@example.test', 'phone' => '+48 600 700 800', 'password' => 'password', 'password_confirmation' => 'password'], $overrides);
+    return array_replace(['first_name' => 'Osoba', 'last_name' => 'Testowa', 'email' => 'new@example.test', 'phone' => '+48 600 700 800', 'password' => 'password', 'password_confirmation' => 'password'], $overrides);
 }
 
 test('registration normalizes contact data and always creates an active customer', function () {

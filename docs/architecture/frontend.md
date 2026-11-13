@@ -219,6 +219,8 @@ export type MembershipView = {
 7. CMS editor modules (news, gallery, regulations, tiles/slides, plan pricing, contact/schedule).
 8. Validation, E2E, security review and accessibility checks before production.
 
+**Implemented account settings — TASK-008 (2026-11-13):** the own-profile page uses typed dedicated Inertia props and a controlled `useForm` for separate first/last name, email and international phone. Successful saves refresh defaults from the server, including normalized phone. Legacy names are shown as a hint without guessing their split. Shared field components associate labels, hints and validation errors; submitting and success states are explicit. Email changes show verification guidance and a loading-aware resend action. The password form provides Polish copy, current-password validation, confirmation, accessible errors and save feedback. Customer/employee/admin use the same own-account settings routes and backend policy. Existing shells and color tokens are preserved. Chrome smoke checked actual saves, duplicate-email validation, password failure/success, re-verification, all three roles, separate-name registration and responsive profile widths (320/768/1280px), with no JS exceptions.
+
 ## 12. Decisions still open
 
 - Unsupported different-plan renewals, purchases of multiple passes for one holder and carryover after expired entry passes.

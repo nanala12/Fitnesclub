@@ -16,19 +16,11 @@ trait ProfileValidationRules
     protected function profileRules(?int $userId = null): array
     {
         return [
-            'name' => $this->nameRules(),
+            'first_name' => ['required', 'string', 'max:120'],
+            'last_name' => ['required', 'string', 'max:120'],
             'email' => $this->emailRules($userId),
+            'phone' => ['required', 'string', 'regex:/^\+[1-9][0-9]{6,14}$/D', Rule::unique(User::class)->ignore($userId)],
         ];
-    }
-
-    /**
-     * Get the validation rules used to validate user names.
-     *
-     * @return array<int, ValidationRule|array<mixed>|string>
-     */
-    protected function nameRules(): array
-    {
-        return ['required', 'string', 'max:255'];
     }
 
     /**
