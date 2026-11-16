@@ -2,11 +2,17 @@
 
 namespace App\Models;
 
+use App\Database\CmsContentBuilder;
+use App\Models\Concerns\HasOwnedMedia;
+use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+#[UseEloquentBuilder(CmsContentBuilder::class)]
 class HeroSlide extends Model
 {
+    use HasOwnedMedia;
+
     /** @return array<string, string> */
     protected function casts(): array
     {

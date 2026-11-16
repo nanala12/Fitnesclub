@@ -4,6 +4,8 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case MediaUploaded = 'media.uploaded';
+    case MediaRemoved = 'media.removed';
     case EmployeeCreated = 'employee.created';
     case EmployeeUpdated = 'employee.updated';
     case EmployeeSuspended = 'employee.suspended';
@@ -13,6 +15,8 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::MediaUploaded => 'Dodano zdjęcie CMS',
+            self::MediaRemoved => 'Usunięto zdjęcie CMS',
             self::EmployeeCreated => 'Utworzono konto zespołu',
             self::EmployeeUpdated => 'Zmieniono dane konta zespołu',
             self::EmployeeSuspended => 'Zawieszono dostęp do konta',
@@ -23,6 +27,9 @@ enum AuditAction: string
 
     public function subjectType(): string
     {
-        return 'user';
+        return match ($this) {
+            self::MediaUploaded, self::MediaRemoved => 'media_asset',
+            default => 'user',
+        };
     }
 }

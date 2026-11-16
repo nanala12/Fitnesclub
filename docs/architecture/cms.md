@@ -47,7 +47,7 @@ Proponowana organizacja kodu (bez dodatkowego frameworka modułowego): `app/Http
 |---|---|---|
 | `id` | BIGINT PK | Identyfikator |
 | `disk` | VARCHAR(50) NOT NULL | Dysk storage |
-| `path` | VARCHAR(1024) NOT NULL | Wewnętrzna ścieżka pliku |
+| `path` | VARCHAR(500) NOT NULL | Wewnętrzna ścieżka pliku |
 | `mime_type` | VARCHAR(100) NOT NULL | Typ po weryfikacji |
 | `size_bytes` | BIGINT UNSIGNED NOT NULL | Rozmiar |
 | `alt_text` | VARCHAR(255) NULL | Tekst alternatywny, jeśli wymagany dostępnością; nie jest opisem zdjęcia galerii |
@@ -55,6 +55,14 @@ Proponowana organizacja kodu (bez dodatkowego frameworka modułowego): `app/Http
 | `created_at`, `updated_at` | TIMESTAMP | Metadane |
 
 Unikalność pary `(disk, path)`. Każdy plik ma dokładnie jedno miejsce wykorzystania (`CMS-OD-05`). Usunięcie elementu usuwa rekord powiązania i wymaga usunięcia pliku; fizyczny `Storage::delete` wywołać po commit z retry i logowaniem błędu (bez usuwania pliku przed commit). Rozmiar, formaty, konwersje do WebP/AVIF i limity: `PROPOSED`, ustalić w implementacji.
+
+**Implementacja TASK-012 (2026-11-16):** `media_assets` ma teraz `owner_type` (`offer`, `slide`, `news`, `gallery`, `regulation`) i `owner_id`, z unikalnym indeksem pary. Dotychczasowe FK pozostają na rekordach treści. Trait `HasOwnedMedia` obejmuje zapis/usunięcie (także quiet) transakcją, blokuje właściciela i wiersze mediów w stałej kolejności, sprawdza pojedyncze przypisanie między modułami i atomowo wycofuje stare medium. Builder blokuje typowe masowe mutacje omijające ten cykl. Ograniczenia aplikacji nie obejmują świadomego surowego SQL/`toBase()`; takie zapisy są zabronione dla mediów. Migracja wypełnia właścicieli istniejących referencji i wykrywa współdzielenie przed DDL, bez automatycznego kasowania danych.
+
+`ManageCmsMedia` autoryzuje administratora również przy bezpośrednim wywołaniu. Przyjmuje właściwy `UploadedFile` i callback zapisujący jednego właściciela (również nowego); to zewnętrzna granica transakcji treści, metadanych i audytu. Trasy `admin.cms.media.*` pozwalają zastąpić/usunąć zdjęcie istniejącego właściciela i odczytać podgląd także szkicu; wymagają auth, weryfikacji e-maila, aktywnego admina, CSRF i limitu żądań. Zmiany wymagają `current_media_id`, aby stara karta nie usunęła/nadpisała nowego zdjęcia. Usunięcie zdjęcia slajdu/pozycji galerii usuwa też jego rekord; dla zdjęć opcjonalnych pozostaje treść. Opublikowane zdjęcie regulaminu jest niezmienne. Operacje uploadu/usunięcia zapisują audyt wykonawcy bez ścieżek i nazw plików.
+
+Przyjęte limity techniczne: 5 MB, bok do 6000 px, łącznie do 24 Mpx, JPEG/PNG/WebP/AVIF. Walidacja używa rzeczywistego `finfo` i `getimagesize`; nazwy są losowe, rozszerzenie wynika z rozpoznanego MIME. Brak SVG, GIF, uploadu z URL i automatycznej konwersji. Błąd daje polski komunikat bez wewnętrznej ścieżki. `OwnedImageField.vue` zapewnia wybór pliku/alt text, stan błędów, postęp, blokadę wysyłania, sukces i potwierdzenie usunięcia. Osadzenie w edytorach modułów pozostaje TASK-013–018.
+
+`media_file_deletions` stanowi trwały outbox: `disk`, `path` (unikalna para), `available_at`, `attempts`, timestamps. Usunięcie wpisu medium oraz utworzenie outboxu następuje w transakcji właściciela, dispatch dopiero po commit. Job idempotentnie usuwa wyłącznie bezpieczne lokalne pliki CMS bez istniejącego wpisu medium. Awaria pliku pozostawia wpis z opóźnieniem 5 minut; kolejka ma trzy próby, a scheduler `cms:retry-media-cleanup` co minutę wznawia do 100 zaległych operacji. Awaria samego dispatchu jest logowana bez ścieżki, a wpis pozostaje w DB. Upload najpierw tworzy osobny trwały wpis ochronny na godzinę; udany commit go usuwa, nieudany zapis przyspiesza cleanup. Chroni to także pliki po przerwanym procesie. Worker i scheduler są wymagani operacyjnie; nie uruchomiono produkcyjnego schedulera automatycznie.
 
 ### 4.2 `news_posts`
 

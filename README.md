@@ -185,9 +185,31 @@ Dostępne bez logowania: `/`, `/oferta`, `/cennik`, `/grafik`, `/aktualnosci`, `
 
 Migracja `2026_11_16_000000_create_public_content_tables` dodaje podstawę odczytu CMS i została zastosowana lokalnie. Przy pobraniu zmian do innego środowiska wykonaj jego zwykłą, zatwierdzoną procedurę migracji. Nie uruchamiamy seedera demonstracyjnych treści. Dane kontaktowe z makiet zostały odrzucone przez właścicielkę; `club_settings` pozostaje pusty do podania poprawnych danych. Dotyczy to również stopki aktywacji konta, która korzysta teraz z tego samego źródła.
 
-Edytory i publikowanie w CMS należą do TASK-013–018, a uploady, pełne egzekwowanie pojedynczego przypisania pliku i usuwanie mediów do TASK-012. Zdjęcia tej podstawy odczytu są prywatne (`local`, ścieżki `cms/…`) i udostępniane przez `/media/{id}` tylko przy opublikowanym powiązaniu; niedostępne pliki, niezgodny MIME i ścieżki spoza katalogu są odrzucane. Nie wymaga to `storage:link`. Nie ma jeszcze publicznego API zapisu treści ani uploadu.
+Edytory i publikowanie w CMS należą do TASK-013–018. Wspólna obsługa uploadu, pojedynczego przypisania pliku i usuwania mediów jest gotowa w TASK-012. Zdjęcia tej podstawy odczytu są prywatne (`local`, ścieżki `cms/…`) i udostępniane przez `/media/{id}` tylko przy opublikowanym powiązaniu; niedostępne pliki, niezgodny MIME i ścieżki spoza katalogu są odrzucane. Nie wymaga to `storage:link`. Zapis zdjęć i podgląd szkiców są dostępne wyłącznie dla aktywnego, zweryfikowanego administratora; nie ma publicznego uploadu.
 
 Cennik i wyróżnione karnety pokazują obecnie pustą ofertę. Zostaną podłączone do jednego źródła `membership_plans` w TASK-019/020; nie tworzymy drugiej tabeli cen ani pozornego checkoutu. Metadane publicznych stron trafiają również do początkowego HTML; pełny rendering treści pozostaje w Inertia (bez nowej konfiguracji SSR).
+
+## Zdjęcia CMS (TASK-012)
+
+Wspólna obsługa mediów przyjmuje JPEG, PNG, WebP i AVIF: maksymalnie 5 MB, 6000 px na bok i 24 miliony pikseli. Serwer sprawdza rzeczywistą zawartość/MIME i wymiary; oryginalna nazwa ani deklaracja typu nie decydują o ścieżce. Pliki otrzymują losowe nazwy w prywatnym `local/cms`. Nie wymagają `storage:link`. Lokalny Compose montuje `docker/local/uploads.ini` (PHP: upload 6 MB, POST 8 MB, z miejscem na narzut formularza); przy własnym hostingu ustaw też odpowiedni limit PHP i serwera HTTP.
+
+Migracja `2026_11_16_010000_add_media_ownership_and_cleanup` została zastosowana lokalnie. Dodaje właściciela w `media_assets` i trwałą kolejkę usuwania `media_file_deletions`. Przed zmianą schematu sprawdza istniejące współdzielenie i odmawia migracji, jeśli je znajdzie. Zamiana/usunięcie zdjęcia atomowo usuwa jego referencję i rekord mediów; fizyczny plik usuwa zadanie dopiero po commit. Rollback zachowuje stary plik. Usuwanie jest idempotentne, a awaria dysku lub kolejki pozostawia zadanie do ponowienia. Niedokończony upload ma godzinny okres ochronny, po którym również może zostać posprzątany.
+
+Do obsługi plików uruchom worker i Laravel Scheduler w swoim środowisku. Lokalnie `composer run dev` uruchamia worker; scheduler można uruchomić osobno:
+
+```bash
+docker compose exec app php artisan schedule:work
+```
+
+Scheduler co minutę zleca do 100 oczekujących operacji. Ręczne ponowienie (nadal wymaga workera):
+
+```bash
+docker compose exec app php artisan cms:retry-media-cleanup
+```
+
+Na wdrożeniu skonfiguruj ciągły worker i standardowe wywołanie `schedule:run` co minutę oraz monitorowanie nieudanych zadań. Retry nie przywraca publicznych referencji ani nie zmienia zapisanej treści. Ten mechanizm dotyczy wyłącznie zdjęć CMS, nie retencji PDF ani danych klientów.
+
+Dla kolejnych formularzy dostępne są `ManageCmsMedia` i komponent `OwnedImageField.vue`. Upload tworzy zdjęcie i zapisuje właściciela w callbacku jednej transakcji; akcja uploadu musi być jej zewnętrzną granicą. Zwykłe i ciche zapisy/usunięcia modeli CMS pilnują własności i cleanupu; nie używaj masowych operacji zmieniających referencje, surowego SQL ani `toBase()` do zapisu mediów. Usunięcie zdjęcia slajdu lub pozycji galerii usuwa też ten element, bo bez zdjęcia nie może istnieć; opcjonalne zdjęcie aktualności/kafelka pozostawia treść. Zdjęć opublikowanej wersji regulaminu nie zmieniamy. Formularze poszczególnych modułów i ich pozycje w menu powstaną w TASK-013–018; nie dodano wspólnej biblioteki plików do wielokrotnego użycia.
 
 ## Kluczowe ustalenia
 

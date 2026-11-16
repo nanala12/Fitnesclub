@@ -10,6 +10,7 @@ services:
         working_dir: /app
         volumes:
             - .:/app
+            - ./docker/local/uploads.ini:/usr/local/etc/php/conf.d/activefit-uploads.ini:ro
         ports:
             - '127.0.0.1:${APP_PORT:-8000}:8000'
             - '127.0.0.1:${VITE_PORT:-5173}:5173'

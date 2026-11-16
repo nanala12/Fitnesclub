@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\Cms\MediaController as CmsMediaController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\DashboardController;
@@ -24,6 +25,11 @@ Route::name('public.')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('admin/cms/media')->name('admin.cms.media.')->middleware(['can:access-admin-panel', 'throttle:30,1'])->group(function (): void {
+        Route::get('/{mediaAsset}', [CmsMediaController::class, 'show'])->name('show');
+        Route::post('/{placement}/{owner}', [CmsMediaController::class, 'store'])->whereNumber('owner')->name('store');
+        Route::delete('/{placement}/{owner}', [CmsMediaController::class, 'destroy'])->whereNumber('owner')->name('destroy');
+    });
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('admin', AdminDashboardController::class)->middleware('can:access-admin-panel')->name('admin.dashboard');
     Route::get('admin/audyt', [AuditLogController::class, 'index'])

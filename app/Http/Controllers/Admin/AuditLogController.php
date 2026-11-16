@@ -40,7 +40,11 @@ class AuditLogController extends Controller
 
         return [
             'id' => $entry->id, 'action' => $action?->label() ?? 'Zdarzenie audytu',
-            'subjectLabel' => $action?->subjectType() === 'user' ? 'Konto #'.$entry->getAttribute('subject_id') : 'Zapis historyczny',
+            'subjectLabel' => match ($action?->subjectType()) {
+                'user' => 'Konto #'.$entry->getAttribute('subject_id'),
+                'media_asset' => 'Zdjęcie #'.$entry->getAttribute('subject_id'),
+                default => 'Zapis historyczny',
+            },
             'occurredAt' => $entry->occurred_at->toISOString(),
             'actor' => [
                 'id' => $entry->getAttribute('actor_user_id'), 'name' => $entry->actor?->name,

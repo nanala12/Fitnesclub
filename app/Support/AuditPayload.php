@@ -8,6 +8,7 @@ class AuditPayload
 {
     /** @var array<string, string> */
     public const array FIELD_LABELS = [
+        'image' => 'Zdjęcie',
         'first_name' => 'Imię', 'last_name' => 'Nazwisko', 'email' => 'Adres e-mail',
         'phone' => 'Telefon', 'role' => 'Rola', 'suspended_at' => 'Dostęp do konta',
     ];
