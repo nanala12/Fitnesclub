@@ -179,6 +179,16 @@ Szkielet aplikacji (TASK-004): `/` jest obsługiwane przez `HomeController`, a `
 8. `docs/architecture/repository-setup.md` — instrukcje konfiguracji projektu.
 9. `design/reference-html/` — docelowa lokalizacja referencji UX/UI. Obecnie pliki znajdują się w katalogu ` design/reference-html/` (początkowa spacja w nazwie katalogu). To niezmodyfikowane materiały referencyjne, wyłączone z automatycznego formatowania.
 
+## Strona publiczna (TASK-011)
+
+Dostępne bez logowania: `/`, `/oferta`, `/cennik`, `/grafik`, `/aktualnosci`, `/aktualnosci/{slug}`, `/galeria`, `/kontakt` i `/regulamin`. Wspólne menu, stopka i widoki korzystają z rzeczywistych danych tabel treści. Szkice, przyszłe publikacje i ukryte kategorie nie są publicznie dostępne. Bez opublikowanych danych strony pokazują stany puste. Wzorce HTML pozostają materiałem wizualnym — przykładowe ceny, godziny, zdjęcia i regulamin nie są kopiowane do bazy.
+
+Migracja `2026_11_16_000000_create_public_content_tables` dodaje podstawę odczytu CMS i została zastosowana lokalnie. Przy pobraniu zmian do innego środowiska wykonaj jego zwykłą, zatwierdzoną procedurę migracji. Nie uruchamiamy seedera demonstracyjnych treści. Dane kontaktowe z makiet zostały odrzucone przez właścicielkę; `club_settings` pozostaje pusty do podania poprawnych danych. Dotyczy to również stopki aktywacji konta, która korzysta teraz z tego samego źródła.
+
+Edytory i publikowanie w CMS należą do TASK-013–018, a uploady, pełne egzekwowanie pojedynczego przypisania pliku i usuwanie mediów do TASK-012. Zdjęcia tej podstawy odczytu są prywatne (`local`, ścieżki `cms/…`) i udostępniane przez `/media/{id}` tylko przy opublikowanym powiązaniu; niedostępne pliki, niezgodny MIME i ścieżki spoza katalogu są odrzucane. Nie wymaga to `storage:link`. Nie ma jeszcze publicznego API zapisu treści ani uploadu.
+
+Cennik i wyróżnione karnety pokazują obecnie pustą ofertę. Zostaną podłączone do jednego źródła `membership_plans` w TASK-019/020; nie tworzymy drugiej tabeli cen ani pozornego checkoutu. Metadane publicznych stron trafiają również do początkowego HTML; pełny rendering treści pozostaje w Inertia (bez nowej konfiguracji SSR).
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

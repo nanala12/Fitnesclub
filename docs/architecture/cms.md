@@ -37,6 +37,8 @@ Proponowana organizacja kodu (bez dodatkowego frameworka modułowego): `app/Http
 
 ## 4. Model danych — definicje projektowe
 
+**Stan implementacji — TASK-011 (2026-11-16):** dodano migrację i modele podstawy odczytu opisanych poniżej tabel. Publiczne DTO kontrolują publikację i nie ujawniają pól edytorskich, storage path/disk ani identyfikatorów autorów. Panel zapisu, bezpieczny rich text i jego publikacja są kolejnymi zadaniami. Na razie body aktualności/regulaminu jest prezentowane jako escapowany zwykły tekst; nie używamy `v-html` dla niesanitowanych danych. Publiczny odczyt zdjęć wymaga opublikowanego powiązania oraz poprawnego lokalnego pliku `cms/…` i MIME JPEG/PNG/WebP/AVIF. Schema ma unikalne referencje mediów w poszczególnych modułach i restrykcyjne FK; globalne egzekwowanie jednej lokalizacji, upload oraz cleanup po commit pozostają TASK-012, przed udostępnieniem interfejsów zapisu. `path` ma faktycznie 500 znaków (zamiast proponowanych 1024), aby wspólny unikalny indeks `(disk,path)` mieścił się w limicie InnoDB/utf8mb4. Nie zainicjalizowano rekordów klubu ani treści poglądowych; podane w makietach kontakty właścicielka oznaczyła jako nieaktualne. `membership_plans` pozostaje osobną domeną do TASK-019/020; nie ma tabeli `prices` ani kopii cen z HTML.
+
 **Konwencje:** PK `BIGINT UNSIGNED`, FK zgodne typem, `created_at`/`updated_at` jako daty techniczne, `sort_order` jako `INT UNSIGNED`, status publikacji jako `BOOLEAN` i ewentualne `published_at` (`DATETIME`), identyfikatory mediów przez FK. Tabele to propozycja techniczna, spójna z `database.md`.
 
 ### 4.1 `media_assets`

@@ -1,7 +1,10 @@
 <?php
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
+
+uses(RefreshDatabase::class);
 
 test('the starter page renders for guests', function () {
     $this->get(route('home'))

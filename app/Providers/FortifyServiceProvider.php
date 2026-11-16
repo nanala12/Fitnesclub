@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Actions\PublicSite\PublicSiteContent;
 use App\Enums\UserRole;
 use App\Http\Responses\PasswordResetLinkResponse;
 use App\Models\User;
@@ -146,7 +147,8 @@ class FortifyServiceProvider extends ServiceProvider
             'email' => $email, 'token' => $token,
             'passwordRules' => Password::defaults()->toPasswordRulesString(),
             ...($invited === null ? [] : ['isAdminInvitation' => $invited->role === UserRole::Admin,
-                'panelLabel' => $invited->role === UserRole::Admin ? 'Panel administratora' : 'Panel pracownika']),
+                'panelLabel' => $invited->role === UserRole::Admin ? 'Panel administratora' : 'Panel pracownika',
+                'club' => app(PublicSiteContent::class)->club()]),
         ]);
     }
 }

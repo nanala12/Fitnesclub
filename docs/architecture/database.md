@@ -425,6 +425,8 @@ Critical membership/sales-config changes and their audit rows are saved **in the
 
 ## 6. CMS entities (focused, not a generic page builder)
 
+**Read foundation implemented — TASK-011 (2026-11-16):** migration `2026_11_16_000000_create_public_content_tables` creates `media_assets`, `offer_tiles`, `hero_slides`, `news_posts`, `gallery_categories`, `gallery_images`, `regulation_versions`, `club_settings`, `opening_hours`, `class_types` and `class_schedule_slots`, with publication/order indexes, author FKs and unique per-placement media FKs. No existing business table is rewritten. Media path length is 500 to support the composite unique utf8mb4 index. Public reads explicitly scope publication and select safe DTOs; nullable contact/settings values represent missing real data, not default business claims. Singleton club reads use ID 1; absent weekdays remain unknown instead of closed. Class times are recurring local Warsaw wall times; publication instants remain UTC. Versioned regulations expose only the highest already-published version. This is the read prerequisite for upcoming CMS tasks, not completed ownership/upload/editor behavior. Cross-module media ownership is TASK-012, and plan/order/membership schema remains TASK-019. No public seed data or duplicate pricing table was introduced.
+
 A compact proposal consistent with approved CMS scope; exact admin form shape follows the HTML reference screens.
 
 | Table | Main columns / responsibility |

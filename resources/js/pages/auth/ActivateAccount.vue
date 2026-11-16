@@ -6,12 +6,15 @@ import PasswordInput from '@/components/PasswordInput.vue';
 import ActionButton from '@/components/shared/ActionButton.vue';
 import { Label } from '@/components/ui/label';
 import { update } from '@/routes/password';
+import { contact } from '@/routes/public';
+import type { ClubInfo } from '@/types/public';
 
 const props = defineProps<{
     token: string;
     email: string;
     passwordRules: string;
     isAdminInvitation: boolean;
+    club: ClubInfo | null;
 }>();
 const minimumLength = computed(
     () =>
@@ -153,7 +156,11 @@ const requirements = computed(() =>
         <p class="mt-5 text-center text-[13px] text-muted-foreground">
             Link nie działa?
             <a
-                href="mailto:magda@activefit.pl?subject=Nowy%20link%20do%20ustawienia%20has%C5%82a"
+                :href="
+                    club?.email
+                        ? `mailto:${club.email}?subject=Nowy%20link%20do%20ustawienia%20hasła`
+                        : contact.url()
+                "
                 class="inline-flex min-h-11 items-center font-bold text-primary underline underline-offset-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                 >Skontaktuj się z klubem</a
             >

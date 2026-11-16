@@ -16,9 +16,36 @@ import {
 import { Toaster } from '@/components/ui/sonner';
 import { dashboard, home, login } from '@/routes';
 import type { NavItem } from '@/types';
-withDefaults(defineProps<{ navigation?: NavItem[] }>(), {
-    navigation: () => [{ title: 'Start', href: home() }],
-});
+import type { ClubInfo, OpeningHour } from '@/types/public';
+import ClubFooter from '@/components/public/ClubFooter.vue';
+import {
+    offer,
+    pricing,
+    schedule,
+    gallery,
+    contact,
+    regulations,
+} from '@/routes/public';
+import { index as news } from '@/routes/public/news';
+withDefaults(
+    defineProps<{
+        navigation?: NavItem[];
+        club?: ClubInfo | null;
+        openingHours?: OpeningHour[];
+    }>(),
+    {
+        navigation: () => [
+            { title: 'Start', href: home() },
+            { title: 'Oferta', href: offer() },
+            { title: 'Cennik', href: pricing() },
+            { title: 'Grafik', href: schedule() },
+            { title: 'Aktualności', href: news() },
+            { title: 'Galeria', href: gallery() },
+            { title: 'Regulamin', href: regulations() },
+            { title: 'Kontakt', href: contact() },
+        ],
+    },
+);
 const page = usePage();
 const menuOpen = ref(false);
 const accountLink = computed(() =>
@@ -45,7 +72,7 @@ const accountLink = computed(() =>
                 /></Link>
                 <nav
                     aria-label="Nawigacja główna"
-                    class="ml-auto hidden lg:block"
+                    class="ml-auto hidden xl:block"
                 >
                     <NavigationLinks :items="navigation" horizontal />
                 </nav>
@@ -54,7 +81,7 @@ const accountLink = computed(() =>
                     :aria-label="
                         page.props.auth.user ? 'Moje konto' : 'Zaloguj się'
                     "
-                    class="ml-auto inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-primary px-3 text-sm font-semibold whitespace-nowrap text-primary-foreground hover:bg-primary/90 sm:px-4 lg:ml-4"
+                    class="ml-auto inline-flex min-h-11 shrink-0 items-center justify-center rounded-lg bg-primary px-3 text-sm font-semibold whitespace-nowrap text-primary-foreground hover:bg-primary/90 sm:px-4 xl:ml-4"
                 >
                     <span class="sm:hidden">{{
                         page.props.auth.user ? 'Konto' : 'Zaloguj'
@@ -68,7 +95,7 @@ const accountLink = computed(() =>
                         ><ActionButton
                             variant="outline"
                             aria-label="Otwórz menu"
-                            class="size-11 shrink-0 px-0 has-[>svg]:px-0 lg:hidden"
+                            class="size-11 shrink-0 px-0 has-[>svg]:px-0 xl:hidden"
                             ><Menu
                                 class="size-5"
                                 aria-hidden="true" /></ActionButton
@@ -83,7 +110,10 @@ const accountLink = computed(() =>
                                 >Wybierz stronę klubu.</SheetDescription
                             ></SheetHeader
                         >
-                        <nav aria-label="Nawigacja mobilna" class="px-3">
+                        <nav
+                            aria-label="Nawigacja mobilna"
+                            class="min-h-0 flex-1 overflow-y-auto px-3"
+                        >
                             <NavigationLinks
                                 :items="navigation"
                                 @select="menuOpen = false"
@@ -100,17 +130,7 @@ const accountLink = computed(() =>
         >
             <slot />
         </main>
-        <footer class="bg-sidebar px-4 py-8 text-sidebar-foreground">
-            <div
-                class="mx-auto flex max-w-[1130px] flex-wrap items-center justify-between gap-5"
-            >
-                <BrandLogo inverse /><Link
-                    :href="home()"
-                    class="inline-flex min-h-11 items-center text-sm hover:underline"
-                    >Strona główna</Link
-                >
-            </div>
-        </footer>
+        <ClubFooter :club="club" :opening-hours="openingHours" />
         <Toaster />
     </div>
 </template>

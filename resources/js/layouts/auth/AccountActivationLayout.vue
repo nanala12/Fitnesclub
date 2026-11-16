@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import BrandLogo from '@/components/shared/BrandLogo.vue';
+import ClubFooter from '@/components/public/ClubFooter.vue';
+import type { ClubInfo } from '@/types/public';
 import { home } from '@/routes';
-withDefaults(defineProps<{ panelLabel?: string }>(), {
+withDefaults(defineProps<{ panelLabel?: string; club?: ClubInfo | null }>(), {
     panelLabel: 'Panel pracownika',
 });
 </script>
@@ -37,22 +39,6 @@ withDefaults(defineProps<{ panelLabel?: string }>(), {
         >
             <slot />
         </main>
-        <footer
-            class="bg-sidebar px-[18px] py-6 text-center text-xs leading-[1.55] text-sidebar-foreground/85"
-        >
-            <strong class="text-sidebar-foreground">ActiveFit Pleszew</strong> ·
-            ul. Traugutta 30, 63-300 Pleszew<br />
-            <a
-                href="tel:+48693388508"
-                class="inline-flex min-h-11 items-center hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
-                >693 388 508</a
-            >
-            ·
-            <a
-                href="mailto:magda@activefit.pl"
-                class="inline-flex min-h-11 items-center hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current"
-                >magda@activefit.pl</a
-            >
-        </footer>
+        <ClubFooter :club="club" compact />
     </div>
 </template>

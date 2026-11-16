@@ -5,10 +5,23 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\PublicSite\MediaController;
+use App\Http\Controllers\PublicSite\PageController;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
+Route::name('public.')->group(function (): void {
+    Route::get('oferta', [PageController::class, 'offer'])->name('offer');
+    Route::get('cennik', [PageController::class, 'pricing'])->name('pricing');
+    Route::get('aktualnosci', [PageController::class, 'news'])->name('news.index');
+    Route::get('aktualnosci/{slug}', [PageController::class, 'newsShow'])->name('news.show');
+    Route::get('galeria', [PageController::class, 'gallery'])->name('gallery');
+    Route::get('kontakt', [PageController::class, 'contact'])->name('contact');
+    Route::get('grafik', [PageController::class, 'schedule'])->name('schedule');
+    Route::get('regulamin', [PageController::class, 'regulations'])->name('regulations');
+    Route::get('media/{mediaAsset}', MediaController::class)->name('media.show');
+});
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
