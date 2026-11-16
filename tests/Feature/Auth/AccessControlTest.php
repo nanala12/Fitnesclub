@@ -12,14 +12,17 @@ uses(RefreshDatabase::class);
 
 test('panel routes enforce the role matrix', function (UserRole $role, string $route, int $status) {
     $user = User::factory()->create(['role' => $role]);
-    $this->actingAs($user)->get(route($route))->assertStatus($status);
+    $response = $this->actingAs($user)->get(route($route))->assertStatus($status);
+    if ($route === 'staff.dashboard' && $status === 302) {
+        $response->assertRedirect(route('profile.edit'));
+    }
 })->with([
     'customer admin' => [UserRole::Customer, 'admin.dashboard', 403],
     'customer staff' => [UserRole::Customer, 'staff.dashboard', 403],
     'employee admin' => [UserRole::Employee, 'admin.dashboard', 403],
-    'employee staff' => [UserRole::Employee, 'staff.dashboard', 200],
+    'employee staff' => [UserRole::Employee, 'staff.dashboard', 302],
     'admin admin' => [UserRole::Admin, 'admin.dashboard', 200],
-    'admin staff' => [UserRole::Admin, 'staff.dashboard', 200],
+    'admin staff' => [UserRole::Admin, 'staff.dashboard', 302],
 ]);
 
 test('guests must log in before reaching a panel', function (string $route) {
@@ -37,7 +40,7 @@ test('unverified users cannot bypass panel email verification', function (UserRo
 test('the entry dashboard directs staff to their authorized panel', function (UserRole $role, string $destination) {
     $this->actingAs(User::factory()->create(['role' => $role]))
         ->get(route('dashboard'))->assertRedirect(route($destination));
-})->with([[UserRole::Admin, 'admin.dashboard'], [UserRole::Employee, 'staff.dashboard']]);
+})->with([[UserRole::Admin, 'admin.dashboard'], [UserRole::Employee, 'profile.edit']]);
 
 test('all roles can only read and edit their own profile', function (UserRole $role) {
     $user = User::factory()->create(['role' => $role]);

@@ -96,6 +96,16 @@ Nowe konto otrzymuje losowe, nieujawniane hasło zastępcze. Kolejka wysyła zap
 
 Zawieszenie blokuje kolejne żądania i usuwa sesje z używanego w projekcie magazynu `database`, unieważnia zapamiętane logowanie oraz link do ustawienia hasła. Przywrócenie dostępu wymaga ponownego logowania (lub nowego zaproszenia, jeśli hasło nie zostało jeszcze ustawione). Zmiana e-maila wymaga jego potwierdzenia i unieważnia wcześniejszy link do hasła. Operacje zapisują audyt w tej samej transakcji; audyt zawiera aktora, rodzaj zmiany i bezpieczne informacje o zmienionych polach, bez haseł, tokenów i surowych danych kontaktowych. Pełny podgląd audytu i wspólna infrastruktura dla kolejnych modułów pozostają TASK-010.
 
+## Historia zmian (TASK-010)
+
+Administrator otwiera historię przez „Historia zmian” lub `/admin/audyt`. Widok pokazuje rzeczywiste wpisy, po 20 na stronę: rodzaj operacji, wykonawcę i jego rolę w chwili operacji, konto objęte zmianą, czas warszawski oraz bezpieczne informacje o zmienionych polach. Procesy automatyczne mają wykonawcę „System”. Nazwa wykonawcy pochodzi z bieżącego konta; identyfikator i zapisana rola pozwalają rozróżnić konta mimo późniejszych zmian danych. Nie ma edycji, usuwania ani eksportu wpisów. Pusta baza nie zawiera przykładowej historii.
+
+Wspólny `RecordAudit` wywołujemy tylko z autoryzowanej akcji biznesowej, wewnątrz tej samej transakcji co zmiana. Przekazujemy jawnie wykonawcę (`User` pracownika/administratora lub `null` dla systemu), zdarzenie z `AuditAction` i identyfikator obiektu. Zapis poza transakcją jest odrzucany; błąd operacji wycofuje też audyt. Istniejące operacje pracownicze korzystają już z tego zapisu. Kolejne moduły dodają własne zdarzenia do katalogu oraz jawnie dozwolone pola i ich typy do `AuditPayload`, wraz z testami; nie przekazują całych modeli ani surowych żądań. Aktualny katalog obejmuje pięć zdarzeń pracowniczych; karnety, płatności i CMS podłączymy przy ich implementacji.
+
+Ochrona modelu i standardowych zapytań Eloquent blokuje nadpisanie/usuwanie historii, także zbiorcze i z wyłączonymi zdarzeniami modelu. Nie zastępuje uprawnień serwera DB: przed produkcją oddziel konto migracji od konta aplikacji i zapewnij temu drugiemu tylko `SELECT`/`INSERT` dla `audit_logs`, bez szerszych grantów pozwalających zmienić lub usunąć tę tabelę. Nie ustawiamy takich uprawnień automatycznie. Retencja i ewentualna anonimizacja wymagają osobnych ustaleń.
+
+TASK-010 używa tabeli dodanej w TASK-009 i nie dodaje kolejnej migracji.
+
 ## Czas i lokalna kolejka poczty
 
 Runtime Laravel oraz sesje MySQL używają **UTC**. `config('app.business_timezone')` wskazuje **Europe/Warsaw** do interpretacji dni biznesowych i prezentacji czasu. Daty ważności karnetów będą liczone osobno zgodnie z ACT-01; ustawienie strefy nie uruchamia ich ważności. Dawne `APP_TIMEZONE=Europe/Warsaw` nie steruje już strefą runtime. Po aktualizacji istniejącej instalacji wykonaj `php artisan config:clear` i uruchom ponownie worker.

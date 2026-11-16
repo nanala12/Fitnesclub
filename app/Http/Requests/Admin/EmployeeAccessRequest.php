@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class EmployeeAccessRequest extends FormRequest
 {
@@ -18,7 +19,11 @@ class EmployeeAccessRequest extends FormRequest
     public function rules(): array
     {
         return [
-            ...($this->routeIs('admin.employees.suspension') ? ['suspended' => ['required', 'boolean']] : []),
+            ...($this->routeIs('admin.employees.suspension') ? [
+                'suspended' => ['required', 'boolean'],
+                'return_to' => ['sometimes', Rule::in(['list'])],
+                'page' => ['sometimes', 'integer', 'min:1'],
+            ] : []),
             ...array_fill_keys(['id', 'user_id', 'role', 'password', 'email', 'is_active', 'suspended_at', 'email_verified_at', 'bootstrap_key', 'staff_invited_at', 'staff_invitation_accepted_at'], ['prohibited']),
         ];
     }

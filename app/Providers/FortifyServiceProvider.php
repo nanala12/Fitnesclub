@@ -4,17 +4,20 @@ namespace App\Providers;
 
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\ResetUserPassword;
+use App\Enums\UserRole;
 use App\Http\Responses\PasswordResetLinkResponse;
 use App\Models\User;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password as PasswordBroker;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Support\Timebox;
 use Illuminate\Validation\Rules\Password;
 use Inertia\Inertia;
+use Inertia\Response;
 use Laravel\Fortify\Contracts\FailedPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Contracts\SuccessfulPasswordResetLinkRequestResponse;
 use Laravel\Fortify\Features;
@@ -75,11 +78,7 @@ class FortifyServiceProvider extends ServiceProvider
             'status' => $request->session()->get('status'),
         ]));
 
-        Fortify::resetPasswordView(fn (Request $request) => Inertia::render('auth/ResetPassword', [
-            'email' => $request->email,
-            'token' => $request->route('token'),
-            'passwordRules' => Password::defaults()->toPasswordRulesString(),
-        ]));
+        Fortify::resetPasswordView(fn (Request $request): Response => $this->passwordSetupView($request));
 
         Fortify::requestPasswordResetLinkView(fn (Request $request) => Inertia::render('auth/ForgotPassword', [
             'status' => $request->session()->get('status'),
@@ -122,5 +121,32 @@ class FortifyServiceProvider extends ServiceProvider
                 (is_string($credentialId) && $credentialId !== '' ? $credentialId : $request->session()->getId()).'|'.$request->ip(),
             );
         });
+    }
+
+    private function passwordSetupView(Request $request): Response
+    {
+        $email = is_string($request->query('email')) ? mb_strtolower(trim($request->query('email'))) : '';
+        $token = is_string($request->route('token')) ? $request->route('token') : '';
+        // Keep invalid-link content generic and use the existing authentication timebox.
+        $invited = (new Timebox)->call(function () use ($email, $token): ?User {
+            if ($email === '' || strlen($email) > 255 || $token === '') {
+                return null;
+            }
+            $user = User::where('email', $email)->first();
+            if ($user === null || ! $user->hasPendingStaffInvitation() || $user->isSuspended()
+                || ! in_array($user->role, [UserRole::Employee, UserRole::Admin], true)
+                || ! PasswordBroker::broker(config('fortify.passwords'))->tokenExists($user, $token)) {
+                return null;
+            }
+
+            return $user;
+        }, 200000);
+
+        return Inertia::render($invited === null ? 'auth/ResetPassword' : 'auth/ActivateAccount', [
+            'email' => $email, 'token' => $token,
+            'passwordRules' => Password::defaults()->toPasswordRulesString(),
+            ...($invited === null ? [] : ['isAdminInvitation' => $invited->role === UserRole::Admin,
+                'panelLabel' => $invited->role === UserRole::Admin ? 'Panel administratora' : 'Panel pracownika']),
+        ]);
     }
 }

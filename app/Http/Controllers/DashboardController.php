@@ -17,7 +17,7 @@ class DashboardController extends Controller
         }
 
         if ($request->user()?->role === UserRole::Employee) {
-            return to_route('staff.dashboard');
+            return to_route('profile.edit');
         }
 
         return Inertia::render('Dashboard', [

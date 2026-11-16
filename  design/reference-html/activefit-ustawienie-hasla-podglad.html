@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="pl">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light">
+    <title>Ustaw hasło | ActiveFit</title>
+    <style>
+        :root { --bg:#f3f0ed;--surface:#fffdfb;--text:#393633;--muted:#706963;--line:#e1dad4;--dark:#5b514b;--accent:#88776a;--soft:#ece6e0;--danger:#a04740 }
+        * { box-sizing:border-box }
+        body { margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--text);font:15px/1.55 Inter,system-ui,-apple-system,"Segoe UI",sans-serif }
+        a { color:inherit }
+        .header { background:var(--surface);border-bottom:1px solid var(--line) }
+        .shell { width:min(100% - 36px,1120px);margin:auto }
+        .header-inner { height:78px;display:flex;align-items:center;justify-content:space-between;gap:16px }
+        .brand { font-size:27px;letter-spacing:-1.4px;font-weight:850;text-decoration:none }
+        .brand span { color:var(--accent) }
+        .header-label { color:var(--muted);font-size:13px }
+        main { flex:1;display:grid;place-items:center;padding:64px 18px 78px }
+        .card { width:min(100%,530px);padding:38px 42px;background:var(--surface);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 40px rgba(70,58,47,.055) }
+        .eyebrow { font-size:12px;font-weight:800;letter-spacing:.13em;text-transform:uppercase;color:var(--accent) }
+        h1 { font-size:clamp(28px,4vw,36px);line-height:1.16;letter-spacing:-1px;margin:11px 0 12px }
+        .lead { margin:0 0 27px;color:var(--muted) }
+        .account { background:var(--soft);border-radius:10px;padding:12px 15px;margin-bottom:25px }
+        .account small { display:block;color:var(--muted);font-size:12px }
+        .account strong { overflow-wrap:anywhere;font-size:14px }
+        label { display:block;font-weight:700;font-size:13px;margin:0 0 8px }
+        .field { margin-bottom:19px }
+        .input-wrap { display:flex;align-items:stretch;border:1px solid #c9c0b8;border-radius:9px;background:#fff;overflow:hidden }
+        .input-wrap:focus-within { border-color:var(--accent);outline:2px solid #d8ccc2;outline-offset:1px }
+        input[type=password],input[type=text] { width:100%;min-width:0;padding:13px 14px;border:0;background:transparent;color:var(--text);font:inherit;outline:0 }
+        .toggle { flex:0 0 auto;padding:0 14px;background:transparent;color:var(--dark);border:0;border-left:1px solid var(--line);font-size:13px;font-weight:700;cursor:pointer }
+        .help { color:var(--muted);font-size:12px;margin:7px 0 0 }
+        .error { color:var(--danger);font-size:12px;margin:7px 0 0 }
+        .alert { color:#803d36;background:#f8edeb;border:1px solid #e4c7c2;border-radius:10px;padding:12px 15px;margin-bottom:20px;font-size:13px }
+        .primary { width:100%;min-height:49px;background:var(--dark);border:0;color:white;border-radius:9px;font:inherit;font-weight:750;font-size:15px;cursor:pointer;margin-top:5px }
+        .primary:hover { background:#443a35 }
+        .secondary { text-align:center;font-size:13px;margin:20px 0 0;color:var(--muted) }
+        .secondary a { color:var(--dark);font-weight:700;text-underline-offset:3px }
+        .footer { background:#403934;color:#d9cec5;padding:24px 18px;text-align:center;font-size:12px }
+        .footer strong { color:#f6f0eb }
+        .footer a { text-decoration:none }
+        button:focus-visible,a:focus-visible { outline:3px solid #a69383;outline-offset:3px }
+        @media(max-width:600px) { .header-inner{height:67px}.header-label{font-size:12px}.card{padding:27px 22px}.shell{width:min(100% - 30px,1120px)}main{padding:30px 15px 44px} }
+    </style>
+</head>
+<body>
+<header class="header">
+    <div class="shell header-inner">
+        <a class="brand" href="#" aria-label="ActiveFit — strona główna">active<span>fit.</span></a>
+        <span class="header-label">Panel pracownika</span>
+    </div>
+</header>
+<main>
+    <section class="card" aria-labelledby="page-title">
+        <div class="eyebrow">Aktywacja konta</div>
+        <h1 id="page-title">Ustaw swoje hasło</h1>
+        <p class="lead">Twoje konto pracownicze jest już przygotowane. Utwórz hasło, aby bezpiecznie zalogować się do panelu ActiveFit.</p>
+        <div class="account"><small>Adres e-mail Twojego konta</small><strong>pracownik@example.com</strong></div>
+
+        
+
+        <form method="POST" action="#" id="passwordForm">
+
+            <input type="hidden" name="token" value="demo-token">
+            <input type="hidden" name="email" value="pracownik@example.com">
+            <div class="field">
+                <label for="password">Nowe hasło</label>
+                <div class="input-wrap">
+                    <input id="password" name="password" type="password" required minlength="12" maxlength="128" autocomplete="new-password" aria-describedby="passwordHelp passwordError">
+                    <button class="toggle" type="button" data-toggle="password" aria-label="Pokaż nowe hasło" aria-pressed="false">Pokaż</button>
+                </div>
+                <p class="help" id="passwordHelp">Co najmniej 12 znaków. Unikaj haseł używanych w innych serwisach.</p>
+                
+                <p class="error" id="passwordError" role="alert" hidden></p>
+            </div>
+            <div class="field">
+                <label for="password_confirmation">Powtórz nowe hasło</label>
+                <div class="input-wrap">
+                    <input id="password_confirmation" name="password_confirmation" type="password" required minlength="12" maxlength="128" autocomplete="new-password" aria-describedby="confirmError">
+                    <button class="toggle" type="button" data-toggle="password_confirmation" aria-label="Pokaż potwierdzenie hasła" aria-pressed="false">Pokaż</button>
+                </div>
+                <p class="error" id="confirmError" role="alert" hidden></p>
+            </div>
+            
+            
+            <button class="primary" type="submit">Zapisz hasło i aktywuj konto →</button>
+        </form>
+        <p class="secondary">Link nie działa? <a href="mailto:magda@activefit.pl?subject=Nowy%20link%20do%20ustawienia%20has%C5%82a">Skontaktuj się z klubem</a></p>
+    </section>
+</main>
+<footer class="footer"><strong>ActiveFit Pleszew</strong> · ul. Traugutta 30, 63-300 Pleszew<br><a href="tel:+48693388508">693 388 508</a> · <a href="mailto:magda@activefit.pl">magda@activefit.pl</a></footer>
+<script>
+    document.querySelectorAll('[data-toggle]').forEach(button => {
+        button.addEventListener('click', () => {
+            const input = document.getElementById(button.dataset.toggle);
+            const visible = input.type === 'password';
+            input.type = visible ? 'text' : 'password';
+            button.textContent = visible ? 'Ukryj' : 'Pokaż';
+            button.setAttribute('aria-pressed', String(visible));
+            button.setAttribute('aria-label', `${visible ? 'Ukryj' : 'Pokaż'} ${input.id === 'password' ? 'nowe hasło' : 'potwierdzenie hasła'}`);
+        });
+    });
+    document.getElementById('passwordForm').addEventListener('submit', event => {
+        const password = document.getElementById('password');
+        const confirmation = document.getElementById('password_confirmation');
+        const passwordError = document.getElementById('passwordError');
+        const confirmError = document.getElementById('confirmError');
+        passwordError.hidden = password.value.length >= 12;
+        passwordError.textContent = passwordError.hidden ? '' : 'Hasło musi mieć co najmniej 12 znaków.';
+        confirmError.hidden = password.value === confirmation.value;
+        confirmError.textContent = confirmError.hidden ? '' : 'Podane hasła muszą być identyczne.';
+        if (!passwordError.hidden || !confirmError.hidden) {
+            event.preventDefault();
+            (!passwordError.hidden ? password : confirmation).focus();
+        } else {
+            event.preventDefault();
+            alert("To jest podgląd formularza. Hasło nie zostało wysłane ani zapisane.");
+        }
+    });
+</script>
+</body>
+</html>

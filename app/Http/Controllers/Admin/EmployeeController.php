@@ -75,6 +75,10 @@ class EmployeeController extends Controller
         $manage->suspend($request->user(), $employee, $request->boolean('suspended'));
         Inertia::flash('toast', ['type' => 'success', 'message' => $request->boolean('suspended') ? 'Dostęp do konta został zawieszony.' : 'Dostęp do konta został przywrócony.']);
 
+        if ($request->validated('return_to') === 'list') {
+            return to_route('admin.employees.index', ['page' => $request->integer('page', 1)]);
+        }
+
         return to_route('admin.employees.edit', $employee);
     }
 

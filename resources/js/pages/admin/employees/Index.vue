@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
 import EmployeeController from '@/actions/App/Http/Controllers/Admin/EmployeeController';
+import EmployeeAccessButton from '@/components/EmployeeAccessButton.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/shared/Pagination.vue';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ defineProps<{
         }[];
         links: PaginationLink[];
         total: number;
+        current_page: number;
     };
 }>();
 defineOptions({
@@ -84,13 +86,22 @@ defineOptions({
                         Oczekuje na ustawienie hasła
                     </p>
                 </div>
-                <Button v-if="employee.canManage" as-child variant="outline"
-                    ><Link :href="EmployeeController.edit(employee.id)"
-                        >Edytuj<span class="sr-only">
-                            konto {{ employee.name }}</span
-                        ></Link
-                    ></Button
+                <div
+                    v-if="employee.canManage"
+                    class="flex shrink-0 flex-wrap gap-2"
                 >
+                    <Button as-child variant="outline"
+                        ><Link :href="EmployeeController.edit(employee.id)"
+                            >Edytuj<span class="sr-only">
+                                konto {{ employee.name }}</span
+                            ></Link
+                        ></Button
+                    >
+                    <EmployeeAccessButton
+                        :employee="employee"
+                        :page="employees.current_page"
+                    />
+                </div>
                 <Button v-else as-child variant="outline"
                     ><Link :href="profile()">Mój profil</Link></Button
                 >

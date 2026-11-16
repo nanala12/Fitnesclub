@@ -2,6 +2,7 @@ import { createInertiaApp } from '@inertiajs/vue3';
 import { initializeTheme } from '@/composables/useAppearance';
 import AppLayout from '@/layouts/AppLayout.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
+import AccountActivationLayout from '@/layouts/auth/AccountActivationLayout.vue';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import StaffLayout from '@/layouts/StaffLayout.vue';
@@ -20,6 +21,8 @@ void createInertiaApp({
                 return AdminLayout;
             case name.startsWith('staff/'):
                 return StaffLayout;
+            case name === 'auth/ActivateAccount':
+                return AccountActivationLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             case name.startsWith('settings/'):

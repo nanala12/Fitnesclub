@@ -3,16 +3,12 @@
 namespace App\Http\Controllers\Staff;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
+use Illuminate\Http\RedirectResponse;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): Response
+    public function __invoke(): RedirectResponse
     {
-        return Inertia::render('staff/Dashboard', [
-            'accountCreatedAt' => $request->user()?->created_at?->toISOString(),
-        ]);
+        return to_route('profile.edit');
     }
 }

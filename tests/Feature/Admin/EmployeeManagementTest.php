@@ -229,3 +229,29 @@ test('email edits revoke tokens for the locked current identity rather than a st
     $this->assertDatabaseMissing('password_reset_tokens', ['email' => 'intermediate@example.test']);
     expect($employee->fresh()->email)->toBe('new-staff@example.test');
 });
+
+test('suspending and resuming from the list returns to its page with an audited state change', function () {
+    $admin = User::factory()->admin()->create();
+    $employee = User::factory()->employee()->create();
+    foreach ([true, false] as $suspended) {
+        $this->actingAs($admin)->patch(route('admin.employees.suspension', $employee), ['suspended' => $suspended, 'return_to' => 'list', 'page' => 2])
+            ->assertSessionHasNoErrors()->assertRedirect(route('admin.employees.index', ['page' => 2]));
+        expect($employee->fresh()->isSuspended())->toBe($suspended);
+    }
+    $this->assertDatabaseCount('audit_logs', 2);
+});
+
+test('the edit form keeps its existing access change destination', function () {
+    $admin = User::factory()->admin()->create();
+    $employee = User::factory()->employee()->create();
+    $this->actingAs($admin)->patch(route('admin.employees.suspension', $employee), ['suspended' => true])
+        ->assertSessionHasNoErrors()->assertRedirect(route('admin.employees.edit', $employee));
+});
+
+test('list action context cannot redirect outside the application or accept an invalid page', function (array $context, string $field) {
+    $admin = User::factory()->admin()->create();
+    $employee = User::factory()->employee()->create();
+    $this->actingAs($admin)->patch(route('admin.employees.suspension', $employee), ['suspended' => true, ...$context])->assertSessionHasErrors($field);
+    expect($employee->fresh()->isSuspended())->toBeFalse();
+    $this->assertDatabaseCount('audit_logs', 0);
+})->with([[['return_to' => 'https://example.test'], 'return_to'], [['return_to' => 'list', 'page' => 0], 'page']]);

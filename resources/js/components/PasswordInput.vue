@@ -10,6 +10,8 @@ defineOptions({ inheritAttrs: false });
 const props = defineProps<{
     class?: HTMLAttributes['class'];
     autofocus?: boolean;
+    toggleText?: boolean;
+    toggleDescription?: string;
 }>();
 
 const showPassword = ref(false);
@@ -27,7 +29,13 @@ defineExpose({
             v-focus="props.autofocus"
             ref="inputRef"
             :type="showPassword ? 'text' : 'password'"
-            :class="cn('min-h-11 pr-12', props.class)"
+            :class="
+                cn(
+                    'min-h-11',
+                    props.toggleText ? 'pr-20' : 'pr-12',
+                    props.class,
+                )
+            "
             v-bind="$attrs"
         />
         <button
@@ -36,12 +44,17 @@ defineExpose({
             :class="
                 cn(
                     'absolute inset-y-0 right-0 flex min-w-11 items-center justify-center rounded-r-md px-3 text-muted-foreground hover:text-foreground focus-visible:ring-[3px] focus-visible:ring-ring focus-visible:outline-none',
+                    props.toggleText &&
+                        'w-[74px] border-l border-border text-[13px] font-bold text-primary',
                 )
             "
-            :aria-label="showPassword ? 'Ukryj hasło' : 'Pokaż hasło'"
+            :aria-label="`${showPassword ? 'Ukryj' : 'Pokaż'} ${props.toggleDescription ?? 'hasło'}`"
             :aria-pressed="showPassword"
         >
-            <EyeOff v-if="showPassword" class="size-4" />
+            <span v-if="props.toggleText">{{
+                showPassword ? 'Ukryj' : 'Pokaż'
+            }}</span>
+            <EyeOff v-else-if="showPassword" class="size-4" />
             <Eye v-else class="size-4" />
         </button>
     </div>

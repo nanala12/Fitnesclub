@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\DashboardController;
@@ -12,6 +13,8 @@ Route::get('/', HomeController::class)->name('home');
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('admin', AdminDashboardController::class)->middleware('can:access-admin-panel')->name('admin.dashboard');
+    Route::get('admin/audyt', [AuditLogController::class, 'index'])
+        ->middleware(['can:access-admin-panel', 'throttle:60,1'])->name('admin.audit.index');
     Route::get('panel-pracownika', StaffDashboardController::class)->middleware('can:access-staff-panel')->name('staff.dashboard');
     Route::prefix('admin/pracownicy')->name('admin.employees.')->middleware('can:access-admin-panel')->group(function (): void {
         Route::get('/', [EmployeeController::class, 'index'])->middleware('throttle:60,1')->name('index');
