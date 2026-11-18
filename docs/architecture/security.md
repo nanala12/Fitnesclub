@@ -301,3 +301,7 @@ Test user-visible validation messages and failed states in Inertia pages. CI sho
 ---
 
 **AI SDLC gate:** `security.md` can guide account/CMS hardening and payment integration design immediately. Treat only the remaining open business policies as implementation blockers for their respective features, not for the whole project.
+
+### TASK-015 — Gallery controls (2026-11-18)
+
+Gallery routes and business actions require an active verified administrator through middleware and GalleryCategoryPolicy; employees/customers are denied. Server validation covers category ownership/existence, image uploads, current media ID, visibility, movement direction and revision. Mutations use CSRF, the existing CMS rate limits and a common gallery row lock/revision to reject stale saves, including generic media replacement/removal. Content/media/audit writes are atomic; physical deletion uses the existing post-commit retry lifecycle. Public gallery file access requires both a published photo and published category; hiding either revokes direct public access. DTOs and audit diffs omit storage paths, upload filenames and editorial content. No per-photo HTML/editorial descriptions or shared assets were introduced.

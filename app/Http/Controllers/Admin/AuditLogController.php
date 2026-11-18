@@ -42,7 +42,11 @@ class AuditLogController extends Controller
             'id' => $entry->id, 'action' => $action?->label() ?? 'Zdarzenie audytu',
             'subjectLabel' => match ($action?->subjectType()) {
                 'user' => 'Konto #'.$entry->getAttribute('subject_id'),
+                'gallery_category' => 'Kategoria galerii #'.$entry->getAttribute('subject_id'),
+                'gallery_image' => 'Zdjęcie galerii #'.$entry->getAttribute('subject_id'),
                 'news_post' => 'Aktualność #'.$entry->getAttribute('subject_id'),
+                'gallery_category' => 'Kategoria galerii #'.$entry->getAttribute('subject_id'),
+                'gallery_image' => 'Zdjęcie galerii #'.$entry->getAttribute('subject_id'),
                 'news_post' => 'Aktualność #'.$entry->getAttribute('subject_id'),
                 'homepage_tile' => 'Kafelek #'.$entry->getAttribute('subject_id'),
                 'homepage_slide' => 'Slajd #'.$entry->getAttribute('subject_id'),

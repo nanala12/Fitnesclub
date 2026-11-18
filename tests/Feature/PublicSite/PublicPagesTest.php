@@ -80,8 +80,8 @@ test('news pagination and homepage teaser use only published posts', function ()
 test('gallery hides unpublished categories and preserves category context in pagination', function () {
     $visible = GalleryCategory::forceCreate(['name' => 'Visible', 'is_published' => true]);
     $hidden = GalleryCategory::forceCreate(['name' => 'Hidden', 'is_published' => false]);
-    GalleryImage::forceCreate(['gallery_category_id' => $visible->id, 'media_asset_id' => publicAsset()->id]);
-    GalleryImage::forceCreate(['gallery_category_id' => $hidden->id, 'media_asset_id' => publicAsset('cms/private.png')->id]);
+    GalleryImage::forceCreate(['is_published' => true, 'gallery_category_id' => $visible->id, 'media_asset_id' => publicAsset()->id]);
+    GalleryImage::forceCreate(['is_published' => true, 'gallery_category_id' => $hidden->id, 'media_asset_id' => publicAsset('cms/private.png')->id]);
     $this->get(route('public.gallery', ['kategoria' => $visible->id]))->assertInertia(fn (Assert $page) => $page->has('categories', 1)->where('images.total', 1)->where('selectedCategory', $visible->id));
     $this->get(route('public.gallery', ['kategoria' => $hidden->id]))->assertNotFound();
     $this->get(route('public.gallery', ['kategoria' => 999]))->assertNotFound();
@@ -161,7 +161,7 @@ test('news and gallery images lose public access when their parent is hidden', f
         $post = newsRecord(['cover_media_id' => $asset->id]);
     } else {
         $category = GalleryCategory::forceCreate(['name' => 'Category', 'is_published' => true]);
-        GalleryImage::forceCreate(['gallery_category_id' => $category->id, 'media_asset_id' => $asset->id]);
+        GalleryImage::forceCreate(['is_published' => true, 'gallery_category_id' => $category->id, 'media_asset_id' => $asset->id]);
     }
     $this->get(route('public.media.show', $asset))->assertOk();
     if ($owner === 'news') {

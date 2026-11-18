@@ -604,3 +604,7 @@ erDiagram
     GALLERY_IMAGES ||--|| MEDIA_ASSETS : owns
     USERS o|--o{ AUDIT_LOGS : actor
 ```
+
+### TASK-015 — Gallery visibility and revision (2026-11-18)
+
+The additive `2026_11_18_010000_add_gallery_visibility_and_revision` migration adds `gallery_images.is_published`, an index on `(gallery_category_id, is_published, sort_order)`, and the singleton `gallery_content_states` row (`id=1`, unsigned bigint revision). Database default `true` preserves visibility of existing photos; the Eloquent model and editor explicitly default new photos to hidden. Public access also requires a published category. Existing unique media ownership and category FK remain unchanged. Category deletion requires an empty category; photo transfer changes only its category/order and retains its owned asset. All editor/shared-media mutations lock the singleton before owners/media and atomically advance revision with audit. Migration applied to verified local MySQL with no gallery content; no content/contact seed was added.

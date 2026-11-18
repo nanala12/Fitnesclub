@@ -8,6 +8,7 @@ import {
     PanelsTopLeft,
     Newspaper,
 } from '@lucide/vue';
+import GalleryController from '@/actions/App/Http/Controllers/Admin/Cms/GalleryController';
 import NewsPostController from '@/actions/App/Http/Controllers/Admin/Cms/NewsPostController';
 import HomepageContentController from '@/actions/App/Http/Controllers/Admin/Cms/HomepageContentController';
 import PanelLayout from '@/layouts/PanelLayout.vue';
@@ -39,6 +40,7 @@ withDefaults(defineProps<PanelLayoutProps>(), {
             href: NewsPostController.index(),
             icon: Newspaper,
         },
+        { title: 'Galeria', href: GalleryController.index(), icon: Images },
         { title: 'Historia zmian', href: audit(), icon: ClipboardList },
         { title: 'Mój profil', href: edit(), icon: UserRound },
     ],

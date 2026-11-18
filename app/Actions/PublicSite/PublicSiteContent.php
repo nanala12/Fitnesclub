@@ -144,7 +144,7 @@ class PublicSiteContent
         return OfferTile::where('media_asset_id', $media->id)->where('is_published', true)->exists()
             || HeroSlide::where('media_asset_id', $media->id)->where('is_published', true)->exists()
             || $this->publishedNews()->where('cover_media_id', $media->id)->exists()
-            || GalleryImage::where('media_asset_id', $media->id)->whereIn('gallery_category_id', GalleryCategory::where('is_published', true)->select('id'))->exists()
+            || GalleryImage::where('media_asset_id', $media->id)->where('is_published', true)->whereIn('gallery_category_id', GalleryCategory::where('is_published', true)->select('id'))->exists()
             || $this->publishedRegulations()->value('media_asset_id') === $media->id;
     }
 

@@ -4,6 +4,14 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case GalleryCategoryCreated = 'gallery.category_created';
+    case GalleryCategoryUpdated = 'gallery.category_updated';
+    case GalleryCategoryDeleted = 'gallery.category_deleted';
+    case GalleryCategoryReordered = 'gallery.category_reordered';
+    case GalleryImageCreated = 'gallery.image_created';
+    case GalleryImageUpdated = 'gallery.image_updated';
+    case GalleryImageDeleted = 'gallery.image_deleted';
+    case GalleryImageReordered = 'gallery.image_reordered';
     case NewsCreated = 'news.created';
     case NewsUpdated = 'news.updated';
     case NewsDeleted = 'news.deleted';
@@ -26,6 +34,15 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::GalleryCategoryCreated => 'Dodano kategorię galerii',
+            self::GalleryCategoryUpdated => 'Zmieniono kategorię galerii',
+            self::GalleryCategoryDeleted => 'Usunięto kategorię galerii',
+            self::GalleryCategoryReordered => 'Zmieniono kolejność kategorii galerii',
+            self::GalleryImageCreated => 'Dodano zdjęcie galerii',
+            self::GalleryImageUpdated => 'Zmieniono zdjęcie galerii',
+            self::GalleryImageDeleted => 'Usunięto zdjęcie galerii',
+            self::GalleryImageReordered => 'Zmieniono kolejność zdjęć galerii',
+
             self::NewsCreated => 'Dodano aktualność',
             self::NewsUpdated => 'Zmieniono aktualność',
             self::NewsDeleted => 'Usunięto aktualność',
@@ -50,6 +67,8 @@ enum AuditAction: string
     public function subjectType(): string
     {
         return match ($this) {
+            self::GalleryCategoryCreated, self::GalleryCategoryUpdated, self::GalleryCategoryDeleted, self::GalleryCategoryReordered => 'gallery_category',
+            self::GalleryImageCreated, self::GalleryImageUpdated, self::GalleryImageDeleted, self::GalleryImageReordered => 'gallery_image',
             self::NewsCreated, self::NewsUpdated, self::NewsDeleted => 'news_post',
             self::TileCreated, self::TileUpdated, self::TileDeleted, self::TileReordered => 'homepage_tile',
             self::SlideCreated, self::SlideUpdated, self::SlideDeleted, self::SlideReordered => 'homepage_slide',

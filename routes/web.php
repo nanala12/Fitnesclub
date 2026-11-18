@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\Cms\GalleryController;
 use App\Http\Controllers\Admin\Cms\HomepageContentController;
 use App\Http\Controllers\Admin\Cms\MediaController as CmsMediaController;
 use App\Http\Controllers\Admin\Cms\NewsPostController;
@@ -51,6 +52,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/{newsPost}', [NewsPostController::class, 'update'])->whereNumber('newsPost')->middleware('throttle:30,1,cms-content-write:')->name('update');
         Route::patch('/{newsPost}/widocznosc', [NewsPostController::class, 'visibility'])->whereNumber('newsPost')->middleware('throttle:30,1,cms-content-write:')->name('visibility');
         Route::delete('/{newsPost}', [NewsPostController::class, 'destroy'])->whereNumber('newsPost')->middleware('throttle:30,1,cms-content-write:')->name('destroy');
+    });
+    Route::prefix('admin/cms/galeria')->name('admin.cms.gallery.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [GalleryController::class, 'index'])->middleware('throttle:60,1,cms-content-read:')->name('index');
+        Route::get('/kategorie/nowa', [GalleryController::class, 'categoryCreate'])->name('categories.create');
+        Route::post('/kategorie', [GalleryController::class, 'categoryStore'])->middleware('throttle:30,1,cms-content-write:')->name('categories.store');
+        Route::get('/kategorie/{category}/edytuj', [GalleryController::class, 'categoryEdit'])->whereNumber('category')->name('categories.edit');
+        Route::patch('/kategorie/{category}', [GalleryController::class, 'categoryUpdate'])->whereNumber('category')->middleware('throttle:30,1,cms-content-write:')->name('categories.update');
+        Route::patch('/kategorie/{category}/widocznosc', [GalleryController::class, 'categoryVisibility'])->whereNumber('category')->middleware('throttle:30,1,cms-content-write:')->name('categories.visibility');
+        Route::patch('/kategorie/{category}/kolejnosc', [GalleryController::class, 'categoryMove'])->whereNumber('category')->middleware('throttle:30,1,cms-content-write:')->name('categories.move');
+        Route::delete('/kategorie/{category}', [GalleryController::class, 'categoryDestroy'])->whereNumber('category')->middleware('throttle:30,1,cms-content-write:')->name('categories.destroy');
+        Route::get('/zdjecia/nowe', [GalleryController::class, 'imageCreate'])->name('images.create');
+        Route::post('/zdjecia', [GalleryController::class, 'imageStore'])->middleware('throttle:30,1,cms-content-write:')->name('images.store');
+        Route::get('/zdjecia/{image}/edytuj', [GalleryController::class, 'imageEdit'])->whereNumber('image')->name('images.edit');
+        Route::patch('/zdjecia/{image}', [GalleryController::class, 'imageUpdate'])->whereNumber('image')->middleware('throttle:30,1,cms-content-write:')->name('images.update');
+        Route::patch('/zdjecia/{image}/widocznosc', [GalleryController::class, 'imageVisibility'])->whereNumber('image')->middleware('throttle:30,1,cms-content-write:')->name('images.visibility');
+        Route::patch('/zdjecia/{image}/kolejnosc', [GalleryController::class, 'imageMove'])->whereNumber('image')->middleware('throttle:30,1,cms-content-write:')->name('images.move');
+        Route::delete('/zdjecia/{image}', [GalleryController::class, 'imageDestroy'])->whereNumber('image')->middleware('throttle:30,1,cms-content-write:')->name('images.destroy');
     });
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('admin', AdminDashboardController::class)->middleware('can:access-admin-panel')->name('admin.dashboard');

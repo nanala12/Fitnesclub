@@ -54,8 +54,8 @@ class PageController extends Controller
             GalleryCategory::where('is_published', true)->findOrFail($categoryId);
         }
         $categories = GalleryCategory::where('is_published', true)->orderBy('sort_order')->orderBy('id')->get(['id', 'name', 'short_description']);
-        $images = GalleryImage::with('media')->whereIn('gallery_category_id', $categories->pluck('id'))
-            ->when($categoryId !== null, fn ($query) => $query->where('gallery_category_id', $categoryId))->orderBy('sort_order')->orderBy('id')->paginate(24)->withQueryString()
+        $images = GalleryImage::with('media')->select('gallery_images.*')->join('gallery_categories', 'gallery_categories.id', '=', 'gallery_images.gallery_category_id')->where('gallery_images.is_published', true)->whereIn('gallery_category_id', $categories->pluck('id'))
+            ->when($categoryId !== null, fn ($query) => $query->where('gallery_category_id', $categoryId))->orderBy('gallery_categories.sort_order')->orderBy('gallery_categories.id')->orderBy('gallery_images.sort_order')->orderBy('gallery_images.id')->paginate(24)->withQueryString()
             ->through(fn (GalleryImage $image): array => ['id' => $image->id, 'categoryId' => $image->gallery_category_id, 'image' => $content->image($image->media)]);
 
         return Inertia::render('public/Gallery', [...$content->shared('gallery'), 'categories' => $categories->map(fn ($category): array => ['id' => $category->id, 'name' => $category->name, 'description' => $content->text($category->short_description)]), 'images' => $images, 'selectedCategory' => $categoryId]);

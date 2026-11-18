@@ -8,6 +8,7 @@ class AuditPayload
 {
     /** @var array<string, string> */
     public const array FIELD_LABELS = [
+        'name' => 'Nazwa', 'gallery_category_id' => 'Kategoria galerii',
         'body' => 'Treść', 'excerpt' => 'Wstęp', 'published_at' => 'Data publikacji',
         'image' => 'Zdjęcie', 'title' => 'Tytuł', 'description' => 'Opis',
         'is_published' => 'Widoczność', 'sort_order' => 'Kolejność', 'link_url' => 'Odnośnik',

@@ -79,9 +79,17 @@ Edytor WYSIWYG używa natywnych poleceń edycji przeglądarki (bez nowego pakiet
 ### 4.3 `gallery_categories`, `gallery_images`
 
 - `gallery_categories`: `id`, `name` VARCHAR(150) NOT NULL, `short_description` VARCHAR(500) NULL, `sort_order`, `is_published`, timestamps.
-- `gallery_images`: `id` PK, `gallery_category_id` FK NOT NULL, `media_asset_id` FK NOT NULL UNIQUE, `sort_order`, timestamps; indeks `(gallery_category_id, sort_order)`. Brak pivotu wiele-do-wielu.
+- `gallery_images`: `id` PK, `gallery_category_id` FK NOT NULL, `media_asset_id` FK NOT NULL UNIQUE, `sort_order`, `is_published`, timestamps; indeksy `(gallery_category_id, sort_order)` i `(gallery_category_id, is_published, sort_order)`. Brak pivotu wiele-do-wielu.
 - **Nie dodawać** `caption`, `description`, `title` dla pojedynczego zdjęcia galerii.
 - **CONFIRMED (CMS-OD-01):** jedno zdjęcie należy do dokładnie jednej kategorii.
+
+**Implementacja TASK-015 — 2026-11-18:** `admin.cms.gallery.*` pod `/admin/cms/galeria` udostępnia indeks, formularze kategorii/zdjęć, widoczność, przesuwanie i usuwanie. `GalleryCategoryPolicy` i akcje dopuszczają wyłącznie aktywnego zweryfikowanego administratora. Udany zapis wraca do indeksu; osobne pagery obejmują 12 kategorii i 24 zdjęcia, z filtrem kategorii. DTO nie ujawnia ścieżek storage. Pozycje i granice ruchu zdjęć wyznaczają funkcje okienkowe SQL według kategorii (MySQL 8 / SQLite), także przez granice stron i dla ukrytych rekordów. Nie ma per-image opisu redakcyjnego; alt jest metadanymi dostępności pliku.
+
+`gallery_content_states` zawiera jeden techniczny wiersz `id=1`, `revision` UNSIGNED BIGINT. Każda mutacja blokuje ten wiersz przed kategorią/właścicielem i mediami, sprawdza rewizję i zwiększa ją atomowo z bezpiecznym audytem. Dotyczy to również wspólnych tras zamiany/usuwania mediów. Równoległe tworzenie w pustej galerii i przesuwanie zdjęć objęto testami MySQL: jedna zmiana wygrywa, druga otrzymuje konflikt. Nowe elementy trafiają na koniec odpowiedniej listy. Przeniesienie zdjęcia zachowuje właściciela pliku i dopisuje je do końca kategorii docelowej. Usunięcie niepustej kategorii jest blokowane; zdjęcia trzeba najpierw przenieść/usunąć. Usunięcie zdjęcia zleca istniejący cleanup po commit.
+
+Publiczny odczyt zdjęcia wymaga `gallery_images.is_published` oraz widocznej kategorii, również przy bezpośrednim pobraniu pliku. Kolejność publiczna: kategorie `(sort_order, id)`, wewnątrz nich zdjęcia `(sort_order, id)`. Model i formularze domyślnie ukrywają nowe zdjęcia/kategorie. Addytywna migracja ustawia bazowy default zdjęcia na `true`, aby zachować publikację istniejących rekordów z wcześniejszego modelu widoczności zależnego wyłącznie od kategorii; nie publikuje ukrytych kategorii ani nie dodaje treści.
+
+**Uzupełnienie TASK-015 — wiele zdjęć:** formularz tworzenia utrzymuje lokalną kolejkę plików z podglądami i osobnym alt. Każdy plik korzysta z dotychczasowego autoryzowanego endpointu, walidacji 5 MB i osobnej transakcji/zdjęcia/audytu. `continue_upload=true` kieruje z powrotem na formularz tworzenia ze świeżą rewizją. Inertia zachowuje kolejkę; następny zapis używa rewizji z odpowiedzi. Błąd zatrzymuje wysyłkę, zachowuje wcześniejsze sukcesy i pozwala pominąć je przy ponowieniu. Nie ma atomowości całej kolejki ani trwałego wznowienia po opuszczeniu strony. Po całej serii klient przechodzi do indeksu. Nie zwiększono limitów multipart i nie dodano API ani współdzielenia mediów.
 
 ### 4.4 `offer_tiles`
 
@@ -153,7 +161,7 @@ erDiagram
 | Panel | Trasy koncepcyjne | Strony Vue |
 |---|---|---|
 | Aktualności | `admin.cms.news.*` | `admin/Cms/News/{Index,Create,Edit}` |
-| Galeria | `admin.cms.gallery.*` | `admin/Cms/Gallery/{Index,Edit}` |
+| Galeria | `admin.cms.gallery.*` | `admin/cms/gallery/{Index,CategoryForm,ImageForm}` |
 | Kafelki | `admin.cms.tiles.*` | `admin/Cms/Tiles/Index` |
 | Karuzela | `admin.cms.slides.*` | `admin/Cms/Slides/Index` |
 | Regulamin | `admin.cms.regulations.*` | `admin/Cms/Regulations/Edit` + wersje |
