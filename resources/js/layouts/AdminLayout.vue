@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { ClipboardList, LayoutGrid, UserRound, Users } from '@lucide/vue';
+import {
+    ClipboardList,
+    LayoutGrid,
+    UserRound,
+    Users,
+    Images,
+    PanelsTopLeft,
+} from '@lucide/vue';
+import HomepageContentController from '@/actions/App/Http/Controllers/Admin/Cms/HomepageContentController';
 import PanelLayout from '@/layouts/PanelLayout.vue';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as employees } from '@/routes/admin/employees';
@@ -14,6 +22,16 @@ withDefaults(defineProps<PanelLayoutProps>(), {
             icon: LayoutGrid,
         },
         { title: 'Pracownicy', href: employees(), icon: Users },
+        {
+            title: 'Kafelki oferty',
+            href: HomepageContentController.index('kafelki'),
+            icon: PanelsTopLeft,
+        },
+        {
+            title: 'Karuzela',
+            href: HomepageContentController.index('karuzela'),
+            icon: Images,
+        },
         { title: 'Historia zmian', href: audit(), icon: ClipboardList },
         { title: 'Mój profil', href: edit(), icon: UserRound },
     ],

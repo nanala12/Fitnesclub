@@ -15,6 +15,7 @@ use App\Models\User;
 use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Inertia\Testing\AssertableInertia as Assert;
 
 uses(RefreshDatabase::class);
@@ -50,7 +51,7 @@ test('only published ordered tiles and slides are sent to the home page', functi
     HeroSlide::forceCreate(['title' => 'Published slide', 'media_asset_id' => $image->id, 'is_published' => true]);
     $hidden = publicAsset('cms/hidden.png');
     HeroSlide::forceCreate(['title' => 'Hidden slide', 'media_asset_id' => $hidden->id, 'is_published' => false]);
-    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->has('tiles', 2)->where('tiles.0.title', 'First')->where('tiles.1.href', route('public.offer'))->has('slides', 1)->where('slides.0.title', 'Published slide')->missing('slides.0.image.path')->missing('slides.0.image.disk'));
+    $this->get(route('home'))->assertInertia(fn (Assert $page) => $page->has('tiles', 2)->where('tiles.0.title', 'First')->where('tiles.1.href', route('public.offer.show', OfferTile::where('title', 'Second')->sole()->id))->has('slides', 1)->where('slides.0.title', 'Published slide')->missing('slides.0.image.path')->missing('slides.0.image.disk'));
 });
 
 test('draft future and unscheduled news are not publicly accessible', function (string $state) {
@@ -170,3 +171,27 @@ test('news and gallery images lose public access when their parent is hidden', f
     }
     $this->get(route('public.media.show', $asset))->assertNotFound();
 })->with(['news', 'gallery']);
+
+test('offer cards link to their own detail and send a short excerpt while detail keeps the full text', function () {
+    $text = str_repeat('Pełny opis oferty. ', 25);
+    $tile = OfferTile::forceCreate(['title' => 'Oferta testowa', 'short_description' => $text, 'is_published' => true, 'link_url' => '/cennik']);
+    $this->get(route('public.offer'))->assertInertia(fn (Assert $page) => $page->where('tiles.0.href', route('public.offer.show', $tile->id))->where('tiles.0.description', Str::limit(trim($text), 180, '…')));
+    $this->get(route('public.offer.show', $tile->id))->assertOk()->assertInertia(fn (Assert $page) => $page->component('public/OfferShow')->where('offer.description', trim($text))->where('offer.nextHref', '/cennik')->where('offer.nextLabel', 'Sprawdź cennik')->missing('offer.is_published')->missing('offer.short_description')->missing('offer.media_asset_id')->has('seo.canonical'));
+});
+
+test('hidden missing and subsequently unpublished offer details cannot be opened', function () {
+    $tile = OfferTile::forceCreate(['title' => 'Hidden', 'is_published' => false]);
+    $this->get(route('public.offer.show', $tile->id))->assertNotFound();
+    $this->get(route('public.offer.show', 999999))->assertNotFound();
+    $tile->forceFill(['is_published' => true])->save();
+    $this->get(route('public.offer.show', $tile->id))->assertOk();
+    $tile->forceFill(['is_published' => false])->save();
+    $this->get(route('public.offer.show', $tile->id))->assertNotFound();
+});
+
+test('offer detail uses safe image DTO plain text and escaped canonical SEO', function () {
+    config(['app.url' => 'https://club.example']);
+    $tile = OfferTile::forceCreate(['title' => '<script>Title</script>', 'short_description' => '<p>Opis</p><img src=x onerror=alert(1)>', 'media_asset_id' => publicAsset()->id, 'is_published' => true, 'link_url' => 'javascript:alert(1)']);
+    $this->get(route('public.offer.show', $tile->id))->assertInertia(fn (Assert $page) => $page->where('offer.description', 'Opis')->where('offer.nextHref', null)->where('seo.canonical', 'https://club.example/oferta/'.$tile->id)->missing('offer.image.path')->missing('offer.image.disk'));
+    $this->get(route('public.offer.show', $tile->id))->assertDontSee('<title data-inertia=""><script>', false);
+});

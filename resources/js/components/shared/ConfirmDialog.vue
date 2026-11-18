@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref, useSlots, watch } from 'vue';
 import ActionButton from '@/components/shared/ActionButton.vue';
 import FeedbackMessage from '@/components/shared/FeedbackMessage.vue';
 import {
@@ -25,6 +26,28 @@ const props = withDefaults(
 );
 const open = defineModel<boolean>('open', { default: false });
 const emit = defineEmits<{ confirm: [] }>();
+const slots = useSlots();
+const returnFocus = ref<HTMLElement | null>(null);
+watch(
+    open,
+    (value) => {
+        if (
+            value &&
+            typeof document !== 'undefined' &&
+            document.activeElement instanceof HTMLElement
+        ) {
+            returnFocus.value = document.activeElement;
+        }
+    },
+    { flush: 'sync' },
+);
+function restoreFocus(event: Event) {
+    if (!slots.trigger && returnFocus.value?.isConnected) {
+        event.preventDefault();
+        returnFocus.value.focus();
+    }
+}
+
 function updateOpen(value: boolean) {
     if (!props.processing) open.value = value;
 }
@@ -35,10 +58,13 @@ function preventWhileProcessing(event: Event) {
 
 <template>
     <Dialog :open="open" @update:open="updateOpen">
-        <DialogTrigger as-child><slot name="trigger" /></DialogTrigger>
+        <DialogTrigger v-if="$slots.trigger" as-child
+            ><slot name="trigger"
+        /></DialogTrigger>
         <DialogContent
             :show-close-button="false"
             class="max-h-[90dvh] overflow-y-auto rounded-2xl bg-card"
+            @close-auto-focus="restoreFocus"
             @escape-key-down="preventWhileProcessing"
             @interact-outside="preventWhileProcessing"
         >

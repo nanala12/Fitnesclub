@@ -4,7 +4,9 @@ namespace App\Actions\Cms;
 
 use App\Actions\Audit\RecordAudit;
 use App\Enums\AuditAction;
+use App\Enums\HomepageSection;
 use App\Enums\MediaPlacement;
+use App\Models\HomepageContentList;
 use App\Models\MediaAsset;
 use App\Models\MediaFileDeletion;
 use App\Models\User;
@@ -77,12 +79,16 @@ class ManageCmsMedia
     public function replace(User $actor, MediaPlacement $placement, int $ownerId, ?int $currentMediaId, UploadedFile $image, ?string $altText): MediaAsset
     {
         return $this->upload($actor, $image, $altText, function (MediaAsset $asset) use ($actor, $placement, $ownerId, $currentMediaId): Model {
+            $section = HomepageSection::forPlacement($placement);
+            $list = $section === null ? null : HomepageContentList::lock($section);
             $owner = $placement->model()::query()->lockForUpdate()->findOrFail($ownerId);
             $this->checkCurrent($owner, $placement, $currentMediaId);
             $owner->forceFill([$placement->column() => $asset->id])->save();
             if ($currentMediaId !== null) {
                 $this->audit->handle(AuditAction::MediaRemoved, $currentMediaId, $actor, null, null, ['changed_fields' => ['image']]);
             }
+
+            $list?->advance();
 
             return $owner;
         });
@@ -92,6 +98,8 @@ class ManageCmsMedia
     {
         Gate::forUser($actor)->authorize('manage', MediaAsset::class);
         DB::transaction(function () use ($actor, $placement, $ownerId, $currentMediaId): void {
+            $section = HomepageSection::forPlacement($placement);
+            $list = $section === null ? null : HomepageContentList::lock($section);
             $owner = $placement->model()::query()->lockForUpdate()->findOrFail($ownerId);
             $this->checkCurrent($owner, $placement, $currentMediaId);
             if ($placement->requiresImage()) {
@@ -100,6 +108,7 @@ class ManageCmsMedia
                 $owner->forceFill([$placement->column() => null])->save();
             }
             $this->audit->handle(AuditAction::MediaRemoved, $currentMediaId, $actor, null, null, ['changed_fields' => ['image']]);
+            $list?->advance();
         });
     }
 

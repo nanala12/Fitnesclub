@@ -7,7 +7,15 @@ import { offer } from '@/routes/public';
 import type { HeroSlide } from '@/types/public';
 const props = defineProps<{ slides: HeroSlide[] }>();
 const index = ref(0);
+const content = ref<HTMLElement | null>(null);
 const active = computed(() => props.slides[index.value]);
+watch(
+    active,
+    () => {
+        if (content.value) content.value.scrollTop = 0;
+    },
+    { flush: 'post' },
+);
 watch(
     () => props.slides,
     () => {
@@ -22,7 +30,7 @@ function move(offset: number) {
 </script>
 <template>
     <section
-        class="relative isolate overflow-hidden rounded-[24px] bg-sidebar text-sidebar-foreground"
+        class="relative isolate flex h-[560px] flex-col overflow-hidden rounded-[24px] bg-sidebar text-sidebar-foreground sm:h-[540px]"
         role="region"
         aria-roledescription="karuzela"
         aria-label="Poznaj ActiveFit"
@@ -41,35 +49,44 @@ function move(offset: number) {
             aria-hidden="true"
         />
         <div
-            class="flex min-h-[420px] flex-col justify-center px-7 py-16 sm:min-h-[470px] sm:px-14 lg:px-20"
+            ref="content"
+            tabindex="0"
+            role="group"
+            aria-label="Treść slajdu"
+            class="min-h-0 flex-1 overflow-y-auto focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-white"
         >
-            <p class="mb-5 text-xs font-bold tracking-[0.18em] uppercase">
-                ActiveFit
-            </p>
-            <h1
-                class="max-w-3xl text-4xl leading-[1.08] font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+            <div
+                class="flex min-h-full flex-col justify-center px-7 py-10 sm:px-14 lg:px-20"
             >
-                {{ active?.title || 'Miejsce, w którym dobrze się rusza.' }}
-            </h1>
-            <p
-                class="mt-6 max-w-xl text-base leading-relaxed text-sidebar-foreground/90 sm:text-lg"
-            >
-                {{
-                    active?.description ||
-                    'Poznaj ofertę klubu, sprawdź aktualności i zaplanuj swoją wizytę.'
-                }}
-            </p>
-            <Link
-                :href="offer()"
-                class="mt-8 inline-flex min-h-12 w-fit items-center rounded-xl bg-card px-6 font-bold text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-                ><span
-                    >Poznaj naszą ofertę <span aria-hidden="true">→</span></span
-                ></Link
-            >
+                <p class="mb-5 text-xs font-bold tracking-[0.18em] uppercase">
+                    ActiveFit
+                </p>
+                <h1
+                    class="max-w-3xl text-4xl leading-[1.08] font-extrabold tracking-tight break-words sm:text-5xl lg:text-6xl"
+                >
+                    {{ active?.title || 'Miejsce, w którym dobrze się rusza.' }}
+                </h1>
+                <p
+                    class="mt-6 max-w-xl text-base leading-relaxed break-words text-sidebar-foreground/90 sm:text-lg"
+                >
+                    {{
+                        active?.description ||
+                        'Poznaj ofertę klubu, sprawdź aktualności i zaplanuj swoją wizytę.'
+                    }}
+                </p>
+                <Link
+                    :href="offer()"
+                    class="mt-8 inline-flex min-h-12 w-fit items-center rounded-xl bg-card px-6 font-bold text-foreground focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+                    ><span
+                        >Poznaj naszą ofertę
+                        <span aria-hidden="true">→</span></span
+                    ></Link
+                >
+            </div>
         </div>
         <div
             v-if="slides.length > 1"
-            class="flex flex-wrap items-center justify-center gap-3 px-4 pb-6"
+            class="flex max-h-28 shrink-0 flex-wrap items-center justify-center gap-3 overflow-y-auto px-4 pb-6"
         >
             <button
                 type="button"

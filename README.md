@@ -209,7 +209,20 @@ docker compose exec app php artisan cms:retry-media-cleanup
 
 Na wdrożeniu skonfiguruj ciągły worker i standardowe wywołanie `schedule:run` co minutę oraz monitorowanie nieudanych zadań. Retry nie przywraca publicznych referencji ani nie zmienia zapisanej treści. Ten mechanizm dotyczy wyłącznie zdjęć CMS, nie retencji PDF ani danych klientów.
 
-Dla kolejnych formularzy dostępne są `ManageCmsMedia` i komponent `OwnedImageField.vue`. Upload tworzy zdjęcie i zapisuje właściciela w callbacku jednej transakcji; akcja uploadu musi być jej zewnętrzną granicą. Zwykłe i ciche zapisy/usunięcia modeli CMS pilnują własności i cleanupu; nie używaj masowych operacji zmieniających referencje, surowego SQL ani `toBase()` do zapisu mediów. Usunięcie zdjęcia slajdu lub pozycji galerii usuwa też ten element, bo bez zdjęcia nie może istnieć; opcjonalne zdjęcie aktualności/kafelka pozostawia treść. Zdjęć opublikowanej wersji regulaminu nie zmieniamy. Formularze poszczególnych modułów i ich pozycje w menu powstaną w TASK-013–018; nie dodano wspólnej biblioteki plików do wielokrotnego użycia.
+Dla kolejnych formularzy dostępne są `ManageCmsMedia` i komponent `OwnedImageField.vue`. Upload tworzy zdjęcie i zapisuje właściciela w callbacku jednej transakcji; akcja uploadu musi być jej zewnętrzną granicą. Zwykłe i ciche zapisy/usunięcia modeli CMS pilnują własności i cleanupu; nie używaj masowych operacji zmieniających referencje, surowego SQL ani `toBase()` do zapisu mediów. Usunięcie zdjęcia slajdu lub pozycji galerii usuwa też ten element, bo bez zdjęcia nie może istnieć; opcjonalne zdjęcie aktualności/kafelka pozostawia treść. Zdjęć opublikowanej wersji regulaminu nie zmieniamy. Formularze kafelków/karuzeli są dostępne od TASK-013, pozostałe moduły należą do TASK-014–018; nie dodano wspólnej biblioteki plików do wielokrotnego użycia.
+
+## Edycja strony głównej (TASK-013)
+
+Aktywny administrator ze zweryfikowanym e-mailem ma w menu pozycje **Kafelki oferty** i **Karuzela**:
+
+- `/admin/cms/strona-glowna/kafelki`
+- `/admin/cms/strona-glowna/karuzela`
+
+Można dodawać/edytować elementy, publikować i ukrywać je, przesuwać wyżej/niżej oraz usuwać z potwierdzeniem. Po udanym dodaniu lub zapisaniu edycji formularz przekierowuje do listy właściwej sekcji; błędy walidacji pozostawiają użytkownika w formularzu. Listy są stronicowane po 20 elementów; kolejność obejmuje także ukryte pozycje i działa przez granice stron. Nowy element trafia na koniec i jest domyślnie ukryty. Kafelki są widoczne na stronie głównej i w Ofercie, slajdy w karuzeli strony głównej. Slajd wymaga zdjęcia; kafelek może go nie mieć. Można usunąć ostatni element — publiczna strona obsługuje pustą sekcję.
+
+Treść, zdjęcie, tekst alternatywny i widoczność zapisują się razem. Zamiana/usunięcie pliku korzysta z mechanizmu TASK-012. Zdjęcie kafelka można usunąć bez usuwania tekstu; zdjęcie slajdu usuwa się przez usunięcie całego slajdu albo zastępuje nowym. Zwykłe opisy mają limit 500 znaków dla kafelków i 1000 dla slajdów; tytuły do 150, alt text do 255. Odnośnik kafelka może prowadzić wyłącznie do obsługiwanej podstrony serwisu, np. `/cennik`; puste pole prowadzi do Oferty. CTA karuzeli pozostaje częścią istniejącego widoku.
+
+Migracja `2026_11_16_020000_create_homepage_content_lists` została zastosowana lokalnie. Dodaje dwa techniczne wiersze blokady/rewizji sekcji, bez treści demonstracyjnych. Każda zmiana z edytora i wspólnych tras mediów aktualizuje rewizję właściwej sekcji; starszy formularz dostaje komunikat i odnośnik „Wczytaj aktualne dane”. Operacje i audyt są atomowe; zdjęcia nadal usuwa worker po commit. Podglądy miniatur mają osobny limit żądań, aby nie zużywały limitu zapisów. Nie dodano edytora dowolnych podstron usług, zdalnego pobierania zdjęć ani przykładowych danych klubu.
 
 ## Kluczowe ustalenia
 

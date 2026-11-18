@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\Cms\HomepageContentController;
 use App\Http\Controllers\Admin\Cms\MediaController as CmsMediaController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmployeeController;
@@ -14,6 +15,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', HomeController::class)->name('home');
 Route::name('public.')->group(function (): void {
     Route::get('oferta', [PageController::class, 'offer'])->name('offer');
+    Route::get('oferta/{offerTile}', [PageController::class, 'offerShow'])->whereNumber('offerTile')->name('offer.show');
     Route::get('cennik', [PageController::class, 'pricing'])->name('pricing');
     Route::get('aktualnosci', [PageController::class, 'news'])->name('news.index');
     Route::get('aktualnosci/{slug}', [PageController::class, 'newsShow'])->name('news.show');
@@ -25,10 +27,20 @@ Route::name('public.')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::prefix('admin/cms/media')->name('admin.cms.media.')->middleware(['can:access-admin-panel', 'throttle:30,1'])->group(function (): void {
-        Route::get('/{mediaAsset}', [CmsMediaController::class, 'show'])->name('show');
-        Route::post('/{placement}/{owner}', [CmsMediaController::class, 'store'])->whereNumber('owner')->name('store');
-        Route::delete('/{placement}/{owner}', [CmsMediaController::class, 'destroy'])->whereNumber('owner')->name('destroy');
+    Route::prefix('admin/cms/media')->name('admin.cms.media.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/{mediaAsset}', [CmsMediaController::class, 'show'])->middleware('throttle:120,1,cms-media-preview:')->name('show');
+        Route::post('/{placement}/{owner}', [CmsMediaController::class, 'store'])->whereNumber('owner')->middleware('throttle:30,1,cms-content-write:')->name('store');
+        Route::delete('/{placement}/{owner}', [CmsMediaController::class, 'destroy'])->whereNumber('owner')->middleware('throttle:30,1,cms-content-write:')->name('destroy');
+    });
+    Route::prefix('admin/cms/strona-glowna/{section}')->name('admin.cms.homepage.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [HomepageContentController::class, 'index'])->middleware('throttle:60,1,cms-content-read:')->name('index');
+        Route::get('/nowy', [HomepageContentController::class, 'create'])->name('create');
+        Route::post('/', [HomepageContentController::class, 'store'])->middleware('throttle:30,1,cms-content-write:')->name('store');
+        Route::get('/{item}/edytuj', [HomepageContentController::class, 'edit'])->whereNumber('item')->name('edit');
+        Route::patch('/{item}', [HomepageContentController::class, 'update'])->whereNumber('item')->middleware('throttle:30,1,cms-content-write:')->name('update');
+        Route::patch('/{item}/widocznosc', [HomepageContentController::class, 'visibility'])->whereNumber('item')->middleware('throttle:30,1,cms-content-write:')->name('visibility');
+        Route::patch('/{item}/kolejnosc', [HomepageContentController::class, 'move'])->whereNumber('item')->middleware('throttle:30,1,cms-content-write:')->name('move');
+        Route::delete('/{item}', [HomepageContentController::class, 'destroy'])->whereNumber('item')->middleware('throttle:30,1,cms-content-write:')->name('destroy');
     });
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('admin', AdminDashboardController::class)->middleware('can:access-admin-panel')->name('admin.dashboard');

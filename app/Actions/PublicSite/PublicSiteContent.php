@@ -14,9 +14,12 @@ use App\Models\OpeningHour;
 use App\Models\RegulationVersion;
 use App\Support\PhoneNumber;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Str;
 
 class PublicSiteContent
 {
+    public const string PUBLIC_LINK_PATTERN = '~^/(?:oferta|cennik|grafik|galeria|kontakt|regulamin|aktualnosci(?:/[a-z0-9-]+)?)(?:\#[a-z0-9_-]+)?$~D';
+
     public const array WEEKDAYS = [1 => 'Poniedziałek', 2 => 'Wtorek', 3 => 'Środa', 4 => 'Czwartek', 5 => 'Piątek', 6 => 'Sobota', 7 => 'Niedziela'];
 
     /** @return array<string, mixed>|null */
@@ -37,7 +40,7 @@ class PublicSiteContent
     }
 
     /** @return array<string, mixed> */
-    public function shared(string $page = 'home', ?NewsPost $post = null): array
+    public function shared(string $page = 'home', NewsPost|OfferTile|null $post = null): array
     {
         $hours = OpeningHour::query()->whereBetween('weekday', [1, 7])->orderBy('weekday')->get()->map(fn (OpeningHour $row): array => [
             'weekday' => $row->weekday, 'label' => self::WEEKDAYS[$row->weekday], 'closed' => $row->is_closed,
@@ -51,10 +54,34 @@ class PublicSiteContent
     /** @return array<int, array<string, mixed>> */
     public function offers(): array
     {
-        return OfferTile::query()->with('media')->where('is_published', true)->orderBy('sort_order')->orderBy('id')->get()->map(fn (OfferTile $row): array => [
-            'id' => $row->id, 'title' => $row->title, 'description' => $this->text($row->short_description),
-            'image' => $this->image($row->media), 'href' => $this->publicLink($row->link_url),
-        ])->all();
+        return OfferTile::query()->with('media')->where('is_published', true)->orderBy('sort_order')->orderBy('id')->get()->map(fn (OfferTile $row): array => $this->offerCard($row))->all();
+    }
+
+    /** @return array<string, mixed> */
+    public function offerCard(OfferTile $row): array
+    {
+        return [
+            'id' => $row->id, 'title' => $row->title, 'description' => Str::limit($this->text($row->short_description), 180, '…'),
+            'image' => $this->image($row->media), 'href' => route('public.offer.show', $row->id),
+        ];
+    }
+
+    /** @return array<string, mixed> */
+    public function offerDetail(OfferTile $row): array
+    {
+        $next = $this->publicLink($row->link_url);
+
+        return [...$this->offerCard($row), 'description' => $this->text($row->short_description),
+            'nextHref' => in_array($next, ['/oferta', route('public.offer')], true) ? null : $next,
+            'nextLabel' => match (true) {
+                str_starts_with($next, '/cennik') => 'Sprawdź cennik',
+                str_starts_with($next, '/grafik') => 'Sprawdź grafik',
+                str_starts_with($next, '/kontakt') => 'Skontaktuj się z nami',
+                str_starts_with($next, '/galeria') => 'Zobacz galerię',
+                str_starts_with($next, '/regulamin') => 'Przeczytaj regulamin',
+                default => 'Zobacz więcej',
+            },
+        ];
     }
 
     /** @return array<int, array<string, mixed>> */
@@ -127,10 +154,14 @@ class PublicSiteContent
     }
 
     /** @return array{title:string,description:string,canonical:string} */
-    private function seo(string $page, ?NewsPost $post): array
+    private function seo(string $page, NewsPost|OfferTile|null $post): array
     {
-        if ($page === 'news.show' && $post !== null) {
+        if ($page === 'news.show' && $post instanceof NewsPost) {
             return ['title' => $post->title, 'description' => $this->text($post->excerpt) ?: 'Informacje z klubu ActiveFit.', 'canonical' => rtrim(config('app.url'), '/').route('public.news.show', $post->slug, false)];
+        }
+        if ($page === 'offer.show' && $post instanceof OfferTile) {
+            return ['title' => $post->title, 'description' => Str::limit($this->text($post->short_description), 160, '…') ?: 'Poznaj ofertę ActiveFit.',
+                'canonical' => rtrim(config('app.url'), '/').route('public.offer.show', $post->id, false)];
         }
         [$title,$description,$path] = match ($page) {
             'offer' => ['Oferta', 'Poznaj formy aktywności dostępne w ActiveFit.', '/oferta'],
@@ -154,7 +185,7 @@ class PublicSiteContent
 
     private function publicLink(?string $url): string
     {
-        return $url !== null && preg_match('~^/(?:oferta|cennik|grafik|galeria|kontakt|regulamin|aktualnosci(?:/[a-z0-9-]+)?)(?:\#[a-z0-9_-]+)?$~D', $url)
+        return $url !== null && preg_match(self::PUBLIC_LINK_PATTERN, $url)
             ? $url : route('public.offer');
     }
 }

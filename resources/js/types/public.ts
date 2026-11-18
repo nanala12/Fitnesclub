@@ -24,6 +24,10 @@ export type OfferTile = {
     image: PublicImage | null;
     href: string;
 };
+export type OfferDetail = OfferTile & {
+    nextHref: string | null;
+    nextLabel: string;
+};
 export type HeroSlide = {
     id: number;
     title: string | null;

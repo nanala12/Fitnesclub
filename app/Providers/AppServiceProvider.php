@@ -3,7 +3,10 @@
 namespace App\Providers;
 
 use App\Enums\UserRole;
+use App\Models\HeroSlide;
+use App\Models\OfferTile;
 use App\Models\User;
+use App\Policies\HomepageContentPolicy;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -27,6 +30,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        Gate::policy(OfferTile::class, HomepageContentPolicy::class);
+        Gate::policy(HeroSlide::class, HomepageContentPolicy::class);
 
         Gate::define('access-admin-panel', fn (User $user): bool => ! $user->isSuspended() && $user->role === UserRole::Admin);
         Gate::define('access-staff-panel', fn (User $user): bool => ! $user->isSuspended() && in_array($user->role, [UserRole::Employee, UserRole::Admin], true));

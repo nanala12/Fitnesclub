@@ -4,6 +4,14 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case TileCreated = 'homepage.tile_created';
+    case TileUpdated = 'homepage.tile_updated';
+    case TileDeleted = 'homepage.tile_deleted';
+    case TileReordered = 'homepage.tile_reordered';
+    case SlideCreated = 'homepage.slide_created';
+    case SlideUpdated = 'homepage.slide_updated';
+    case SlideDeleted = 'homepage.slide_deleted';
+    case SlideReordered = 'homepage.slide_reordered';
     case MediaUploaded = 'media.uploaded';
     case MediaRemoved = 'media.removed';
     case EmployeeCreated = 'employee.created';
@@ -15,6 +23,14 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::TileCreated => 'Dodano kafelek oferty',
+            self::TileUpdated => 'Zmieniono kafelek oferty',
+            self::TileDeleted => 'Usunięto kafelek oferty',
+            self::TileReordered => 'Zmieniono kolejność kafelków',
+            self::SlideCreated => 'Dodano slajd karuzeli',
+            self::SlideUpdated => 'Zmieniono slajd karuzeli',
+            self::SlideDeleted => 'Usunięto slajd karuzeli',
+            self::SlideReordered => 'Zmieniono kolejność slajdów',
             self::MediaUploaded => 'Dodano zdjęcie CMS',
             self::MediaRemoved => 'Usunięto zdjęcie CMS',
             self::EmployeeCreated => 'Utworzono konto zespołu',
@@ -28,6 +44,8 @@ enum AuditAction: string
     public function subjectType(): string
     {
         return match ($this) {
+            self::TileCreated, self::TileUpdated, self::TileDeleted, self::TileReordered => 'homepage_tile',
+            self::SlideCreated, self::SlideUpdated, self::SlideDeleted, self::SlideReordered => 'homepage_slide',
             self::MediaUploaded, self::MediaRemoved => 'media_asset',
             default => 'user',
         };

@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\GalleryCategory;
 use App\Models\GalleryImage;
 use App\Models\NewsPost;
+use App\Models\OfferTile;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -16,6 +17,13 @@ class PageController extends Controller
     public function offer(PublicSiteContent $content): Response
     {
         return Inertia::render('public/Offer', [...$content->shared('offer'), 'tiles' => $content->offers()]);
+    }
+
+    public function offerShow(int $offerTile, PublicSiteContent $content): Response
+    {
+        $tile = OfferTile::query()->with('media')->where('is_published', true)->whereKey($offerTile)->firstOrFail();
+
+        return Inertia::render('public/OfferShow', [...$content->shared('offer.show', $tile), 'offer' => $content->offerDetail($tile)]);
     }
 
     public function pricing(PublicSiteContent $content): Response

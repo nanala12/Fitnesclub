@@ -11,22 +11,22 @@ defineProps<{ tiles: OfferTile[] }>();
             v-for="tile in tiles"
             :key="tile.id"
             :href="tile.href"
-            class="group overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
+            class="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-shadow hover:shadow-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
             ><ContentImage
                 :src="tile.image?.src ?? null"
                 :alt="tile.image?.alt ?? ''"
                 aspect-ratio="4/3"
             />
-            <div class="space-y-3 p-5">
-                <h3 class="text-lg font-bold">{{ tile.title }}</h3>
+            <div class="flex flex-1 flex-col gap-3 p-5">
+                <h3 class="text-lg font-bold break-words">{{ tile.title }}</h3>
                 <p
                     v-if="tile.description"
-                    class="text-sm leading-relaxed text-muted-foreground"
+                    class="line-clamp-3 text-sm leading-relaxed break-words text-muted-foreground"
                 >
                     {{ tile.description }}
                 </p>
                 <span
-                    class="inline-flex min-h-11 items-center text-sm font-semibold text-primary"
+                    class="mt-auto inline-flex min-h-11 items-center text-sm font-semibold text-primary"
                     >Sprawdź ofertę
                     <span aria-hidden="true" class="ml-2">↗</span></span
                 >
