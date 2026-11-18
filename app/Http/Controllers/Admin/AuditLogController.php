@@ -41,6 +41,7 @@ class AuditLogController extends Controller
         return [
             'id' => $entry->id, 'action' => $action?->label() ?? 'Zdarzenie audytu',
             'subjectLabel' => match ($action?->subjectType()) {
+                'regulation_version' => 'Wersja regulaminu #'.$entry->getAttribute('subject_id'),
                 'user' => 'Konto #'.$entry->getAttribute('subject_id'),
                 'gallery_category' => 'Kategoria galerii #'.$entry->getAttribute('subject_id'),
                 'gallery_image' => 'Zdjęcie galerii #'.$entry->getAttribute('subject_id'),

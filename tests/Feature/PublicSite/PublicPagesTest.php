@@ -92,7 +92,7 @@ test('only the latest already published regulation version is public', function 
     foreach ([[1, now()->subDays(2)], [2, now()->subDay()], [3, now()->addDay()], [4, null]] as [$number,$date]) {
         RegulationVersion::forceCreate(['version_number' => $number, 'body' => 'Version '.$number, 'published_at' => $date, 'created_by_user_id' => $author->id]);
     }
-    $this->get(route('public.regulations'))->assertInertia(fn (Assert $page) => $page->where('regulation.versionNumber', 2)->where('regulation.bodyText', 'Version 2')->missing('regulation.created_by_user_id'));
+    $this->get(route('public.regulations'))->assertInertia(fn (Assert $page) => $page->where('regulation.versionNumber', 2)->where('regulation.bodyHtml', 'Version 2')->missing('regulation.created_by_user_id'));
 });
 
 test('contact fields come from the singleton and unsafe links are omitted', function () {

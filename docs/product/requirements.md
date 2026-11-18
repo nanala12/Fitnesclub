@@ -71,7 +71,7 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 | CMS-008 | Administrator edytuje treści podstron i grafik zajęć według ustalonych szablonów. | MUST | CONFIRMED |
 | CMS-009 | Nie implementujemy dowolnego kreatora stron (page builder). | MUST | CONFIRMED |
 | CMS-010 | Zmiana aktualnej ceny nie zmienia danych historycznych karnetów ani zamówień. | MUST | PROPOSED |
-| CMS-011 | Regulamin może być wersjonowany, a zaakceptowana wersja powiązana z zakupem. | SHOULD | OPEN |
+| CMS-011 | Regulamin jest wersjonowany, a zaakceptowana wersja powiązana z zakupem online. | SHOULD | CONFIRMED — OD-10, CMS-OD-03 |
 
 **AC-CMS-01** — Given administrator zapisze treść jako ukrytą, When użytkownik odwiedzi stronę, Then element nie jest publicznie widoczny.  
 **AC-CMS-02** — Given plan został kupiony za 155 zł, When administrator zmieni cennik na 169 zł, Then historyczna cena zakupu nadal wynosi 155 zł.  

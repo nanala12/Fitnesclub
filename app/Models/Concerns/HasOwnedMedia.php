@@ -30,8 +30,8 @@ trait HasOwnedMedia
                 $this->setAttribute($column, $previousId);
             }
             $nextId = $this->getAttribute($column);
-            if ($previousId !== $nextId && $placement === MediaPlacement::Regulation && $persisted?->getAttribute('published_at') !== null) {
-                throw ValidationException::withMessages(['image' => 'Nie można zmieniać zdjęcia opublikowanej wersji regulaminu. Utwórz nową wersję.']);
+            if ($placement === MediaPlacement::Regulation && $persisted?->getAttribute('published_at') !== null) {
+                throw ValidationException::withMessages([$this->isDirty($column) ? 'image' : 'body' => 'Opublikowana wersja regulaminu jest niezmienna. Utwórz nową wersję.']);
             }
             $assets = MediaAsset::query()->whereIn('id', array_filter([$previousId, $nextId]))->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $next = $nextId === null ? null : $assets->get($nextId);
@@ -68,7 +68,7 @@ trait HasOwnedMedia
             $placement = MediaPlacement::forModel($this);
             $persisted = $this->newQuery()->lockForUpdate()->whereKey($this->getKey())->firstOrFail();
             $assetId = $persisted->getAttribute($placement->column());
-            if ($assetId !== null && $placement === MediaPlacement::Regulation && $persisted->getAttribute('published_at') !== null) {
+            if ($placement === MediaPlacement::Regulation && $persisted->getAttribute('published_at') !== null) {
                 throw ValidationException::withMessages(['image' => 'Nie można usunąć zdjęcia opublikowanej wersji regulaminu.']);
             }
             $asset = $assetId === null ? null : MediaAsset::query()->lockForUpdate()->whereKey($assetId)->firstOrFail();

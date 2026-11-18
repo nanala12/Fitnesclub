@@ -5,6 +5,7 @@ use App\Http\Controllers\Admin\Cms\GalleryController;
 use App\Http\Controllers\Admin\Cms\HomepageContentController;
 use App\Http\Controllers\Admin\Cms\MediaController as CmsMediaController;
 use App\Http\Controllers\Admin\Cms\NewsPostController;
+use App\Http\Controllers\Admin\Cms\RegulationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\DashboardController;
@@ -69,6 +70,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/zdjecia/{image}/widocznosc', [GalleryController::class, 'imageVisibility'])->whereNumber('image')->middleware('throttle:30,1,cms-content-write:')->name('images.visibility');
         Route::patch('/zdjecia/{image}/kolejnosc', [GalleryController::class, 'imageMove'])->whereNumber('image')->middleware('throttle:30,1,cms-content-write:')->name('images.move');
         Route::delete('/zdjecia/{image}', [GalleryController::class, 'imageDestroy'])->whereNumber('image')->middleware('throttle:30,1,cms-content-write:')->name('images.destroy');
+    });
+    Route::prefix('admin/cms/regulamin')->name('admin.cms.regulations.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [RegulationController::class, 'index'])->middleware('throttle:60,1,cms-content-read:')->name('index');
+        Route::get('/nowa-wersja', [RegulationController::class, 'create'])->name('create');
+        Route::post('/', [RegulationController::class, 'store'])->middleware('throttle:30,1,cms-content-write:')->name('store');
+        Route::get('/{regulationVersion}/edytuj', [RegulationController::class, 'edit'])->whereNumber('regulationVersion')->name('edit');
+        Route::patch('/{regulationVersion}', [RegulationController::class, 'update'])->whereNumber('regulationVersion')->middleware('throttle:30,1,cms-content-write:')->name('update');
+        Route::post('/{regulationVersion}/publikuj', [RegulationController::class, 'publish'])->whereNumber('regulationVersion')->middleware('throttle:30,1,cms-content-write:')->name('publish');
+        Route::delete('/{regulationVersion}', [RegulationController::class, 'destroy'])->whereNumber('regulationVersion')->middleware('throttle:30,1,cms-content-write:')->name('destroy');
     });
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('admin', AdminDashboardController::class)->middleware('can:access-admin-panel')->name('admin.dashboard');

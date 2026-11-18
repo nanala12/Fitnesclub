@@ -11,6 +11,7 @@ use App\Models\HomepageContentList;
 use App\Models\MediaAsset;
 use App\Models\MediaFileDeletion;
 use App\Models\NewsPost;
+use App\Models\RegulationContentState;
 use App\Models\User;
 use App\Rules\CmsImage;
 use Closure;
@@ -84,6 +85,7 @@ class ManageCmsMedia
             $section = HomepageSection::forPlacement($placement);
             $list = $section === null ? null : HomepageContentList::lock($section);
             $gallery = $placement === MediaPlacement::Gallery ? GalleryContentState::lock() : null;
+            $regulation = $placement === MediaPlacement::Regulation ? RegulationContentState::lock() : null;
             $owner = $placement->model()::query()->lockForUpdate()->findOrFail($ownerId);
             $this->checkCurrent($owner, $placement, $currentMediaId);
             $owner->forceFill([$placement->column() => $asset->id, ...($owner instanceof NewsPost ? ['revision' => $owner->revision + 1, 'updated_by_user_id' => $actor->id] : [])])->save();
@@ -93,6 +95,7 @@ class ManageCmsMedia
 
             $list?->advance();
             $gallery?->advance();
+            $regulation?->advance();
 
             return $owner;
         });
@@ -105,6 +108,7 @@ class ManageCmsMedia
             $section = HomepageSection::forPlacement($placement);
             $list = $section === null ? null : HomepageContentList::lock($section);
             $gallery = $placement === MediaPlacement::Gallery ? GalleryContentState::lock() : null;
+            $regulation = $placement === MediaPlacement::Regulation ? RegulationContentState::lock() : null;
             $owner = $placement->model()::query()->lockForUpdate()->findOrFail($ownerId);
             $this->checkCurrent($owner, $placement, $currentMediaId);
             if ($placement->requiresImage()) {
@@ -115,6 +119,7 @@ class ManageCmsMedia
             $this->audit->handle(AuditAction::MediaRemoved, $currentMediaId, $actor, null, null, ['changed_fields' => ['image']]);
             $list?->advance();
             $gallery?->advance();
+            $regulation?->advance();
         });
     }
 

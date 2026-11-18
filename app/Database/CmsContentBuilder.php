@@ -16,9 +16,7 @@ class CmsContentBuilder extends Builder
 {
     public function update(array $values)
     {
-        if (array_key_exists(MediaPlacement::forModel($this->getModel())->column(), $values)) {
-            $this->requireOwnedWrite();
-        }
+        $this->checkMediaColumns($values);
 
         return parent::update($values);
     }
@@ -119,7 +117,7 @@ class CmsContentBuilder extends Builder
     /** @param array<string, mixed> $values */
     private function checkMediaColumns(array $values): void
     {
-        if (array_key_exists(MediaPlacement::forModel($this->getModel())->column(), $values)) {
+        if (MediaPlacement::forModel($this->getModel()) === MediaPlacement::Regulation || array_key_exists(MediaPlacement::forModel($this->getModel())->column(), $values)) {
             $this->requireOwnedWrite();
         }
     }

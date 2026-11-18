@@ -77,7 +77,7 @@ class PageController extends Controller
 
         return Inertia::render('public/Regulations', [...$content->shared('regulations'), 'regulation' => $version === null ? null : [
             'id' => $version->id, 'versionNumber' => $version->version_number, 'publishedAt' => $version->published_at?->toISOString(),
-            'bodyText' => $content->text($version->body), 'image' => $content->image($version->media),
+            'bodyHtml' => app(RichTextSanitizer::class)->clean($version->body), 'image' => $content->image($version->media),
         ]]);
     }
 }

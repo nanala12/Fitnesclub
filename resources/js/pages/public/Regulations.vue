@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import RichTextContent from '@/components/cms/RichTextContent.vue';
 import PublicSeo from '@/components/public/PublicSeo.vue';
 import PublicHeading from '@/components/public/PublicHeading.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
@@ -10,7 +11,7 @@ defineProps<{
         id: number;
         versionNumber: number;
         publishedAt: string;
-        bodyText: string;
+        bodyHtml: string;
         image: PublicImage | null;
     } | null;
 }>();
@@ -37,9 +38,10 @@ defineProps<{
             :src="regulation.image.src"
             :alt="regulation.image.alt"
         />
-        <div class="leading-relaxed whitespace-pre-line">
-            {{ regulation.bodyText }}
-        </div>
+        <RichTextContent
+            :html="regulation.bodyHtml"
+            class="whitespace-pre-line"
+        />
     </article>
     <EmptyState
         v-else
