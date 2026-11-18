@@ -18,7 +18,7 @@ class NewsPost extends Model
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['is_published' => 'boolean', 'published_at' => 'immutable_datetime'];
+        return ['revision' => 'integer', 'is_published' => 'boolean', 'published_at' => 'immutable_datetime'];
     }
 
     /** @return BelongsTo<MediaAsset, $this> */

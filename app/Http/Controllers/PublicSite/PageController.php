@@ -8,6 +8,7 @@ use App\Models\GalleryCategory;
 use App\Models\GalleryImage;
 use App\Models\NewsPost;
 use App\Models\OfferTile;
+use App\Support\Cms\RichTextSanitizer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -42,7 +43,7 @@ class PageController extends Controller
     {
         $post = $content->publishedNews()->with('media')->where('slug', $slug)->firstOrFail();
 
-        return Inertia::render('public/News/Show', [...$content->shared('news.show', $post), 'post' => [...$content->newsCard($post), 'bodyText' => $content->text($post->body), 'slug' => $post->slug]]);
+        return Inertia::render('public/News/Show', [...$content->shared('news.show', $post), 'post' => [...$content->newsCard($post), 'bodyHtml' => app(RichTextSanitizer::class)->clean($post->body), 'slug' => $post->slug]]);
     }
 
     public function gallery(Request $request, PublicSiteContent $content): Response

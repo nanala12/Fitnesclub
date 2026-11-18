@@ -62,10 +62,10 @@ test('draft future and unscheduled news are not publicly accessible', function (
     $this->get(route('public.news.show', $post->slug))->assertNotFound();
 })->with(['draft', 'future', 'unscheduled']);
 
-test('news detail sends plain text instead of executable HTML or editor data', function () {
+test('news detail sends sanitized HTML without executable content or editor data', function () {
     $author = User::factory()->admin()->create();
     $post = newsRecord(['title' => '<script>unsafe</script>', 'body' => '<p>Treść</p><img src=x onerror=alert(1)><a href="javascript:alert(1)">Link</a>', 'created_by_user_id' => $author->id]);
-    $this->get(route('public.news.show', $post->slug))->assertOk()->assertInertia(fn (Assert $page) => $page->where('post.bodyText', "Treść\nLink")->missing('post.created_by_user_id')->missing('post.body')->missing('post.media_asset_id'));
+    $this->get(route('public.news.show', $post->slug))->assertOk()->assertInertia(fn (Assert $page) => $page->where('post.bodyHtml', '<p>Treść</p>Link')->missing('post.created_by_user_id')->missing('post.body')->missing('post.media_asset_id'));
 });
 
 test('news pagination and homepage teaser use only published posts', function () {

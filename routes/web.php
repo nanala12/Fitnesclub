@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\Cms\HomepageContentController;
 use App\Http\Controllers\Admin\Cms\MediaController as CmsMediaController;
+use App\Http\Controllers\Admin\Cms\NewsPostController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\DashboardController;
@@ -41,6 +42,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/{item}/widocznosc', [HomepageContentController::class, 'visibility'])->whereNumber('item')->middleware('throttle:30,1,cms-content-write:')->name('visibility');
         Route::patch('/{item}/kolejnosc', [HomepageContentController::class, 'move'])->whereNumber('item')->middleware('throttle:30,1,cms-content-write:')->name('move');
         Route::delete('/{item}', [HomepageContentController::class, 'destroy'])->whereNumber('item')->middleware('throttle:30,1,cms-content-write:')->name('destroy');
+    });
+    Route::prefix('admin/cms/aktualnosci')->name('admin.cms.news.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [NewsPostController::class, 'index'])->middleware('throttle:60,1,cms-content-read:')->name('index');
+        Route::get('/nowa', [NewsPostController::class, 'create'])->name('create');
+        Route::post('/', [NewsPostController::class, 'store'])->middleware('throttle:30,1,cms-content-write:')->name('store');
+        Route::get('/{newsPost}/edytuj', [NewsPostController::class, 'edit'])->whereNumber('newsPost')->name('edit');
+        Route::patch('/{newsPost}', [NewsPostController::class, 'update'])->whereNumber('newsPost')->middleware('throttle:30,1,cms-content-write:')->name('update');
+        Route::patch('/{newsPost}/widocznosc', [NewsPostController::class, 'visibility'])->whereNumber('newsPost')->middleware('throttle:30,1,cms-content-write:')->name('visibility');
+        Route::delete('/{newsPost}', [NewsPostController::class, 'destroy'])->whereNumber('newsPost')->middleware('throttle:30,1,cms-content-write:')->name('destroy');
     });
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('admin', AdminDashboardController::class)->middleware('can:access-admin-panel')->name('admin.dashboard');

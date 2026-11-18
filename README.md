@@ -181,7 +181,7 @@ Szkielet aplikacji (TASK-004): `/` jest obsługiwane przez `HomeController`, a `
 
 ## Strona publiczna (TASK-011)
 
-Dostępne bez logowania: `/`, `/oferta`, `/cennik`, `/grafik`, `/aktualnosci`, `/aktualnosci/{slug}`, `/galeria`, `/kontakt` i `/regulamin`. Wspólne menu, stopka i widoki korzystają z rzeczywistych danych tabel treści. Szkice, przyszłe publikacje i ukryte kategorie nie są publicznie dostępne. Bez opublikowanych danych strony pokazują stany puste. Wzorce HTML pozostają materiałem wizualnym — przykładowe ceny, godziny, zdjęcia i regulamin nie są kopiowane do bazy.
+Dostępne bez logowania: `/`, `/oferta`, `/oferta/{id}`, `/cennik`, `/grafik`, `/aktualnosci`, `/aktualnosci/{slug}`, `/galeria`, `/kontakt` i `/regulamin`. Wspólne menu, stopka i widoki korzystają z rzeczywistych danych tabel treści. Szkice, przyszłe publikacje i ukryte kategorie nie są publicznie dostępne. Bez opublikowanych danych strony pokazują stany puste. Wzorce HTML pozostają materiałem wizualnym — przykładowe ceny, godziny, zdjęcia i regulamin nie są kopiowane do bazy.
 
 Migracja `2026_11_16_000000_create_public_content_tables` dodaje podstawę odczytu CMS i została zastosowana lokalnie. Przy pobraniu zmian do innego środowiska wykonaj jego zwykłą, zatwierdzoną procedurę migracji. Nie uruchamiamy seedera demonstracyjnych treści. Dane kontaktowe z makiet zostały odrzucone przez właścicielkę; `club_settings` pozostaje pusty do podania poprawnych danych. Dotyczy to również stopki aktywacji konta, która korzysta teraz z tego samego źródła.
 
@@ -211,6 +211,8 @@ Na wdrożeniu skonfiguruj ciągły worker i standardowe wywołanie `schedule:run
 
 Dla kolejnych formularzy dostępne są `ManageCmsMedia` i komponent `OwnedImageField.vue`. Upload tworzy zdjęcie i zapisuje właściciela w callbacku jednej transakcji; akcja uploadu musi być jej zewnętrzną granicą. Zwykłe i ciche zapisy/usunięcia modeli CMS pilnują własności i cleanupu; nie używaj masowych operacji zmieniających referencje, surowego SQL ani `toBase()` do zapisu mediów. Usunięcie zdjęcia slajdu lub pozycji galerii usuwa też ten element, bo bez zdjęcia nie może istnieć; opcjonalne zdjęcie aktualności/kafelka pozostawia treść. Zdjęć opublikowanej wersji regulaminu nie zmieniamy. Formularze kafelków/karuzeli są dostępne od TASK-013, pozostałe moduły należą do TASK-014–018; nie dodano wspólnej biblioteki plików do wielokrotnego użycia.
 
+Kafelki oferty pokazują maksymalnie trzy wiersze skrótu z wielokropkiem; kliknięcie otwiera `/oferta/{id}` z pełnym opisem i zdjęciem. Podstrony ukrytych/usuniętych ofert zwracają 404. Pełna treść pochodzi z istniejącego pola opisu, bez nowej kopii danych. Opcjonalny odnośnik z edytora jest dalszym przyciskiem na podstronie szczegółów. Karuzela ma wysokość 560 px na telefonach i 540 px od szerokości 640 px; dłuższy tekst przewija się wewnątrz, a zmiana slajdu przewija go do początku.
+
 ## Edycja strony głównej (TASK-013)
 
 Aktywny administrator ze zweryfikowanym e-mailem ma w menu pozycje **Kafelki oferty** i **Karuzela**:
@@ -220,9 +222,19 @@ Aktywny administrator ze zweryfikowanym e-mailem ma w menu pozycje **Kafelki ofe
 
 Można dodawać/edytować elementy, publikować i ukrywać je, przesuwać wyżej/niżej oraz usuwać z potwierdzeniem. Po udanym dodaniu lub zapisaniu edycji formularz przekierowuje do listy właściwej sekcji; błędy walidacji pozostawiają użytkownika w formularzu. Listy są stronicowane po 20 elementów; kolejność obejmuje także ukryte pozycje i działa przez granice stron. Nowy element trafia na koniec i jest domyślnie ukryty. Kafelki są widoczne na stronie głównej i w Ofercie, slajdy w karuzeli strony głównej. Slajd wymaga zdjęcia; kafelek może go nie mieć. Można usunąć ostatni element — publiczna strona obsługuje pustą sekcję.
 
-Treść, zdjęcie, tekst alternatywny i widoczność zapisują się razem. Zamiana/usunięcie pliku korzysta z mechanizmu TASK-012. Zdjęcie kafelka można usunąć bez usuwania tekstu; zdjęcie slajdu usuwa się przez usunięcie całego slajdu albo zastępuje nowym. Zwykłe opisy mają limit 500 znaków dla kafelków i 1000 dla slajdów; tytuły do 150, alt text do 255. Odnośnik kafelka może prowadzić wyłącznie do obsługiwanej podstrony serwisu, np. `/cennik`; puste pole prowadzi do Oferty. CTA karuzeli pozostaje częścią istniejącego widoku.
+Treść, zdjęcie, tekst alternatywny i widoczność zapisują się razem. Zamiana/usunięcie pliku korzysta z mechanizmu TASK-012. Zdjęcie kafelka można usunąć bez usuwania tekstu; zdjęcie slajdu usuwa się przez usunięcie całego slajdu albo zastępuje nowym. Zwykłe opisy mają limit 500 znaków dla kafelków i 1000 dla slajdów; tytuły do 150, alt text do 255. Dalszy odnośnik w szczegółach oferty może prowadzić wyłącznie do obsługiwanej podstrony serwisu, np. `/cennik`; puste pole nie dodaje kolejnego przycisku. CTA karuzeli pozostaje częścią istniejącego widoku.
 
 Migracja `2026_11_16_020000_create_homepage_content_lists` została zastosowana lokalnie. Dodaje dwa techniczne wiersze blokady/rewizji sekcji, bez treści demonstracyjnych. Każda zmiana z edytora i wspólnych tras mediów aktualizuje rewizję właściwej sekcji; starszy formularz dostaje komunikat i odnośnik „Wczytaj aktualne dane”. Operacje i audyt są atomowe; zdjęcia nadal usuwa worker po commit. Podglądy miniatur mają osobny limit żądań, aby nie zużywały limitu zapisów. Nie dodano edytora dowolnych podstron usług, zdalnego pobierania zdjęć ani przykładowych danych klubu.
+
+## Aktualności (TASK-014)
+
+W menu administratora jest pozycja **Aktualności** (`/admin/cms/aktualnosci`). Można dodać/edytować wpis, zdjęcie i tekst alternatywny, włączyć/wyłączyć publikację oraz usunąć wpis z potwierdzeniem. Lista ma po 20 pozycji i stany **Ukryta**, **Zaplanowana**, **Opublikowana**. Po dodaniu lub edycji wracamy do indeksu. Wpisy otrzymują unikalny adres, który nie zmienia się przy zmianie tytułu.
+
+Edytor obsługuje akapity, nagłówki, pogrubienie, kursywę, podkreślenie, listy oraz bezpieczne linki HTTPS/do podstron serwisu. Wklejanie i przeciąganie wstawia zwykły tekst; zdjęcia dodajemy osobnym polem. Serwer oczyszcza HTML przy zapisie oraz przy odczycie starych treści. Nie dopuszcza skryptów, zdarzeń, stylów, osadzonych obrazów, ramek, SVG/MathML ani niebezpiecznych URI. Treść po oczyszczeniu musi zawierać tekst. Techniczne limity: tytuł 200, wstęp 1000, body HTML 50 000 znaków; zdjęcia jak w TASK-012. Parser korzysta z natywnego HTML5 DOM w wymaganym PHP 8.4; nie dodano pakietów.
+
+Data w formularzu jest w czasie polskim. Pusta data przy włączonej publikacji oznacza „teraz”; przyszła data oznacza planowanie. Ukryty wpis pozostaje ukryty niezależnie od daty. Godziny nieistniejące/podwójne podczas zmiany czasu są odrzucane z komunikatem, aby uniknąć cichego przesunięcia publikacji. Instants są przechowywane w UTC, a listy i formularze pokazują czas `Europe/Warsaw`. Zaplanowane treści pojawiają się przez warunek publikacji przy odczycie — bez nowego zadania schedulerowego.
+
+Migracja `2026_11_18_000000_add_revision_to_news_posts` została zastosowana lokalnie. Dodaje licznik rewizji; nie seeduje wpisów i nie zmienia istniejących treści. Aktualizacje blokują wiersz i sprawdzają rewizję/bieżące zdjęcie, także po zmianach ze wspólnego endpointu mediów. Zapis treści, zdjęć i audytu jest atomowy; fizyczny cleanup pozostaje po commit. Szkice/przyszłe wpisy nie mają publicznego podglądu, również przez ręczny URL. Regulamin nadal korzysta z dotychczasowego odczytu tekstowego do TASK-016.
 
 ## Kluczowe ustalenia
 

@@ -9,6 +9,7 @@ use App\Enums\MediaPlacement;
 use App\Models\HomepageContentList;
 use App\Models\MediaAsset;
 use App\Models\MediaFileDeletion;
+use App\Models\NewsPost;
 use App\Models\User;
 use App\Rules\CmsImage;
 use Closure;
@@ -83,7 +84,7 @@ class ManageCmsMedia
             $list = $section === null ? null : HomepageContentList::lock($section);
             $owner = $placement->model()::query()->lockForUpdate()->findOrFail($ownerId);
             $this->checkCurrent($owner, $placement, $currentMediaId);
-            $owner->forceFill([$placement->column() => $asset->id])->save();
+            $owner->forceFill([$placement->column() => $asset->id, ...($owner instanceof NewsPost ? ['revision' => $owner->revision + 1, 'updated_by_user_id' => $actor->id] : [])])->save();
             if ($currentMediaId !== null) {
                 $this->audit->handle(AuditAction::MediaRemoved, $currentMediaId, $actor, null, null, ['changed_fields' => ['image']]);
             }
@@ -105,7 +106,7 @@ class ManageCmsMedia
             if ($placement->requiresImage()) {
                 $owner->delete();
             } else {
-                $owner->forceFill([$placement->column() => null])->save();
+                $owner->forceFill([$placement->column() => null, ...($owner instanceof NewsPost ? ['revision' => $owner->revision + 1, 'updated_by_user_id' => $actor->id] : [])])->save();
             }
             $this->audit->handle(AuditAction::MediaRemoved, $currentMediaId, $actor, null, null, ['changed_fields' => ['image']]);
             $list?->advance();

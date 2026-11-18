@@ -4,6 +4,9 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case NewsCreated = 'news.created';
+    case NewsUpdated = 'news.updated';
+    case NewsDeleted = 'news.deleted';
     case TileCreated = 'homepage.tile_created';
     case TileUpdated = 'homepage.tile_updated';
     case TileDeleted = 'homepage.tile_deleted';
@@ -23,6 +26,9 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::NewsCreated => 'Dodano aktualność',
+            self::NewsUpdated => 'Zmieniono aktualność',
+            self::NewsDeleted => 'Usunięto aktualność',
             self::TileCreated => 'Dodano kafelek oferty',
             self::TileUpdated => 'Zmieniono kafelek oferty',
             self::TileDeleted => 'Usunięto kafelek oferty',
@@ -44,6 +50,7 @@ enum AuditAction: string
     public function subjectType(): string
     {
         return match ($this) {
+            self::NewsCreated, self::NewsUpdated, self::NewsDeleted => 'news_post',
             self::TileCreated, self::TileUpdated, self::TileDeleted, self::TileReordered => 'homepage_tile',
             self::SlideCreated, self::SlideUpdated, self::SlideDeleted, self::SlideReordered => 'homepage_slide',
             self::MediaUploaded, self::MediaRemoved => 'media_asset',

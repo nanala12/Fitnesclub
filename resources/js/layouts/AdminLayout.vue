@@ -6,7 +6,9 @@ import {
     Users,
     Images,
     PanelsTopLeft,
+    Newspaper,
 } from '@lucide/vue';
+import NewsPostController from '@/actions/App/Http/Controllers/Admin/Cms/NewsPostController';
 import HomepageContentController from '@/actions/App/Http/Controllers/Admin/Cms/HomepageContentController';
 import PanelLayout from '@/layouts/PanelLayout.vue';
 import { dashboard as adminDashboard } from '@/routes/admin';
@@ -31,6 +33,11 @@ withDefaults(defineProps<PanelLayoutProps>(), {
             title: 'Karuzela',
             href: HomepageContentController.index('karuzela'),
             icon: Images,
+        },
+        {
+            title: 'Aktualności',
+            href: NewsPostController.index(),
+            icon: Newspaper,
         },
         { title: 'Historia zmian', href: audit(), icon: ClipboardList },
         { title: 'Mój profil', href: edit(), icon: UserRound },

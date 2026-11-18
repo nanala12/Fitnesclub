@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
 import PublicSeo from '@/components/public/PublicSeo.vue';
+import RichTextContent from '@/components/cms/RichTextContent.vue';
 import ContentImage from '@/components/shared/ContentImage.vue';
 import { index } from '@/routes/public/news';
 import type { NewsCard } from '@/types/public';
 import type { SharedPageProps } from '@/types';
-defineProps<{ post: NewsCard & { slug: string; bodyText: string } }>();
+defineProps<{ post: NewsCard & { slug: string; bodyHtml: string } }>();
 const page = usePage<SharedPageProps>();
 function date(value: string) {
     return new Intl.DateTimeFormat('pl-PL', {
@@ -48,8 +49,6 @@ function date(value: string) {
             aspect-ratio="16/10"
             loading="eager"
         />
-        <div class="text-base leading-relaxed whitespace-pre-line">
-            {{ post.bodyText }}
-        </div>
+        <RichTextContent :html="post.bodyHtml" />
     </article>
 </template>
