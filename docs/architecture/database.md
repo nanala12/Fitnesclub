@@ -6,7 +6,7 @@
 **Target:** MySQL 8+, Laravel, Inertia.js, Vue 3  
 **Sources of truth:** `docs/product/requirements.md`, `docs/architecture/overview.md`, `AGENTS.md`.
 
-> This is a logical/physical database specification, **not a set of executed migrations**. Confirmed business rules are separated from proposed technical structure. Where the requirements remain `OPEN`, the schema must not silently decide business behavior.
+> This document combines the original logical design with dated implementation notes. For the implemented sales schema, see §14 (TASK-019) and the migrations; unimplemented proposals remain proposals. Where the requirements remain `OPEN`, the schema must not silently decide business behavior.
 
 ## 1. Goals and non-negotiable invariants
 
@@ -29,7 +29,7 @@
 | Encoding | `utf8mb4`, InnoDB, consistent collation |
 | Audit timestamps | `created_at`, `updated_at` in UTC; business UI timezone `Europe/Warsaw` |
 | Effective membership period | `DATE starts_on` nullable until first visit; `DATE expires_on` nullable until first visit (inclusive) |
-| External identifiers | Unique where provider contract guarantees uniqueness, otherwise scoped unique pair |
+| External identifiers | Indexed initially; add unique keys only after verifying the provider's uniqueness contract |
 | Status fields | String/`VARCHAR` with PHP enums + application checks; migrations shouldn't obscure transitions |
 | Snapshot fields | JSON + selected typed columns for queries and amounts |
 | Soft delete | **Not** for orders, payments, memberships, entries or audit history |
@@ -43,6 +43,7 @@
 ```mermaid
 erDiagram
     USERS o|--o{ ORDERS : purchaser_account
+    USERS o|--o{ ORDERS : holder_account
     USERS o|--o{ MEMBERSHIPS : holder_account
     USERS o|--o{ MEMBERSHIP_ENTRIES : recorded_by
     USERS o|--o{ AUDIT_LOGS : actor
@@ -67,6 +68,7 @@ erDiagram
     ORDERS {
         bigint id PK
         bigint purchaser_user_id FK
+        bigint holder_user_id FK
         bigint membership_plan_id FK
         string purchaser_email
         string purchaser_phone
@@ -252,7 +254,7 @@ erDiagram
 | `duration_months` | SMALLINT UNSIGNED | nullable; e.g. 1 for monthly, exact validity may vary by plan |
 | `included_entries` | INT UNSIGNED | nullable for unlimited; NOT NULL for entry-limited plan |
 | `terms` | JSON | restrictions (e.g. daytime-only), versioned schema |
-| `is_active`, `is_public` | BOOLEAN | manage availability and public listing separately |
+| `is_active`, `is_public`, `is_featured` | BOOLEAN | default false; availability, public listing and homepage selection |
 | `sort_order` | INT UNSIGNED | default 0 |
 | `created_at`, `updated_at` | DATETIME(6) | standard |
 
@@ -265,6 +267,7 @@ erDiagram
 | `id` | BIGINT UNSIGNED | PK |
 | `public_reference` | CHAR(26) | UNIQUE, opaque ULID for external URLs/support |
 | `purchaser_user_id` | BIGINT UNSIGNED | nullable FK `users.id`; NULL for guest |
+| `holder_user_id` | BIGINT UNSIGNED | nullable FK `users.id`; explicit verified holder association, independent of purchaser |
 | `membership_plan_id` | BIGINT UNSIGNED | FK `membership_plans.id` (historical catalog reference) |
 | `purchaser_first_name`, `purchaser_last_name` | VARCHAR(120) | NOT NULL, snapshot |
 | `purchaser_email` | VARCHAR(254) | NOT NULL, snapshot; **not unique** |
@@ -282,6 +285,8 @@ erDiagram
 | `ordered_at` | DATETIME(6) | UTC order creation timestamp |
 | `paid_at` | DATETIME(6) | nullable, immutable first verified confirmation timestamp |
 | `created_by_user_id` | BIGINT UNSIGNED | nullable FK `users.id`, reception employee/system context |
+| `accepted_regulation_version_id` | BIGINT UNSIGNED | nullable restrictive FK `regulation_versions.id`; required for paid online orders |
+| `regulation_accepted_at` | DATETIME(6) | nullable UTC; paired with accepted version and immutable once set |
 | `created_at`, `updated_at` | DATETIME(6) | standard |
 
 **Important:** `purchaser_user_id` does not identify the holder. Never attach a guest order to a newly created user automatically. Store a complete `plan_snapshot` such as `{ "name", "kind", "duration_months", "included_entries", "terms", "price_grosz", "currency", "snapshot_version" }`. Persist typed `amount_grosz` as the authoritative order total. Snapshot is immutable after order placement.
@@ -326,10 +331,9 @@ erDiagram
 | `activated_by_user_id` | BIGINT UNSIGNED NULL | FK `users.id` (staff/admin); required when first activated |
 | `entries_granted` | INT UNSIGNED | nullable for unlimited; base + rollover on applicable renewals |
 | `entries_remaining` | INT UNSIGNED | nullable for unlimited; never negative |
-| `status_override` | VARCHAR(20) | nullable `cancelled`/`suspended` **only after business approval** |
 | `created_at`, `updated_at` | DATETIME(6) | standard |
 
-**Derived current status:** paid with `starts_on IS NULL` = `pending_activation`; known future start = `scheduled`; within period and allowed by overrides/entry availability = `active`; after period = `expired`; zero entries = `exhausted`. Distinguish `paid` from `active`. `pending_activation` receives the PDF after payment without fabricated dates; `scheduled` advance renewal also receives PDF after payment. Whether an exhausted entry pass renews early is still `OPEN` when not covered by approved rules.
+**Derived current status:** paid with `starts_on IS NULL` = `pending_activation`; known future start = `scheduled`; within period and allowed by entry availability = `active`; after period = `expired`; zero entries = `exhausted`. Distinguish `paid` from `active`. `pending_activation` receives the PDF after payment without fabricated dates; `scheduled` advance renewal also receives PDF after payment. Whether an exhausted entry pass renews early is still `OPEN` when not covered by approved rules. No `status_override` column or cancellation/suspension workflow is implemented before approval of OD-04.
 
 **Why both holder snapshots and `holder_user_id`?** History remains truthful even if an account changes contact data, and a guest holder can exist without creating a login. Display grouped search results per holder/pass; matching phone is a search criterion, never an identity merge key.
 
@@ -393,7 +397,7 @@ For a supported entry-pass renewal: compute unspent entries **under locks**, cre
 | `membership_id` | BIGINT UNSIGNED | FK |
 | `kind` | VARCHAR(30) | `membership_pdf` |
 | `recipient_email` | VARCHAR(254) | snapshot of confirmed destination |
-| `scheduled_for` | DATETIME(6) | due time (UTC) at start of valid day or later |
+| `scheduled_for` | DATETIME(6) | due time (UTC) after verified payment/commit; independent of validity start |
 | `status` | VARCHAR(20) | `pending`, `processing`, `sent`, `failed` |
 | `sent_at` | DATETIME(6) | nullable |
 | `storage_path` | VARCHAR(500) | nullable protected file path; not public URL |
@@ -459,7 +463,7 @@ The public **price list** reads from `membership_plans` (one catalog source), no
 |---|---|---|
 | `users` | UNIQUE(`email`), UNIQUE(`phone`) | Registered account identity only |
 | `orders` | UNIQUE(`public_reference`), INDEX(`purchaser_user_id`, `created_at`), INDEX(`holder_phone`, `created_at`), INDEX(`status`, `ordered_at`) | Lookup/history |
-| `payments` | INDEX(`order_id`, `status`), provider-scoped unique external reference where applicable | Attempts and callback deduplication |
+| `payments` | INDEX(`order_id`, `status`), INDEX(`provider`, `provider_session_id`), INDEX(`provider`, `provider_transaction_id`) | Attempt lookup; provider uniqueness deferred to verified TASK-028 contract |
 | `memberships` | UNIQUE(`order_id`), INDEX(`holder_user_id`, `starts_on`), INDEX(`holder_phone`, `expires_on`), INDEX(`renewed_from_id`) | Issuance, holder search and renewal |
 | `membership_entries` | UNIQUE(`request_id`), INDEX(`membership_id`, `used_at`) | Retry protection, history |
 | `membership_adjustments` | UNIQUE(`idempotency_key`), INDEX(`membership_id`, `created_at`) | Rollover idempotency |
@@ -534,7 +538,7 @@ Examples (approved):
 | Duplicate verified Przelewy24 callbacks | 1 membership per order, first `paid_at` stable, one initial delivery |
 | User email/phone duplicates | DB UNIQUE rejection for registered accounts; guest orders still possible |
 | Family shared phone | Separate holder/pass results, no automatic merge |
-| Purchase at 23:59, confirmation after midnight | Start date taken from confirmation in Warsaw |
+| Purchase at 23:59, confirmation after midnight | Record verified payment instant in UTC; new pass dates remain NULL until first visit (ACT-01) |
 | Payment failed / uncertain | Order retained, membership not issued |
 | Early renewal | Future period starts after previous inclusive expiry, PDF sent after payment, including future-start renewals |
 | First-visit activation | Paid new pass starts with dates NULL; only staff/admin can set them once with audit and concurrency protection |
@@ -616,3 +620,17 @@ The additive `2026_11_18_020000_create_regulation_content_states` creates only a
 ### TASK-017 — Club contact and weekly schedule (2026-11-18)
 
 The additive `2026_11_18_030000_create_club_content_states` adds a single revision/mutex row (`id=1`, unsigned bigint revision), applied only to verified local MySQL. It does not seed contact, hours or classes, and leaves existing content tables/indexes/FKs unchanged. All editor writes lock this singleton first and atomically check/advance revision with audit, including initial contact insertion and class type creation. Contact remains singleton ID 1. Saving hours persists exactly one row per weekday: open with one validated interval, closed with NULL times and `is_closed=true`, or unknown with NULL times and `is_closed=false`. Prior times are cleared when closing/unsetting a day. Weekly hours and slots are local Warsaw wall-clock values; audit instants remain UTC. Type deletion requires no referencing slots, including hidden ones; transfer updates only the slot FK. Existing `(weekday, starts_at)` schedule index and class-type FK support weekly reading. No holiday overrides, overnight intervals or booking schema were added.
+
+## 14. Implemented sales foundation — TASK-019 (2026-11-20)
+
+Migration `2026_11_20_000000_create_membership_sales_tables` adds the eight sales tables in §4–5, retaining existing `users`, CMS and `audit_logs`. No catalog/demo/sales data are seeded. `User::orders()` follows the purchaser FK; `User::memberships()` follows the holder FK. New nullable `orders.holder_user_id` records the explicit holder association independently of purchaser identity; guest links stay NULL permanently. Contact values are not unique outside `users`.
+
+Database guards enforce one membership per order, supported plan configurations, integer monetary range `0..PHP_INT_MAX` and PLN, paired dates/activation metadata, nonnegative bounded entry balances, paid/confirmed timestamps, reception confirmation actor, channel/payment-method compatibility and paired regulation version/acceptance time. Paid online orders require consent. Foreign keys preserve the accepted historical version when a new regulation is published. Provider identifiers are indexed **without** uniqueness until TASK-028 verifies the contract. Entries, adjustments and deliveries have unique operation keys; delivery attempt numbers are unique per delivery.
+
+Instants use UTC `DATETIME(6)` and immutable datetime casts; membership periods remain local business `DATE`s. New passes have NULL dates/activation metadata. A renewal can have known dates through `renewed_from_id` without another manual activation. Date calculation, eligibility and payment verification belong to subsequent Actions, not schema defaults. PDF delivery due time is independent of the start date: verified payment will enqueue delivery after commit, including pending activation and scheduled renewals.
+
+Historical foreign keys use `RESTRICT`, including user/actor links. Existing accounts are not changed. Integrating account deletion with financial-history retention requires the approved OD-11 policy before live sales; no cascade, reassignment or automatic anonymization is introduced. The prior optional `status_override` proposal is omitted while OD-04 remains OPEN.
+
+`PreservesSalesHistory` locks the original persisted row during individual saves and protects immutable snapshots, identities, amounts and once-written dates/confirmation fields, including quiet saves. Entries, adjustments and attempts are append-only. `SalesHistoryBuilder` rejects ordinary bulk write/delete/upsert/counter bypasses. Raw SQL/base builders remain outside those guards and are prohibited for application sales writes. Mutable state/balance fields are reserved for future authorized, audited, transactional Actions; these model guards alone do not implement payment authenticity, redemption concurrency or renewal policy. Private contact values, provider identifiers and document paths are hidden from default serialization; future pages must use authorized DTOs. A public ULID is a reference, never an access token.
+
+MySQL uses named table CHECKs for expressions referencing multiple columns; SQLite uses equivalent inline CHECKs. Rollback drops only these eight tables in reverse dependency order with session-scoped foreign-key disabling/restoration for populated self-referencing renewal chains. Forward/rollback and preservation of existing users/CMS/audit are tested on both engines; rollback was exercised only in isolated test databases. The additive migration was applied to verified local MySQL without sales data. No new routes, payment/email/PDF execution, manual corrections or OPEN recipient/renewal policies are implemented here.

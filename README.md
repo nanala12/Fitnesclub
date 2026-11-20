@@ -254,7 +254,7 @@ Publikacja zastępuje aktualną treść pod `/regulamin`. Opublikowanych wersji 
 
 Migracja `2026_11_18_020000_create_regulation_content_states` została zastosowana lokalnie i dodaje wyłącznie techniczny wiersz blokady/rewizji. Chroni równoczesne utworzenia i publikacje oraz odrzuca stare formularze; także wspólne operacje mediów aktualizują rewizję. Zapis treści, plików i audytu jest atomowy. Usunięcie szkicu korzysta z dotychczasowego cleanupu po commit.
 
-**Pozostała integracja TASK-016:** repozytorium nie zawiera jeszcze zamówień ani checkoutu. Zapis `accepted_regulation_version_id` i `regulation_accepted_at` w zamówieniu oraz obowiązkowy checkbox akceptacji konkretnej opublikowanej wersji zostaną podłączone w TASK-022/TASK-030 po modelach TASK-019. Wymóg jest potwierdzony (OD-10, CMS-OD-03); część zakupowa i jej testy pozostają do wykonania. Zgoda marketingowa nie zastępuje akceptacji regulaminu.
+**Pozostała integracja TASK-016:** TASK-019 dodaje zamówienia z FK `accepted_regulation_version_id`, czasem `regulation_accepted_at` i ochroną historycznej wersji. Formularz checkoutu, obowiązkowy checkbox konkretnej opublikowanej wersji i zapis zgody z żądania pozostają do TASK-022/TASK-030. Wymóg jest potwierdzony (OD-10, CMS-OD-03); zgoda marketingowa nie zastępuje akceptacji regulaminu.
 
 ## Kontakt, godziny i grafik (TASK-017)
 
@@ -290,7 +290,22 @@ docker compose run --rm --no-deps -e DB_HOST=mysql-test app composer ci:check
 
 Usunięcie treści od razu usuwa publiczną referencję do zdjęcia; fizyczny plik usuwa worker po zatwierdzeniu transakcji. Worker i scheduler pozostają wymagane według instrukcji powyżej. Weryfikacja została wykonana na syntetycznych danych w osobnym środowisku.
 
-Cennik będzie korzystał z jednego źródła `membership_plans` w TASK-019/020. Edycja cen, limit trzech wyróżnień i snapshoty zakupów wymagają tych modułów; akceptacja regulaminu w zamówieniu pozostaje do TASK-022/030.
+Cennik będzie korzystał z jednego źródła `membership_plans`. TASK-019 dodaje tabelę i snapshoty zakupów; edycja cen, limit trzech wyróżnień i publiczna oferta pozostają do TASK-020. Zapis akceptacji regulaminu podczas checkoutu pozostaje do TASK-022/030.
+
+## Modele sprzedaży i karnetów (TASK-019)
+
+Dodano osiem tabel: plany, zamówienia, płatności, karnety, wejścia, zmiany salda, zlecenia dostarczenia PDF i próby dostarczenia. Istniejące konta, CMS i audyt pozostają zachowane. Migracja została zastosowana lokalnie bez dodawania przykładowych zakupów lub planów.
+
+Kupujący i posiadacz mają odrębne snapshoty i opcjonalne powiązania z kontem. Dane gości mogą się powtarzać i nie są przypisywane do późniejszych kont. Jedno zamówienie może mieć najwyżej jeden karnet. Historycznych cen, danych posiadacza oraz raz zapisanych dat nie można nadpisać zwykłymi operacjami modeli. Kwoty przyjmują wyłącznie nieujemne liczby całkowite w groszach. Nowy karnet zachowuje daty NULL do pierwszej wizyty; potwierdzenie płatności nie wyznacza początku ważności.
+
+Testy schematu i modeli:
+
+```bash
+docker compose run --rm --no-deps app php artisan test tests/Feature/Sales/SalesSchemaTest.php
+docker compose run --rm --no-deps -e DB_HOST=mysql-test app php vendor/bin/pest --configuration=phpunit.mysql.xml tests/Feature/Sales/SalesSchemaTest.php
+```
+
+TASK-019 przygotowuje strukturę danych. Formularze sprzedaży, weryfikacja płatności, aktywacja, rozliczanie wejść i generowanie/wysyłanie PDF będą wdrażane w kolejnych zadaniach. Katalog pozostaje pusty do dodania planów przez moduł TASK-020. Szczegóły ograniczeń i ochrony historii: `docs/architecture/database.md`, §14.
 
 ## Kluczowe ustalenia
 

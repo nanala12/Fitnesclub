@@ -126,6 +126,12 @@ Legend: **R** read, **W** write/use, **OWN** only records strictly linked to the
 - Online purchase must save the accepted **published** regulation version and acceptance timestamp with the order; fail closed if no valid published version exists. Acceptance is separate from optional marketing consent.
 - Rules for minors remain OPEN (`OD-07`) and must not be inferred from family purchasing functionality.
 
+### Sales persistence foundation — TASK-019 (2026-11-20)
+
+Eight new domain tables preserve separate purchaser/holder snapshots and optional explicit account links, without guest matching or public/private sales endpoints. Money casts reject floats, numeric strings and negative values; database CHECKs enforce integer range and PLN. Historical models lock original rows and reject snapshot/identity/amount changes, once-written timestamp changes and deletion, including quiet saves. The query builder blocks ordinary bulk mutation bypasses; raw SQL/base builders are outside those protections and prohibited for application sales writes. Unique order/membership and operation keys provide the persistence foundation for later idempotent Actions.
+
+Contacts, provider identifiers and document paths are hidden from default model serialization; authorized DTOs and scoped PDF/status tokens remain required when implementing access. Public order references are not secrets or authorization. No provider payload, card data, secrets, emails or PDF files are generated here. FK restrictions preserve financial history, including user and staff references; the account-deletion/retention integration remains gated by OD-11 before live sales. Existing users and audits are unchanged. Schema guards do not replace future server-side role/ownership checks, P24 verification, order-level locking, atomic audit/entry writes or approved renewal/recipient policies. Regulation FK/time persistence and historical binding are tested; the required checkout acceptance flow remains TASK-022/030.
+
 ## 6. Payments and order integrity (Przelewy24)
 
 **Security invariant:** a browser redirect / “success” URL never marks an order paid. Only a verified server-to-server result, checked against the local order, can finalize online payment.
