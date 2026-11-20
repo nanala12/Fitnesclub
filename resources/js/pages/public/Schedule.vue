@@ -30,19 +30,19 @@ defineProps<{
         <li
             v-for="slot in slots"
             :key="slot.id"
-            class="space-y-3 rounded-2xl border border-border bg-card p-6"
+            class="min-w-0 space-y-3 rounded-2xl border border-border bg-card p-6"
         >
             <p class="text-sm font-bold text-primary">
                 {{ slot.dayLabel }} · {{ slot.startsAt }}–{{ slot.endsAt }}
             </p>
-            <h2 class="text-xl font-bold">{{ slot.name }}</h2>
+            <h2 class="text-xl font-bold break-words">{{ slot.name }}</h2>
             <p
                 v-if="slot.description"
-                class="text-sm leading-relaxed text-muted-foreground"
+                class="text-sm leading-relaxed break-words text-muted-foreground"
             >
                 {{ slot.description }}
             </p>
-            <p v-if="slot.instructor" class="text-sm">
+            <p v-if="slot.instructor" class="text-sm break-words">
                 Prowadzący: {{ slot.instructor }}
             </p>
         </li>

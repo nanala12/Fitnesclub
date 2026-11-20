@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\Admin\AuditLogController;
+use App\Http\Controllers\Admin\Cms\ClassScheduleController;
+use App\Http\Controllers\Admin\Cms\ContactSettingsController;
 use App\Http\Controllers\Admin\Cms\GalleryController;
 use App\Http\Controllers\Admin\Cms\HomepageContentController;
 use App\Http\Controllers\Admin\Cms\MediaController as CmsMediaController;
@@ -79,6 +81,27 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('/{regulationVersion}', [RegulationController::class, 'update'])->whereNumber('regulationVersion')->middleware('throttle:30,1,cms-content-write:')->name('update');
         Route::post('/{regulationVersion}/publikuj', [RegulationController::class, 'publish'])->whereNumber('regulationVersion')->middleware('throttle:30,1,cms-content-write:')->name('publish');
         Route::delete('/{regulationVersion}', [RegulationController::class, 'destroy'])->whereNumber('regulationVersion')->middleware('throttle:30,1,cms-content-write:')->name('destroy');
+    });
+    Route::prefix('admin/cms/kontakt')->name('admin.cms.contact.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [ContactSettingsController::class, 'index'])->middleware('throttle:60,1,cms-content-read:')->name('index');
+        Route::get('/edytuj', [ContactSettingsController::class, 'edit'])->name('edit');
+        Route::patch('/', [ContactSettingsController::class, 'update'])->middleware('throttle:30,1,cms-content-write:')->name('update');
+    });
+    Route::prefix('admin/cms/grafik')->name('admin.cms.schedule.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [ClassScheduleController::class, 'index'])->middleware('throttle:60,1,cms-content-read:')->name('index');
+        Route::patch('/widocznosc', [ClassScheduleController::class, 'visibility'])->middleware('throttle:30,1,cms-content-write:')->name('visibility');
+        Route::get('/rodzaje/nowy', [ClassScheduleController::class, 'typeCreate'])->name('types.create');
+        Route::post('/rodzaje', [ClassScheduleController::class, 'typeStore'])->middleware('throttle:30,1,cms-content-write:')->name('types.store');
+        Route::get('/rodzaje/{classType}/edytuj', [ClassScheduleController::class, 'typeEdit'])->whereNumber('classType')->name('types.edit');
+        Route::patch('/rodzaje/{classType}', [ClassScheduleController::class, 'typeUpdate'])->whereNumber('classType')->middleware('throttle:30,1,cms-content-write:')->name('types.update');
+        Route::patch('/rodzaje/{classType}/widocznosc', [ClassScheduleController::class, 'typeVisibility'])->whereNumber('classType')->middleware('throttle:30,1,cms-content-write:')->name('types.visibility');
+        Route::delete('/rodzaje/{classType}', [ClassScheduleController::class, 'typeDestroy'])->whereNumber('classType')->middleware('throttle:30,1,cms-content-write:')->name('types.destroy');
+        Route::get('/terminy/nowy', [ClassScheduleController::class, 'slotCreate'])->name('slots.create');
+        Route::post('/terminy', [ClassScheduleController::class, 'slotStore'])->middleware('throttle:30,1,cms-content-write:')->name('slots.store');
+        Route::get('/terminy/{classScheduleSlot}/edytuj', [ClassScheduleController::class, 'slotEdit'])->whereNumber('classScheduleSlot')->name('slots.edit');
+        Route::patch('/terminy/{classScheduleSlot}', [ClassScheduleController::class, 'slotUpdate'])->whereNumber('classScheduleSlot')->middleware('throttle:30,1,cms-content-write:')->name('slots.update');
+        Route::patch('/terminy/{classScheduleSlot}/widocznosc', [ClassScheduleController::class, 'slotVisibility'])->whereNumber('classScheduleSlot')->middleware('throttle:30,1,cms-content-write:')->name('slots.visibility');
+        Route::delete('/terminy/{classScheduleSlot}', [ClassScheduleController::class, 'slotDestroy'])->whereNumber('classScheduleSlot')->middleware('throttle:30,1,cms-content-write:')->name('slots.destroy');
     });
     Route::get('dashboard', DashboardController::class)->name('dashboard');
     Route::get('admin', AdminDashboardController::class)->middleware('can:access-admin-panel')->name('admin.dashboard');

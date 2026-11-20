@@ -48,7 +48,7 @@ class PublicSiteContent
             'closesAt' => $row->closes_at === null ? null : substr($row->closes_at, 0, 5),
         ])->all();
 
-        return ['club' => $this->club(), 'openingHours' => $hours, 'siteUrl' => rtrim(config('app.url'), '/').'/', 'seo' => $this->seo($page, $post)];
+        return ['showSchedule' => $this->scheduleVisible(), 'club' => $this->club(), 'openingHours' => $hours, 'siteUrl' => rtrim(config('app.url'), '/').'/', 'seo' => $this->seo($page, $post)];
     }
 
     /** @return array<int, array<string, mixed>> */
@@ -70,6 +70,9 @@ class PublicSiteContent
     public function offerDetail(OfferTile $row): array
     {
         $next = $this->publicLink($row->link_url);
+        if (preg_match('~^/grafik(?:#|$)~D', $row->link_url ?? '') && ! $this->scheduleVisible()) {
+            $next = route('public.offer');
+        }
 
         return [...$this->offerCard($row), 'description' => $this->text($row->short_description),
             'nextHref' => in_array($next, ['/oferta', route('public.offer')], true) ? null : $next,
@@ -109,6 +112,11 @@ class PublicSiteContent
     public function publishedRegulations(): Builder
     {
         return RegulationVersion::query()->whereNotNull('published_at')->where('published_at', '<=', now())->orderByDesc('version_number');
+    }
+
+    public function scheduleVisible(): bool
+    {
+        return (bool) (ClubSetting::query()->whereKey(1)->value('is_schedule_visible') ?? true);
     }
 
     /** @return array<int, array<string,mixed>> */

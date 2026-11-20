@@ -338,3 +338,7 @@ Funkcjonalność jest gotowa, kiedy: (1) spełnia powiązane wymagania i AC; (2)
 - CMS-OD-03: przy zakupie online obowiązkowa akceptacja konkretnej opublikowanej wersji regulaminu; zapis wersji i czasu akceptacji w zamówieniu.
 - CMS-OD-04: sformatowane treści CMS w oczyszczonym HTML; bez wykonywalnych skryptów.
 - CMS-OD-05: obraz może występować tylko w jednym miejscu; usunięcie usuwa rekord i plik (plik fizycznie po commit, retry błędów).
+
+### Potwierdzone uzupełnienie CMS — widoczność grafiku (2026-11-20)
+
+Administrator może wyłączyć cały publiczny grafik. Po wyłączeniu znika przycisk „Grafik” z menu strony, także mobilnego, a bezpośrednie wejście na `/grafik` zwraca 404. Terminy i rodzaje zajęć pozostają dostępne w panelu i zachowują swoje ustawienia publikacji. Ponowne włączenie przywraca podstronę i odnośnik. Domyślnie grafik jest włączony. Jest to zatwierdzone uzupełnienie WEB-002/CMS-008.

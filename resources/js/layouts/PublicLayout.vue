@@ -26,14 +26,17 @@ import {
     contact,
     regulations,
 } from '@/routes/public';
+import { toUrl } from '@/lib/utils';
 import { index as news } from '@/routes/public/news';
-withDefaults(
+const props = withDefaults(
     defineProps<{
         navigation?: NavItem[];
+        showSchedule?: boolean;
         club?: ClubInfo | null;
         openingHours?: OpeningHour[];
     }>(),
     {
+        showSchedule: true,
         navigation: () => [
             { title: 'Start', href: home() },
             { title: 'Oferta', href: offer() },
@@ -45,6 +48,11 @@ withDefaults(
             { title: 'Kontakt', href: contact() },
         ],
     },
+);
+const visibleNavigation = computed(() =>
+    props.navigation.filter(
+        (item) => props.showSchedule || toUrl(item.href) !== schedule.url(),
+    ),
 );
 const page = usePage();
 const menuOpen = ref(false);
@@ -74,7 +82,7 @@ const accountLink = computed(() =>
                     aria-label="Nawigacja główna"
                     class="ml-auto hidden xl:block"
                 >
-                    <NavigationLinks :items="navigation" horizontal />
+                    <NavigationLinks :items="visibleNavigation" horizontal />
                 </nav>
                 <Link
                     :href="accountLink"
@@ -115,7 +123,7 @@ const accountLink = computed(() =>
                             class="min-h-0 flex-1 overflow-y-auto px-3"
                         >
                             <NavigationLinks
-                                :items="navigation"
+                                :items="visibleNavigation"
                                 @select="menuOpen = false"
                             />
                         </nav>

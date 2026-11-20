@@ -4,6 +4,14 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case ClubScheduleVisibilityUpdated = 'club.schedule_visibility_updated';
+    case ClubContactUpdated = 'club.contact_updated';
+    case ClassTypeCreated = 'schedule.type_created';
+    case ClassTypeUpdated = 'schedule.type_updated';
+    case ClassTypeDeleted = 'schedule.type_deleted';
+    case ClassSlotCreated = 'schedule.slot_created';
+    case ClassSlotUpdated = 'schedule.slot_updated';
+    case ClassSlotDeleted = 'schedule.slot_deleted';
     case GalleryCategoryCreated = 'gallery.category_created';
     case GalleryCategoryUpdated = 'gallery.category_updated';
     case GalleryCategoryDeleted = 'gallery.category_deleted';
@@ -38,6 +46,14 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::ClubScheduleVisibilityUpdated => 'Zmieniono widoczność publicznego grafiku',
+            self::ClubContactUpdated => 'Zmieniono kontakt i godziny klubu',
+            self::ClassTypeCreated => 'Dodano rodzaj zajęć',
+            self::ClassTypeUpdated => 'Zmieniono rodzaj zajęć',
+            self::ClassTypeDeleted => 'Usunięto rodzaj zajęć',
+            self::ClassSlotCreated => 'Dodano termin zajęć',
+            self::ClassSlotUpdated => 'Zmieniono termin zajęć',
+            self::ClassSlotDeleted => 'Usunięto termin zajęć',
             self::GalleryCategoryCreated => 'Dodano kategorię galerii',
             self::GalleryCategoryUpdated => 'Zmieniono kategorię galerii',
             self::GalleryCategoryDeleted => 'Usunięto kategorię galerii',
@@ -75,6 +91,9 @@ enum AuditAction: string
     public function subjectType(): string
     {
         return match ($this) {
+            self::ClubContactUpdated, self::ClubScheduleVisibilityUpdated => 'club_settings',
+            self::ClassTypeCreated, self::ClassTypeUpdated, self::ClassTypeDeleted => 'class_type',
+            self::ClassSlotCreated, self::ClassSlotUpdated, self::ClassSlotDeleted => 'class_slot',
             self::GalleryCategoryCreated, self::GalleryCategoryUpdated, self::GalleryCategoryDeleted, self::GalleryCategoryReordered => 'gallery_category',
             self::GalleryImageCreated, self::GalleryImageUpdated, self::GalleryImageDeleted, self::GalleryImageReordered => 'gallery_image',
             self::RegulationCreated, self::RegulationUpdated, self::RegulationPublished, self::RegulationDeleted => 'regulation_version',

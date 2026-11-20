@@ -68,7 +68,10 @@ class PageController extends Controller
 
     public function schedule(PublicSiteContent $content): Response
     {
-        return Inertia::render('public/Schedule', [...$content->shared('schedule'), 'slots' => $content->schedule()]);
+        $shared = $content->shared('schedule');
+        abort_unless($shared['showSchedule'], 404);
+
+        return Inertia::render('public/Schedule', [...$shared, 'slots' => $content->schedule()]);
     }
 
     public function regulations(PublicSiteContent $content): Response

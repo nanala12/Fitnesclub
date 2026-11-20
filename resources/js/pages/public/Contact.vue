@@ -18,12 +18,17 @@ defineProps<{ club: ClubInfo | null; openingHours: OpeningHour[] }>();
     />
     <div class="grid gap-6 md:grid-cols-2">
         <section
-            class="space-y-5 rounded-2xl border border-border bg-card p-6 sm:p-8"
+            class="min-w-0 space-y-5 rounded-2xl border border-border bg-card p-6 sm:p-8"
         >
             <h2 class="text-2xl font-bold">Kontakt z klubem</h2>
             <template v-if="club"
-                ><p v-if="club.name" class="font-semibold">{{ club.name }}</p>
-                <address v-if="club.address" class="leading-relaxed not-italic">
+                ><p v-if="club.name" class="font-semibold break-words">
+                    {{ club.name }}
+                </p>
+                <address
+                    v-if="club.address"
+                    class="leading-relaxed break-words not-italic"
+                >
                     {{ club.address }}<br />{{ club.postalCode }}
                     {{ club.city }}
                 </address>
@@ -56,7 +61,7 @@ defineProps<{ club: ClubInfo | null; openingHours: OpeningHour[] }>();
             />
         </section>
         <section
-            class="space-y-5 rounded-2xl border border-border bg-card p-6 sm:p-8"
+            class="min-w-0 space-y-5 rounded-2xl border border-border bg-card p-6 sm:p-8"
         >
             <h2 class="text-2xl font-bold">Godziny otwarcia</h2>
             <dl v-if="openingHours.length" class="space-y-4">

@@ -8,6 +8,8 @@ import {
     PanelsTopLeft,
     Newspaper,
 } from '@lucide/vue';
+import ContactSettingsController from '@/actions/App/Http/Controllers/Admin/Cms/ContactSettingsController';
+import ClassScheduleController from '@/actions/App/Http/Controllers/Admin/Cms/ClassScheduleController';
 import RegulationController from '@/actions/App/Http/Controllers/Admin/Cms/RegulationController';
 import GalleryController from '@/actions/App/Http/Controllers/Admin/Cms/GalleryController';
 import NewsPostController from '@/actions/App/Http/Controllers/Admin/Cms/NewsPostController';
@@ -45,6 +47,16 @@ withDefaults(defineProps<PanelLayoutProps>(), {
         {
             title: 'Regulamin',
             href: RegulationController.index(),
+            icon: ClipboardList,
+        },
+        {
+            title: 'Kontakt i godziny',
+            href: ContactSettingsController.index(),
+            icon: ClipboardList,
+        },
+        {
+            title: 'Grafik zajęć',
+            href: ClassScheduleController.index(),
             icon: ClipboardList,
         },
         { title: 'Historia zmian', href: audit(), icon: ClipboardList },

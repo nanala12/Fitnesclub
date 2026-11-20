@@ -22,9 +22,11 @@ withDefaults(
                     : 'grid sm:grid-cols-2 lg:grid-cols-3',
             ]"
         >
-            <div class="space-y-4">
+            <div class="min-w-0 space-y-4">
                 <BrandLogo inverse />
-                <p v-if="club?.name" class="font-semibold">{{ club.name }}</p>
+                <p v-if="club?.name" class="font-semibold break-words">
+                    {{ club.name }}
+                </p>
                 <div v-if="!compact" class="flex flex-wrap gap-5 text-sm">
                     <Link
                         :href="contact()"
@@ -57,14 +59,14 @@ withDefaults(
                     Godziny otwarcia zostaną wkrótce uzupełnione.
                 </p>
             </div>
-            <div :class="['space-y-2 text-sm', compact && 'mt-4']">
+            <div :class="['min-w-0 space-y-2 text-sm', compact && 'mt-4']">
                 <h2
                     v-if="!compact"
                     class="text-xs font-bold tracking-widest uppercase"
                 >
                     Kontakt
                 </h2>
-                <p v-if="club?.address">
+                <p v-if="club?.address" class="break-words">
                     {{ club.address }}<br />{{ club.postalCode }}
                     {{ club.city }}
                 </p>

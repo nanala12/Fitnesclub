@@ -8,6 +8,9 @@ class AuditPayload
 {
     /** @var array<string, string> */
     public const array FIELD_LABELS = [
+        'is_schedule_visible' => 'Widoczność publicznego grafiku',
+        'club_name' => 'Nazwa klubu', 'contact_email' => 'E-mail klubu', 'contact_phone' => 'Telefon klubu', 'street_address' => 'Adres klubu', 'postal_code' => 'Kod pocztowy', 'city' => 'Miejscowość', 'map_url' => 'Odnośnik mapy', 'opening_hours' => 'Godziny otwarcia',
+        'class_type_id' => 'Rodzaj zajęć', 'weekday' => 'Dzień tygodnia', 'starts_at' => 'Początek zajęć', 'ends_at' => 'Koniec zajęć', 'instructor_name' => 'Prowadzący',
         'name' => 'Nazwa', 'gallery_category_id' => 'Kategoria galerii',
         'body' => 'Treść', 'excerpt' => 'Wstęp', 'published_at' => 'Data publikacji',
         'image' => 'Zdjęcie', 'title' => 'Tytuł', 'description' => 'Opis',
