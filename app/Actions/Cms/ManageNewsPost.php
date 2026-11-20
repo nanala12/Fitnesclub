@@ -75,8 +75,12 @@ class ManageNewsPost
         DB::transaction(function () use ($actor, $postId, $revision, $visible): void {
             $post = NewsPost::query()->lockForUpdate()->findOrFail($postId);
             $this->checkRevision($post, $revision);
+            $body = $this->html->clean($post->body);
+            if ($visible && $this->html->text($body) === '') {
+                throw ValidationException::withMessages(['body' => 'Uzupełnij treść aktualności przed publikacją.']);
+            }
             $post->forceFill(['is_published' => $visible, 'published_at' => $visible ? ($post->published_at ?? now()) : $post->published_at,
-                'revision' => $post->revision + 1, 'updated_by_user_id' => $actor->id, 'body' => $this->html->clean($post->body)])->save();
+                'revision' => $post->revision + 1, 'updated_by_user_id' => $actor->id, 'body' => $body])->save();
             $this->audit->handle(AuditAction::NewsUpdated, $post->id, $actor, null, null, ['changed_fields' => ['is_published', 'published_at']]);
         });
     }

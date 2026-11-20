@@ -271,6 +271,27 @@ Udany zapis/dodanie wraca do indeksu. Walidacja pozostawia wpisane dane w formul
 
 Migracja `2026_11_18_030000_create_club_content_states` została zastosowana lokalnie i dodaje tylko techniczny wiersz blokady/rewizji. Nie wprowadzono kontaktów z referencyjnych widoków, godzin ani przykładowego grafiku. Aktualne dane klubu należy wpisać przez panel.
 
+## Przegląd CMS (TASK-018)
+
+Sprawdzono wspólnie kafelki, karuzelę, aktualności, galerię, regulamin, kontakt i grafik: zapis/indeks, publikację i ukrywanie, dostęp do zdjęć, uprawnienia oraz cleanup po commit. Starszej aktualności bez treści po oczyszczeniu HTML nie można opublikować — trzeba najpierw uzupełnić jej treść. Opublikowany regulamin zachowuje niezmienną historię.
+
+Test integracyjny całego CMS:
+
+```bash
+docker compose run --rm --no-deps app php artisan test tests/Feature/Cms/CmsIntegrationTest.php
+```
+
+Pełna kontrola z MySQL:
+
+```bash
+docker compose --profile testing up -d --wait mysql-test
+docker compose run --rm --no-deps -e DB_HOST=mysql-test app composer ci:check
+```
+
+Usunięcie treści od razu usuwa publiczną referencję do zdjęcia; fizyczny plik usuwa worker po zatwierdzeniu transakcji. Worker i scheduler pozostają wymagane według instrukcji powyżej. Weryfikacja została wykonana na syntetycznych danych w osobnym środowisku.
+
+Cennik będzie korzystał z jednego źródła `membership_plans` w TASK-019/020. Edycja cen, limit trzech wyróżnień i snapshoty zakupów wymagają tych modułów; akceptacja regulaminu w zamówieniu pozostaje do TASK-022/030.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

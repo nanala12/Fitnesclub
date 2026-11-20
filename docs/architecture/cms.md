@@ -176,24 +176,25 @@ erDiagram
 
 ## 6. API, trasy i formularze (Inertia)
 
-| Panel | Trasy koncepcyjne | Strony Vue |
+| Panel | Aktualne trasy | Strony Vue |
 |---|---|---|
-| Aktualności | `admin.cms.news.*` | `admin/Cms/News/{Index,Create,Edit}` |
+| Aktualności | `admin.cms.news.*` | `admin/cms/news/{Index,Form}` |
 | Galeria | `admin.cms.gallery.*` | `admin/cms/gallery/{Index,CategoryForm,ImageForm}` |
-| Kafelki | `admin.cms.tiles.*` | `admin/Cms/Tiles/Index` |
-| Karuzela | `admin.cms.slides.*` | `admin/Cms/Slides/Index` |
-| Regulamin | `admin.cms.regulations.*` | `admin/Cms/Regulations/Edit` + wersje |
-| Kontakt i grafik | `admin.cms.settings.*`, `admin.cms.schedule.*` | formularze dedykowane |
-| Cennik | `admin.membership-plans.*` | `admin/MembershipPlans/Index` |
+| Kafelki | `admin.cms.homepage.*`, sekcja `kafelki` | `admin/cms/homepage/{Index,Form}` |
+| Karuzela | `admin.cms.homepage.*`, sekcja `karuzela` | `admin/cms/homepage/{Index,Form}` |
+| Regulamin | `admin.cms.regulations.*` | `admin/cms/regulations/{Index,Form}` (podgląd publikacji tylko do odczytu) |
+| Kontakt i godziny | `admin.cms.contact.*` | `admin/cms/contact/{Index,Form}` |
+| Grafik | `admin.cms.schedule.*` | `admin/cms/schedule/{Index,TypeForm,SlotForm}` |
+| Cennik | TASK-020 po modelach TASK-019 | Docelowo edycja `membership_plans`; bez osobnej tabeli cen |
 
-To **nazewnictwo przykładowe**; nie dodawać osobnego API JSON do publicznych widoków Inertia bez potrzeby. Dla każdej operacji zapisującej: Form Request + policy + walidacja backendowa, odpowiedź Inertia z komunikatem sukcesu/błędu. Publiczne kontrolery przekazują tylko widoczne/publikowane dane.
+Nazwy odzwierciedlają kod po TASK-018. Nie dodawać osobnego API JSON do publicznych widoków Inertia bez potrzeby. Dla każdej operacji zapisującej: Form Request + policy + walidacja backendowa, odpowiedź Inertia z komunikatem sukcesu/błędu. Publiczne kontrolery przekazują tylko widoczne/publikowane dane.
 
 ## 7. Publikowanie, walidacja i uprawnienia
 
 1. Domyślnie nowa treść jest ukryta (`is_published=false`), chyba że formularz jawnie publikuje.
 2. Zaplanowana przyszła data publikacji aktualności nie powoduje wcześniejszej ekspozycji.
 3. Zmiana kolejności jest atomowa na poziomie logicznej listy, a backend sprawdza kompletność i unikalność kolejności.
-4. Regulamin: edycja wersji roboczej nie zmienia wersji publicznej; opublikowane wersje są nieedytowalne. **Sposób składowania draftu (osobny draft lub wersja bez `published_at`) — `PROPOSED`.**
+4. Regulamin: edycja wersji roboczej nie zmienia wersji publicznej; opublikowane wersje są nieedytowalne. Wdrożony szkic to `regulation_versions` bez `published_at`; publikacja ustala datę i utrwala wersję.
 5. Wyłącznie administrator może edytować CMS i cennik. Pracownik nie może zmieniać globalnej konfiguracji ani zarządzać personelem. Autoryzacja zawsze po stronie Laravela (403), nie tylko ukryte akcje Vue.
 6. Upload: walidować zawartość i rozmiar, używać losowych nazw plików, przechowywać poza katalogami wykonywalnymi, nie polegać wyłącznie na rozszerzeniu ani nagłówku od klienta; treść rich text musi być sanitizowana przed renderowaniem (XSS).
 7. Zapis cen i konfiguracji sprzedaży generuje `audit_logs` z wykonawcą, czasem i zakresem zmiany; nie zapisywać sekretów. Historia regulaminu stanowi archiwum opublikowanych tekstów.
@@ -253,3 +254,19 @@ Dla `news_posts.body` oraz `regulation_versions.body` wymagane jest oczyszczanie
 ## Aktualizacja 2026-11-04 — bezpieczeństwo mediów
 
 Brak współdzielenia plików między wpisami, galerią, karuzelą i regulaminem. Zmiana obrazu w rekordzie musi usuwać poprzedni plik dopiero po skutecznym zapisie DB. Operacje usuwania z retry są niezależne od transakcji i podlegają logowaniu.
+
+## Przegląd integracyjny TASK-018 — 2026-11-20
+
+Sprawdzono siedem sekcji CMS jako jeden przepływ: zapis szkiców i przejście do indeksu, brak publicznych rekordów/plików przed publikacją, publikację kafelków/slajdów/aktualności/galerii/regulaminu, ponowne ukrywanie treści edytowalnych, wspólne dane kontaktowe, oba poziomy widoczności zajęć i całego grafiku, bezpieczny audyt oraz usuwanie plików po commit. `CmsIntegrationTest` usuwa po jednym właścicielu każdego typu i wykonuje zadanie cleanupu, potwierdzając zachowanie plików pozostałych modułów. Pracownik i klient nie mają dostępu do żadnego indeksu CMS. Archiwalna opublikowana wersja regulaminu pozostaje wyjątkiem od ukrywania/usuwania: jest niezmienna.
+
+Znaleziony błąd: przełącznik publikacji starszej aktualności nie sprawdzał pustej treści po sanityzacji. `ManageNewsPost::visibility` teraz odrzuca takie włączenie bez zmiany rewizji, daty i audytu; ukrycie pozostaje możliwe. Formularz/lista pokazuje komunikat kierujący do uzupełnienia treści. Usunięto też powtórzone gałęzie etykiet audytu.
+
+| Kryterium | Wynik przeglądu |
+|---|---|
+| CMS-T01/02/05/07/08 | Regresje i testy integracyjne przechodzą: widoczność, kolejność, historia, media i sanityzacja |
+| CMS-T06 | Uprawnienia istniejących modułów zweryfikowane; cennik do pokrycia w TASK-020 |
+| CMS-T10 | Chrome: 7 indeksów, 7 formularzy, 8 stron publicznych, 320/768/1280 px i mobilne menu; brak wyjątków JS |
+| CMS-T03/04/09 | Wymagają `membership_plans`, snapshotów zamówień i cen z TASK-019/020/022; nie zostały uznane za wykonane |
+| Powiązanie regulaminu z zamówieniem | Pozostaje do integracji w TASK-022/030, zgodnie z odnotowaną zależnością TASK-016 |
+
+Nie utworzono drugiego źródła cennika ani przykładowych cen/kontaktów/regulaminu w bazie klubu. Gotowość dotyczy wdrożonych modułów CMS; źródło planów i część zakupowa są następnym etapem.

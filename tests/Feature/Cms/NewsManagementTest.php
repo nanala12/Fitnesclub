@@ -244,3 +244,13 @@ test('concurrent editors cannot overwrite the same news revision', function () {
         }
     }
 });
+
+test('publishing legacy news with no text after sanitation fails without changing revision or audit', function () {
+    $post = NewsPost::forceCreate(['title' => 'Legacy draft', 'slug' => 'legacy-empty-draft', 'body' => '<script>unsafe()</script><p> </p>', 'is_published' => false,
+        'created_by_user_id' => $this->admin->id, 'updated_by_user_id' => $this->admin->id]);
+    $this->actingAs($this->admin)->patch(route('admin.cms.news.visibility', $post), ['revision' => 0, 'is_published' => true])->assertSessionHasErrors('body');
+    expect($post->fresh()->is_published)->toBeFalse()->and($post->fresh()->revision)->toBe(0)->and($post->fresh()->published_at)->toBeNull()->and(AuditLog::count())->toBe(0);
+    $this->get(route('public.news.show', $post->slug))->assertNotFound();
+    $this->patch(route('admin.cms.news.visibility', $post), ['revision' => 0, 'is_published' => false])->assertSessionHasNoErrors();
+    expect($post->fresh()->is_published)->toBeFalse()->and($post->fresh()->revision)->toBe(1);
+});
