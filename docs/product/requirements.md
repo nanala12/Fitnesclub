@@ -190,13 +190,15 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 
 | ID | Wymaganie | Priorytet | Status |
 |---|---|---|---|
-| PDF-001 | Kupujący bez konta otrzymuje karnet jako PDF na podany adres e-mail. | MUST | CONFIRMED (D-13) |
-| PDF-002 | Karnet kupiony dla innej osoby jest dostarczany e-mailem pod wskazany adres. | MUST | CONFIRMED (D-15) |
+| PDF-001 | Zakup bez konta obejmuje dostarczenie karnetu jako PDF; przy zakupie dla siebie odbiorcą jest kupujący, a przy zakupie dla innej osoby — posiadacz (PDF-002). | MUST | CONFIRMED (D-13) |
+| PDF-002 | Karnet kupiony dla innej osoby jest dostarczany na adres e-mail posiadacza karnetu. Adres posiadacza jest wymagany; kupujący nie wybiera innego odbiorcy PDF. | MUST | CONFIRMED (D-15) |
 | PDF-003 | PDF zawiera imię i nazwisko posiadacza, nazwę klubu i planu, limit wejść (jeśli dotyczy) i ustalone daty; dla `pending_activation` zamiast dat komunikat o aktywacji przy pierwszej wizycie. Bez telefonu i e-maila w treści PDF. | MUST | CONFIRMED (ACT-01) |
 | NTF-001 | Po założeniu konta pracownik otrzymuje e-mail informacyjny z bezpieczną możliwością ustanowienia hasła. | MUST | CONFIRMED (D-12 / D-18) |
 | NTF-002 | Dla każdego zakupionego karnetu (z kontem, bez konta, na rzecz innej osoby, przedłużenie, recepcja) PDF generujemy i zlecamy do wysyłki po skutecznym potwierdzeniu płatności, także gdy okres ważności zacznie się później. | MUST | CONFIRMED (2026-11-04) |
 | NTF-003 | Błąd wysyłki PDF nie cofa płatności, nie generuje ponownego karnetu; zapisujemy próby i umożliwiamy retry oraz ponowną wysyłkę przez administratora. | MUST | CONFIRMED |
 | NTF-004 | Integracja z Apple Wallet / Google Wallet pozostaje poza zatwierdzonym MVP. | SHOULD | OPEN (D-11) |
+
+**Potwierdzenie właścicielki — 2026-11-23:** przy zakupie dla innej osoby PDF trafia na e-mail posiadacza, przy zakupie dla siebie na e-mail kupującego. To ustalenie rozstrzyga adresata dostawy; nie rozstrzyga zasad dotyczących małoletnich ani dodatkowej weryfikacji posiadacza (OD-07).
 
 **AC-PDF-02** — Given opłacone przedłużenie rozpoczyna się za 10 dni, When płatność zostanie potwierdzona, Then PDF wysyłamy teraz z przyszłymi datami ważności.  
 **AC-PDF-01** — Given zakup bez konta został poprawnie opłacony, When zweryfikowane potwierdzenie płatności wydaje karnet `pending_activation`, Then system wysyła PDF bez nieustalonych dat na wskazany adres.  

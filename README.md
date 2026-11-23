@@ -334,6 +334,12 @@ Na indeksach kategorii, usług i karnetów obok „Edytuj” są przyciski **Pok
 
 `App\Support\MembershipPeriod` wylicza daty karnetu czasowego zgodnie z PLN-004. `startingOn('2027-01-31', 1)` zwraca `startsOn = 2027-01-31` oraz `expiresOn = 2027-02-28` (włącznie). `fromActivation($activatedAt, $durationMonths)` zamienia czas wizyty na lokalny dzień w `Europe/Warsaw`. Długość okresu przy aktywacji musi pochodzić z zakupionego snapshotu. Kalkulator przygotowuje logikę dla kolejnych zadań; sam nie aktywuje karnetu ani nie zapisuje dat w bazie. Karnety wejściowe pozostają bez ograniczenia czasowego.
 
+## Zapis zamówienia online (TASK-022)
+
+`App\Actions\Orders\CreateOnlineOrder::handle($account, $input)` przygotowuje jedno nieopłacone zamówienie na jeden karnet. Konto pochodzi z sesji (`null` oznacza zakup gościnny), dane kontaktowe nie służą do wyszukiwania ani łączenia kont. Dla siebie posiadacz jest kopią kupującego; dla innej osoby wymagane są osobne dane posiadacza. PDF po opłaceniu trafi na e-mail posiadacza, zgodnie z ustaleniem z 2026-11-23.
+
+Akcja waliduje dane i akceptację aktualnego opublikowanego regulaminu, pobiera cenę oraz snapshot z serwera i odrzuca nieaktualną rewizję oferty. Nie tworzy płatności ani karnetu; formularz zakupu i integracja płatności należą do kolejnych zadań. Pełny kontrakt danych i zabezpieczeń: `docs/architecture/database.md`, §20.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.
