@@ -8,6 +8,7 @@ class AuditPayload
 {
     /** @var array<string, string> */
     public const array FIELD_LABELS = [
+        'entries_remaining' => 'Pozostałe wejścia', 'used_at' => 'Data wykorzystania wejścia',
         'activated_at' => 'Aktywacja przy pierwszej wizycie', 'starts_on' => 'Początek ważności', 'expires_on' => 'Koniec ważności',
         'price_list_group_id' => 'Grupa cennika', 'category' => 'Kategoria cennika',
         'kind' => 'Rodzaj karnetu', 'price_grosz' => 'Cena', 'currency' => 'Waluta', 'duration_months' => 'Okres ważności', 'included_entries' => 'Limit wejść',
@@ -36,6 +37,9 @@ class AuditPayload
             return null;
         }
         $safe = [];
+        if (isset($values['entries_remaining']) && is_int($values['entries_remaining']) && $values['entries_remaining'] >= 0 && $values['entries_remaining'] <= 4294967295) {
+            $safe['entries_remaining'] = $values['entries_remaining'];
+        }
         foreach (['starts_on', 'expires_on'] as $field) {
             $date = $values[$field] ?? null;
             if (is_string($date) && preg_match('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/D', $date, $parts)

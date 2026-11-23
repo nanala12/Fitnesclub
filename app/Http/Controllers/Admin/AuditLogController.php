@@ -33,7 +33,7 @@ class AuditLogController extends Controller
         $new = $payload->values(is_array($entry->getAttribute('new_values')) ? $entry->getAttribute('new_values') : null) ?? [];
         $metadata = $payload->metadata(is_array($entry->getAttribute('metadata')) ? $entry->getAttribute('metadata') : []);
         $changes = [];
-        foreach (['starts_on' => 'Początek ważności', 'expires_on' => 'Koniec ważności', 'role' => 'Rola', 'suspended' => 'Dostęp do konta', 'price_grosz' => 'Cena', 'is_active' => 'Dostępność planu', 'is_public' => 'Widoczność w cenniku', 'is_featured' => 'Wyróżnienie'] as $field => $label) {
+        foreach (['entries_remaining' => 'Pozostałe wejścia', 'starts_on' => 'Początek ważności', 'expires_on' => 'Koniec ważności', 'role' => 'Rola', 'suspended' => 'Dostęp do konta', 'price_grosz' => 'Cena', 'is_active' => 'Dostępność planu', 'is_public' => 'Widoczność w cenniku', 'is_featured' => 'Wyróżnienie'] as $field => $label) {
             if (($old[$field] ?? null) !== ($new[$field] ?? null)) {
                 $changes[] = ['label' => $label, 'before' => $this->displayValue($old[$field] ?? null, $field), 'after' => $this->displayValue($new[$field] ?? null, $field)];
             }
@@ -75,6 +75,9 @@ class AuditLogController extends Controller
 
     private function displayValue(bool|string|int|null $value, string $field): ?string
     {
+        if ($field === 'entries_remaining' && is_int($value)) {
+            return (string) $value;
+        }
         if (in_array($field, ['starts_on', 'expires_on'], true) && is_string($value)) {
             return implode('.', array_reverse(explode('-', $value)));
         }

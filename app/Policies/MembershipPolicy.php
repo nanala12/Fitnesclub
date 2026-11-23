@@ -7,6 +7,16 @@ use App\Models\User;
 
 class MembershipPolicy
 {
+    public function redeem(User $actor): bool
+    {
+        return $this->issue($actor);
+    }
+
+    public function viewEntries(User $actor): bool
+    {
+        return $this->issue($actor);
+    }
+
     public function activate(User $actor): bool
     {
         return $this->issue($actor);

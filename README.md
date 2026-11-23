@@ -352,6 +352,12 @@ W tej samej transakcji powstają audyt oraz pojedynczy rekord `document_deliveri
 
 Migracja `2026_11_23_020000_allow_non_expiring_entry_activation` dopuszcza aktywne karnety wejściowe bez daty końca, zachowując ograniczenia dla czasowych oraz historię i klucze obce. Jej cofnięcie jest blokowane, jeśli istnieją aktywowane karnety bezterminowe — nie dopisujemy im fikcyjnych dat. Migrację zastosowano lokalnie w bazie `activefit`, zachowując liczbę rekordów. Ekran wyszukiwania posiadaczy i przycisk aktywacji należą do TASK-035; TASK-024 przygotowuje zabezpieczony backend.
 
+## Rozliczanie wejść (TASK-025)
+
+`RedeemMembershipEntry::handle($actor, $membershipId, $requestId)` zapisuje świadomie wskazane wejście z aktywowanego, opłaconego karnetu wejściowego. Odejmuje dokładnie jedno wejście, rejestruje pracownika i czas UTC oraz zapisuje audyt w jednej transakcji. UUID identyfikuje jedną operację: ponowienie przez tego samego pracownika dla tego samego karnetu zwraca poprzedni zapis, również po wyczerpaniu salda. Kolejne wejście wymaga nowego UUID. Ostatniego wejścia nie można wykorzystać dwukrotnie przy równoczesnych żądaniach.
+
+Aktywacja pozostaje osobną czynnością i niczego nie odlicza. Bezterminowe karnety wejściowe nie wygasają z upływem miesięcy. `GetMembershipEntryHistory` udostępnia uprawnionemu pracownikowi/adminowi stronicowaną historię z datą i wykonawcą, także gdy karnetu nie można już użyć. Migracja TASK-025 zmienia techniczne znaczniki czasu karnetu na `DATETIME(6)`, aby użycie po 2038 roku nie było blokowane limitem typu `TIMESTAMP`. Migrację zastosowano lokalnie, zachowując liczbę rekordów. Ekran obsługi recepcji i przyciski powstaną w TASK-035.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.
