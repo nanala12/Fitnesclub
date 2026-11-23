@@ -10,6 +10,8 @@ use App\Http\Controllers\Admin\Cms\NewsPostController;
 use App\Http\Controllers\Admin\Cms\RegulationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Admin\EmployeeController;
+use App\Http\Controllers\Admin\MembershipPlanController;
+use App\Http\Controllers\Admin\PriceListController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PublicSite\MediaController;
@@ -32,6 +34,24 @@ Route::name('public.')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('admin/cennik')->name('admin.pricing.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [PriceListController::class, 'index'])->middleware('throttle:60,1,pricing-read:')->name('index');
+        Route::get('/{type}/nowa', [PriceListController::class, 'create'])->whereIn('type', ['kategorie', 'uslugi'])->name('create');
+        Route::post('/{type}', [PriceListController::class, 'store'])->whereIn('type', ['kategorie', 'uslugi'])->middleware('throttle:30,1,pricing-write:')->name('store');
+        Route::get('/{type}/{item}/edytuj', [PriceListController::class, 'edit'])->whereIn('type', ['kategorie', 'uslugi'])->whereNumber('item')->name('edit');
+        Route::patch('/{type}/{item}', [PriceListController::class, 'update'])->whereIn('type', ['kategorie', 'uslugi'])->whereNumber('item')->middleware('throttle:30,1,pricing-write:')->name('update');
+        Route::patch('/{type}/{item}/widocznosc', [PriceListController::class, 'visibility'])->whereIn('type', ['kategorie', 'uslugi'])->whereNumber('item')->middleware('throttle:30,1,pricing-write:')->name('visibility');
+        Route::delete('/{type}/{item}', [PriceListController::class, 'destroy'])->whereIn('type', ['kategorie', 'uslugi'])->whereNumber('item')->middleware('throttle:30,1,pricing-write:')->name('destroy');
+    });
+    Route::prefix('admin/karnety')->name('admin.plans.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [MembershipPlanController::class, 'index'])->middleware('throttle:60,1,plans-read:')->name('index');
+        Route::get('/nowy', [MembershipPlanController::class, 'create'])->name('create');
+        Route::post('/', [MembershipPlanController::class, 'store'])->middleware('throttle:30,1,plans-write:')->name('store');
+        Route::get('/{membershipPlan}/edytuj', [MembershipPlanController::class, 'edit'])->whereNumber('membershipPlan')->name('edit');
+        Route::patch('/{membershipPlan}', [MembershipPlanController::class, 'update'])->whereNumber('membershipPlan')->middleware('throttle:30,1,plans-write:')->name('update');
+        Route::patch('/{membershipPlan}/widocznosc', [MembershipPlanController::class, 'visibility'])->whereNumber('membershipPlan')->middleware('throttle:30,1,plans-write:')->name('visibility');
+        Route::delete('/{membershipPlan}', [MembershipPlanController::class, 'destroy'])->whereNumber('membershipPlan')->middleware('throttle:30,1,plans-write:')->name('destroy');
+    });
     Route::prefix('admin/cms/media')->name('admin.cms.media.')->middleware('can:access-admin-panel')->group(function (): void {
         Route::get('/{mediaAsset}', [CmsMediaController::class, 'show'])->middleware('throttle:120,1,cms-media-preview:')->name('show');
         Route::post('/{placement}/{owner}', [CmsMediaController::class, 'store'])->whereNumber('owner')->middleware('throttle:30,1,cms-content-write:')->name('store');

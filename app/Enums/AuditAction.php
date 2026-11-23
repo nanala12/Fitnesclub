@@ -4,6 +4,18 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case PriceCategoryCreated = 'price_category.created';
+    case PriceCategoryUpdated = 'price_category.updated';
+    case PriceCategoryDeleted = 'price_category.deleted';
+    case PriceGroupCreated = 'price_group.created';
+    case PriceGroupUpdated = 'price_group.updated';
+    case PriceGroupDeleted = 'price_group.deleted';
+    case PriceServiceCreated = 'price_service.created';
+    case PriceServiceUpdated = 'price_service.updated';
+    case PriceServiceDeleted = 'price_service.deleted';
+    case PlanCreated = 'plan.created';
+    case PlanUpdated = 'plan.updated';
+    case PlanDeleted = 'plan.deleted';
     case ClubScheduleVisibilityUpdated = 'club.schedule_visibility_updated';
     case ClubContactUpdated = 'club.contact_updated';
     case ClassTypeCreated = 'schedule.type_created';
@@ -46,6 +58,12 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::PriceCategoryCreated => 'Dodano kategorię cennika', self::PriceCategoryUpdated => 'Zmieniono kategorię cennika', self::PriceCategoryDeleted => 'Usunięto kategorię cennika',
+            self::PriceGroupCreated => 'Dodano grupę cennika', self::PriceGroupUpdated => 'Zmieniono grupę cennika', self::PriceGroupDeleted => 'Usunięto grupę cennika',
+            self::PriceServiceCreated => 'Dodano usługę do cennika', self::PriceServiceUpdated => 'Zmieniono usługę w cenniku', self::PriceServiceDeleted => 'Usunięto usługę z cennika',
+            self::PlanCreated => 'Dodano plan karnetu',
+            self::PlanUpdated => 'Zmieniono plan karnetu',
+            self::PlanDeleted => 'Usunięto plan karnetu',
             self::ClubScheduleVisibilityUpdated => 'Zmieniono widoczność publicznego grafiku',
             self::ClubContactUpdated => 'Zmieniono kontakt i godziny klubu',
             self::ClassTypeCreated => 'Dodano rodzaj zajęć',
@@ -91,6 +109,10 @@ enum AuditAction: string
     public function subjectType(): string
     {
         return match ($this) {
+            self::PriceCategoryCreated, self::PriceCategoryUpdated, self::PriceCategoryDeleted => 'price_category',
+            self::PriceGroupCreated, self::PriceGroupUpdated, self::PriceGroupDeleted => 'price_group',
+            self::PriceServiceCreated, self::PriceServiceUpdated, self::PriceServiceDeleted => 'price_service',
+            self::PlanCreated, self::PlanUpdated, self::PlanDeleted => 'membership_plan',
             self::ClubContactUpdated, self::ClubScheduleVisibilityUpdated => 'club_settings',
             self::ClassTypeCreated, self::ClassTypeUpdated, self::ClassTypeDeleted => 'class_type',
             self::ClassSlotCreated, self::ClassSlotUpdated, self::ClassSlotDeleted => 'class_slot',

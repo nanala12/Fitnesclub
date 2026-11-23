@@ -187,7 +187,7 @@ Migracja `2026_11_16_000000_create_public_content_tables` dodaje podstawę odczy
 
 Edytory i publikowanie w CMS należą do TASK-013–018. Wspólna obsługa uploadu, pojedynczego przypisania pliku i usuwania mediów jest gotowa w TASK-012. Zdjęcia tej podstawy odczytu są prywatne (`local`, ścieżki `cms/…`) i udostępniane przez `/media/{id}` tylko przy opublikowanym powiązaniu; niedostępne pliki, niezgodny MIME i ścieżki spoza katalogu są odrzucane. Nie wymaga to `storage:link`. Zapis zdjęć i podgląd szkiców są dostępne wyłącznie dla aktywnego, zweryfikowanego administratora; nie ma publicznego uploadu.
 
-Cennik i wyróżnione karnety pokazują obecnie pustą ofertę. Zostaną podłączone do jednego źródła `membership_plans` w TASK-019/020; nie tworzymy drugiej tabeli cen ani pozornego checkoutu. Metadane publicznych stron trafiają również do początkowego HTML; pełny rendering treści pozostaje w Inertia (bez nowej konfiguracji SSR).
+Cennik i wyróżnione karnety korzystają z jednego źródła `membership_plans` (TASK-019/020). Pusty katalog pokazuje informację o braku oferty. Metadane publicznych stron trafiają również do początkowego HTML; pełny rendering treści pozostaje w Inertia (bez nowej konfiguracji SSR).
 
 ## Zdjęcia CMS (TASK-012)
 
@@ -290,7 +290,7 @@ docker compose run --rm --no-deps -e DB_HOST=mysql-test app composer ci:check
 
 Usunięcie treści od razu usuwa publiczną referencję do zdjęcia; fizyczny plik usuwa worker po zatwierdzeniu transakcji. Worker i scheduler pozostają wymagane według instrukcji powyżej. Weryfikacja została wykonana na syntetycznych danych w osobnym środowisku.
 
-Cennik będzie korzystał z jednego źródła `membership_plans`. TASK-019 dodaje tabelę i snapshoty zakupów; edycja cen, limit trzech wyróżnień i publiczna oferta pozostają do TASK-020. Zapis akceptacji regulaminu podczas checkoutu pozostaje do TASK-022/030.
+Cennik korzysta z jednego źródła `membership_plans`. TASK-019 dodaje tabelę i snapshoty zakupów; TASK-020 udostępnia edycję cen, limit trzech wyróżnień i publiczną ofertę. Zapis akceptacji regulaminu podczas checkoutu pozostaje do TASK-022/030.
 
 ## Modele sprzedaży i karnetów (TASK-019)
 
@@ -306,6 +306,29 @@ docker compose run --rm --no-deps -e DB_HOST=mysql-test app php vendor/bin/pest 
 ```
 
 TASK-019 przygotowuje strukturę danych. Formularze sprzedaży, weryfikacja płatności, aktywacja, rozliczanie wejść i generowanie/wysyłanie PDF będą wdrażane w kolejnych zadaniach. Katalog pozostaje pusty do dodania planów przez moduł TASK-020. Szczegóły ograniczeń i ochrony historii: `docs/architecture/database.md`, §14.
+
+## Karnety i cennik (TASK-020)
+
+Administrator zarządza ofertą w **Karnety i cennik** (`/admin/karnety`). Formularz obsługuje nazwę, zwykły opis tekstowy, cenę w złotych, rodzaj czasowy lub wejściowy, okres w miesiącach, limit wejść i kolejność. Karnet wejściowy ma wyłącznie liczbę wejść, bez ważności w miesiącach. Nowy plan domyślnie jest niedostępny i ukryty. Zapis wymaga potwierdzenia i przenosi na listę; sukces pojawia się w powiadomieniu, a błędy przy polach. Nieaktualna edycja wymaga wczytania nowszych danych.
+
+Publiczny cennik pokazuje wyłącznie plany jednocześnie dostępne i widoczne. Strona główna korzysta z tych samych danych i dodatkowo z flagi wyróżnienia. Można oznaczyć najwyżej trzy plany, łącznie z ukrytymi; blokada transakcyjna chroni limit przy równoczesnych zapisach. Ceny w formularzu przyjmują przecinek lub kropkę i są przeliczane na całkowite grosze bez użycia float. Zmiany nie nadpisują wcześniejszych zamówień i karnetów. Plan z historią zakupów można wyłączyć, ale nie usunąć. Zmiany są zapisywane w audycie, w tym dawna i nowa cena.
+
+```bash
+docker compose run --rm --no-deps app php artisan test tests/Feature/Sales
+docker compose run --rm --no-deps -e DB_HOST=mysql-test app php vendor/bin/pest --configuration=phpunit.mysql.xml tests/Feature/Sales
+```
+
+Migracja dodaje rewizję planu i techniczną blokadę katalogu; nie wstawia przykładowych cen. Karty publiczne kierują obecnie do kontaktu z klubem. Checkout i ostateczna kontrola dostępności podczas zakupu pozostają TASK-022/030; przyszła akcja zakupu musi ponownie sprawdzić plan po stronie serwera.
+
+## Kategorie i pozycje cennika
+
+Publiczny `/cennik` ma dwa poziomy: **kategoria → karnety i usługi**. Filtry wybierają kategorię, a każda kategoria prezentuje bezpośrednio nazwy pozycji i ceny. Osobna sekcja pokazuje wyróżnione karnety. Na telefonie kategorie i karty układają się w jednej kolumnie.
+
+W panelu **Kategorie i usługi cennika** (`/admin/cennik`) dodasz kategorie oraz informacyjne usługi. W formularzu usługi wybierasz kategorię i cenę; w formularzu karnetu również wybierasz kategorię bezpośrednio. Nie ma pośrednich grup ani formularzy ich edycji. Nowe kategorie i usługi domyślnie są ukryte. Zapis wymaga potwierdzenia, wraca na indeks i zapisuje audyt; nieaktualne zmiany są odrzucane.
+
+Ukrycie kategorii ukrywa jej usługi i karnety. Nie można usunąć kategorii zawierającej pozycje — można je przenieść albo ukryć kategorię. Domyślna kategoria siłowni pozostaje zachowana. Ceny planów w wierszach i wyróżnionych kartach pochodzą z jednego źródła. Usługi informacyjne nie są produktami sprzedaży karnetów. Ceny i historia zakupów pozostają zachowane; nie wstawiono przykładowej oferty ani kontaktów z makiety.
+
+Na indeksach kategorii, usług i karnetów obok „Edytuj” są przyciski **Pokaż w cenniku / Ukryj**. Działają bez otwierania formularza i zachowują pozycję listy. Włączona usługa pod ukrytą kategorią ma informację „Ukryta przez kategorię” — aby ją opublikować, pokaż także jej kategorię.
 
 ## Kluczowe ustalenia
 

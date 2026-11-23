@@ -2,22 +2,69 @@
 
 namespace App\Actions\PublicSite;
 
+use App\Enums\PlanKind;
 use App\Models\ClassScheduleSlot;
 use App\Models\ClubSetting;
 use App\Models\GalleryCategory;
 use App\Models\GalleryImage;
 use App\Models\HeroSlide;
 use App\Models\MediaAsset;
+use App\Models\MembershipPlan;
 use App\Models\NewsPost;
 use App\Models\OfferTile;
 use App\Models\OpeningHour;
+use App\Models\PriceListCategory;
 use App\Models\RegulationVersion;
 use App\Support\PhoneNumber;
+use App\Support\PlanPrice;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
 
 class PublicSiteContent
 {
+    /** @return array<int, array<string, mixed>> */
+    public function plans(bool $featured = false): array
+    {
+        $query = MembershipPlan::query()->publiclyAvailable()->orderBy('sort_order')->orderBy('id');
+        if ($featured) {
+            $query->where('is_featured', true)->limit(3);
+        }
+
+        return $query->get(['id', 'name', 'description', 'kind', 'price_grosz', 'duration_months', 'included_entries', 'category', 'sort_order'])->map(fn (MembershipPlan $plan): array => [
+            'category' => $plan->category, 'sortOrder' => $plan->sort_order,
+            'id' => $plan->id, 'name' => $plan->name, 'description' => $plan->description, 'kind' => $plan->kind->value,
+            'priceLabel' => PlanPrice::label($plan->price_grosz), 'durationMonths' => $plan->kind === PlanKind::Time ? $plan->duration_months : null, 'includedEntries' => $plan->included_entries,
+        ])->all();
+    }
+
+    /** @param array<int,array<string,mixed>> $plans
+     * @return list<array<string,mixed>>
+     */
+    public function priceCategories(array $plans): array
+    {
+        $categories = PriceListCategory::query()->where('is_published', true)
+            ->with(['services' => fn ($query) => $query->where('is_published', true)->orderBy('sort_order')->orderBy('id')])
+            ->orderBy('sort_order')->orderBy('id')->get();
+        $result = [];
+        foreach ($categories as $category) {
+            $items = [];
+            foreach ($plans as $plan) {
+                if ($plan['category'] === $category->key) {
+                    $items[] = ['id' => 'plan-'.$plan['id'], 'name' => $plan['name'], 'priceLabel' => $plan['priceLabel'], 'order' => $plan['sortOrder'], 'rank' => 0, 'sourceId' => $plan['id']];
+                }
+            }
+            foreach ($category->services as $service) {
+                $items[] = ['id' => 'service-'.$service->id, 'name' => $service->name, 'priceLabel' => PlanPrice::label($service->price_grosz), 'order' => $service->sort_order, 'rank' => 1, 'sourceId' => $service->id];
+            }
+            usort($items, fn (array $a, array $b): int => [$a['order'], $a['rank'], $a['sourceId']] <=> [$b['order'], $b['rank'], $b['sourceId']]);
+            if ($items !== []) {
+                $result[] = ['id' => $category->key, 'name' => $category->name, 'category' => $category->key, 'items' => array_map(fn (array $item): array => array_intersect_key($item, array_flip(['id', 'name', 'priceLabel'])), $items)];
+            }
+        }
+
+        return $result;
+    }
+
     public const string PUBLIC_LINK_PATTERN = '~^/(?:oferta|cennik|grafik|galeria|kontakt|regulamin|aktualnosci(?:/[a-z0-9-]+)?)(?:\#[a-z0-9_-]+)?$~D';
 
     public const array WEEKDAYS = [1 => 'Poniedziałek', 2 => 'Wtorek', 3 => 'Środa', 4 => 'Czwartek', 5 => 'Piątek', 6 => 'Sobota', 7 => 'Niedziela'];

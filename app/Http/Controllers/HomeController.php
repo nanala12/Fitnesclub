@@ -15,7 +15,7 @@ class HomeController extends Controller
         return Inertia::render('Welcome', [
             'canRegister' => Features::enabled(Features::registration()),
             ...$content->shared(),
-            'tiles' => $content->offers(), 'slides' => $content->slides(), 'featuredPlans' => [],
+            'tiles' => $content->offers(), 'slides' => $content->slides(), 'featuredPlans' => $content->plans(featured: true),
             'news' => $content->publishedNews()->with('media')->orderByDesc('published_at')->orderByDesc('id')->limit(3)->get()->map(fn (NewsPost $post): array => $content->newsCard($post)),
         ]);
     }

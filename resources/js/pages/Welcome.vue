@@ -4,17 +4,20 @@ import HeroCarousel from '@/components/public/HeroCarousel.vue';
 import OfferTiles from '@/components/public/OfferTiles.vue';
 import NewsCards from '@/components/public/NewsCards.vue';
 import PublicSeo from '@/components/public/PublicSeo.vue';
+import PlanCards from '@/components/public/PlanCards.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import { Button } from '@/components/ui/button';
 import { home } from '@/routes';
 import { pricing, contact } from '@/routes/public';
 import { index as newsIndex } from '@/routes/public/news';
 import type { HeroSlide, OfferTile, NewsCard } from '@/types/public';
+import type { PublicMembershipPlan } from '@/types/plans';
 defineProps<{
     canRegister: boolean;
     slides: HeroSlide[];
     tiles: OfferTile[];
     news: NewsCard[];
+    featuredPlans: PublicMembershipPlan[];
 }>();
 </script>
 <template>
@@ -68,7 +71,9 @@ defineProps<{
                     ><Link :href="pricing()">Sprawdź cennik →</Link></Button
                 >
             </div>
+            <PlanCards v-if="featuredPlans.length" :plans="featuredPlans" />
             <EmptyState
+                v-else
                 title="Cennik będzie dostępny wkrótce"
                 description="Aktualne plany pojawią się tutaj po udostępnieniu oferty."
             />

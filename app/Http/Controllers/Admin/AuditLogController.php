@@ -6,6 +6,7 @@ use App\Enums\AuditAction;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Support\AuditPayload;
+use App\Support\PlanPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
@@ -32,15 +33,19 @@ class AuditLogController extends Controller
         $new = $payload->values(is_array($entry->getAttribute('new_values')) ? $entry->getAttribute('new_values') : null) ?? [];
         $metadata = $payload->metadata(is_array($entry->getAttribute('metadata')) ? $entry->getAttribute('metadata') : []);
         $changes = [];
-        foreach (['role' => 'Rola', 'suspended' => 'Dostęp do konta'] as $field => $label) {
+        foreach (['role' => 'Rola', 'suspended' => 'Dostęp do konta', 'price_grosz' => 'Cena', 'is_active' => 'Dostępność planu', 'is_public' => 'Widoczność w cenniku', 'is_featured' => 'Wyróżnienie'] as $field => $label) {
             if (($old[$field] ?? null) !== ($new[$field] ?? null)) {
-                $changes[] = ['label' => $label, 'before' => $this->displayValue($old[$field] ?? null), 'after' => $this->displayValue($new[$field] ?? null)];
+                $changes[] = ['label' => $label, 'before' => $this->displayValue($old[$field] ?? null, $field), 'after' => $this->displayValue($new[$field] ?? null, $field)];
             }
         }
 
         return [
             'id' => $entry->id, 'action' => $action?->label() ?? 'Zdarzenie audytu',
             'subjectLabel' => match ($action?->subjectType()) {
+                'price_category' => 'Kategoria cennika #'.$entry->getAttribute('subject_id'),
+                'price_group' => 'Grupa cennika #'.$entry->getAttribute('subject_id'),
+                'price_service' => 'Usługa cennika #'.$entry->getAttribute('subject_id'),
+                'membership_plan' => 'Plan karnetu #'.$entry->getAttribute('subject_id'),
                 'club_settings' => 'Ustawienia klubu',
                 'class_type' => 'Rodzaj zajęć #'.$entry->getAttribute('subject_id'),
                 'class_slot' => 'Termin zajęć #'.$entry->getAttribute('subject_id'),
@@ -67,8 +72,15 @@ class AuditLogController extends Controller
         ];
     }
 
-    private function displayValue(bool|string|null $value): ?string
+    private function displayValue(bool|string|int|null $value, string $field): ?string
     {
+        if ($field === 'price_grosz' && is_int($value)) {
+            return PlanPrice::label($value);
+        }
+        if (in_array($field, ['is_active', 'is_public', 'is_featured'], true) && is_bool($value)) {
+            return $value ? 'Tak' : 'Nie';
+        }
+
         return match ($value) {
             true => 'Zawieszony', false => 'Włączony', 'admin' => 'Administrator',
             'employee' => 'Pracownik', 'customer' => 'Klient', default => null,

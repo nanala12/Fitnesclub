@@ -8,6 +8,9 @@ class AuditPayload
 {
     /** @var array<string, string> */
     public const array FIELD_LABELS = [
+        'price_list_group_id' => 'Grupa cennika', 'category' => 'Kategoria cennika',
+        'kind' => 'Rodzaj karnetu', 'price_grosz' => 'Cena', 'currency' => 'Waluta', 'duration_months' => 'Okres ważności', 'included_entries' => 'Limit wejść',
+        'is_active' => 'Dostępność planu', 'is_public' => 'Widoczność w cenniku', 'is_featured' => 'Wyróżnienie na stronie głównej',
         'is_schedule_visible' => 'Widoczność publicznego grafiku',
         'club_name' => 'Nazwa klubu', 'contact_email' => 'E-mail klubu', 'contact_phone' => 'Telefon klubu', 'street_address' => 'Adres klubu', 'postal_code' => 'Kod pocztowy', 'city' => 'Miejscowość', 'map_url' => 'Odnośnik mapy', 'opening_hours' => 'Godziny otwarcia',
         'class_type_id' => 'Rodzaj zajęć', 'weekday' => 'Dzień tygodnia', 'starts_at' => 'Początek zajęć', 'ends_at' => 'Koniec zajęć', 'instructor_name' => 'Prowadzący',
@@ -24,7 +27,7 @@ class AuditPayload
      * Extend this allowlist deliberately when adding a new domain's audit events.
      *
      * @param  array<string, mixed>|null  $values
-     * @return array<string, bool|string>|null
+     * @return array<string, bool|string|int>|null
      */
     public function values(?array $values): ?array
     {
@@ -32,6 +35,14 @@ class AuditPayload
             return null;
         }
         $safe = [];
+        if (isset($values['price_grosz']) && is_int($values['price_grosz']) && $values['price_grosz'] >= 0) {
+            $safe['price_grosz'] = $values['price_grosz'];
+        }
+        foreach (['is_active', 'is_public', 'is_featured'] as $field) {
+            if (isset($values[$field]) && is_bool($values[$field])) {
+                $safe[$field] = $values[$field];
+            }
+        }
         if (isset($values['role']) && is_string($values['role']) && UserRole::tryFrom($values['role']) !== null) {
             $safe['role'] = $values['role'];
         }

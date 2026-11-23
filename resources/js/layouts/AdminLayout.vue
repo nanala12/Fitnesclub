@@ -14,6 +14,8 @@ import RegulationController from '@/actions/App/Http/Controllers/Admin/Cms/Regul
 import GalleryController from '@/actions/App/Http/Controllers/Admin/Cms/GalleryController';
 import NewsPostController from '@/actions/App/Http/Controllers/Admin/Cms/NewsPostController';
 import HomepageContentController from '@/actions/App/Http/Controllers/Admin/Cms/HomepageContentController';
+import MembershipPlanController from '@/actions/App/Http/Controllers/Admin/MembershipPlanController';
+import PriceListController from '@/actions/App/Http/Controllers/Admin/PriceListController';
 import PanelLayout from '@/layouts/PanelLayout.vue';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as employees } from '@/routes/admin/employees';
@@ -28,6 +30,16 @@ withDefaults(defineProps<PanelLayoutProps>(), {
             icon: LayoutGrid,
         },
         { title: 'Pracownicy', href: employees(), icon: Users },
+        {
+            title: 'Kategorie i usługi cennika',
+            href: PriceListController.index(),
+            icon: ClipboardList,
+        },
+        {
+            title: 'Karnety i cennik',
+            href: MembershipPlanController.index(),
+            icon: ClipboardList,
+        },
         {
             title: 'Kafelki oferty',
             href: HomepageContentController.index('kafelki'),

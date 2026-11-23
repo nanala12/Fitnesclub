@@ -54,6 +54,7 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 | WEB-004 | Strona prezentuje karuzelę slajdów zawierających zdjęcia i opisy. | MUST | CONFIRMED |
 | WEB-005 | Cennik pokazuje tylko plany udostępnione do sprzedaży. | MUST | PROPOSED |
 | WEB-006 | Strona działa czytelnie na urządzeniach mobilnych; publiczne strony wspierają indeksowanie. | MUST | PROPOSED |
+| WEB-007 | Cennik odwzorowuje `activefit-cennik.html`: filtr „Wszystkie” oraz kategorie dodawane, edytowane i sortowane przez administratora (początkowo Siłownia/Trening personalny/Fizjoterapia/Zabiegi/Pozostałe), kategorie z bezpośrednią listą karnetów/usług i cen, sekcja kontaktowa oraz osobne maksymalnie trzy wyróżnione karnety. Ukryte kategorie i pozycje nie są publiczne. | MUST | CONFIRMED — 2026-11-20; aktualizacja 2026-11-23 |
 
 **AC-WEB-01** — Given administrator opublikuje kafelek lub slajd, When odwiedzający otworzy odpowiedni widok, Then widzi opublikowany element we wskazanej kolejności, bez elementów ukrytych.
 
@@ -72,6 +73,7 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 | CMS-009 | Nie implementujemy dowolnego kreatora stron (page builder). | MUST | CONFIRMED |
 | CMS-010 | Zmiana aktualnej ceny nie zmienia danych historycznych karnetów ani zamówień. | MUST | PROPOSED |
 | CMS-011 | Regulamin jest wersjonowany, a zaakceptowana wersja powiązana z zakupem online. | SHOULD | CONFIRMED — OD-10, CMS-OD-03 |
+| CMS-012 | Cennik ma tylko dwa poziomy: kategoria → karnety/usługi. Administrator zarządza kategoriami (dodawanie, nazwa, kolejność, widoczność także bezpośrednio z indeksu), informacyjnymi usługami (nazwa, cena, kategoria, kolejność, widoczność także bezpośrednio z indeksu) i bezpośrednim przypisaniem karnetów do kategorii. Widoczność karnetu także można zmienić bezpośrednio z indeksu. Nie ma pośrednich grup cennika. Cena karnetu pochodzi wyłącznie z planu. Usługa informacyjna nie jest produktem sprzedaży karnetów. | MUST | CONFIRMED — 2026-11-23; zastępuje wcześniejsze grupowanie |
 
 **AC-CMS-01** — Given administrator zapisze treść jako ukrytą, When użytkownik odwiedzi stronę, Then element nie jest publicznie widoczny.  
 **AC-CMS-02** — Given plan został kupiony za 155 zł, When administrator zmieni cennik na 169 zł, Then historyczna cena zakupu nadal wynosi 155 zł.  
@@ -110,7 +112,7 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 |---|---|---|---|
 | PLN-001 | Administrator zarządza planami: nazwa, opis, cena, zasady ważności i dostępność. | MUST | CONFIRMED |
 | PLN-002 | System obsługuje karnety czasowe. | MUST | CONFIRMED |
-| PLN-003 | System obsługuje karnety z limitem wejść, w tym 4 i 8 wejść. | MUST | CONFIRMED (D-06) |
+| PLN-003 | System obsługuje karnety z limitem wejść, w tym 4 i 8 wejść. Karnety wejściowe nie mają ważności w miesiącach ani ograniczenia czasowego; obowiązuje liczba pozostałych wejść. | MUST | CONFIRMED (D-06; doprecyzowanie 2026-11-20) |
 | PLN-004 | Karnet miesięczny: data końca jest włącznie; gdy ten sam numer dnia istnieje w kolejnym miesiącu — dzień poprzedni; gdy nie istnieje — ostatni dzień kolejnego miesiąca. Przykłady: 28.09→27.10, 30.04→29.05, 31.01.2027→28.02.2027, 31.01.2028→29.02.2028, 28.02.2027→27.03.2027. | MUST | CONFIRMED (OD-01) |
 | PLN-005 | Przy zakupie utrwalamy snapshot nazwy, ceny w groszach, rodzaju, limitu wejść i pozostałych warunków planu. Zmiany cennika nie zmieniają historii. | MUST | CONFIRMED |
 

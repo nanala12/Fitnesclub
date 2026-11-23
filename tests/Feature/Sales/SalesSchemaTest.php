@@ -149,12 +149,24 @@ test('core migration rolls back and reapplies without changing existing users CM
     $user = User::factory()->create();
     $version = RegulationVersion::forceCreate(['version_number' => 1, 'body' => '<p>Existing CMS content</p>', 'created_by_user_id' => $user->id]);
     $migration = require database_path('migrations/2026_11_20_000000_create_membership_sales_tables.php');
+    $catalogMigration = require database_path('migrations/2026_11_20_010000_add_membership_catalog_editing.php');
+    $priceListMigration = require database_path('migrations/2026_11_20_020000_create_price_list_groups_and_services.php');
+    $categoryMigration = require database_path('migrations/2026_11_23_000000_create_price_list_categories.php');
+    $directMigration = require database_path('migrations/2026_11_23_010000_assign_prices_directly_to_categories.php');
+    $directMigration->down();
+    $categoryMigration->down();
+    $priceListMigration->down();
+    $catalogMigration->down();
     $migration->down();
     foreach (['membership_plans', 'orders', 'payments', 'memberships', 'membership_entries', 'membership_adjustments', 'document_deliveries', 'document_delivery_attempts'] as $table) {
         expect(Schema::hasTable($table))->toBeFalse();
     }
     expect(User::findOrFail($user->id)->email)->toBe($user->email)->and(RegulationVersion::findOrFail($version->id)->body)->toBe($version->body)->and(Schema::hasTable('audit_logs'))->toBeTrue();
     $migration->up();
+    $catalogMigration->up();
+    $priceListMigration->up();
+    $categoryMigration->up();
+    $directMigration->up();
     expect(Membership::factory()->create()->starts_on)->toBeNull()->and(User::findOrFail($user->id)->email)->toBe($user->email);
 });
 

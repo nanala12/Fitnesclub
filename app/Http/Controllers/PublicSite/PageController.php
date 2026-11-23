@@ -8,6 +8,7 @@ use App\Models\GalleryCategory;
 use App\Models\GalleryImage;
 use App\Models\NewsPost;
 use App\Models\OfferTile;
+use App\Models\PriceListCategory;
 use App\Support\Cms\RichTextSanitizer;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -29,8 +30,9 @@ class PageController extends Controller
 
     public function pricing(PublicSiteContent $content): Response
     {
-        // Membership plans have one source, introduced by TASK-019/020; never copy demo prices.
-        return Inertia::render('public/Pricing', [...$content->shared('pricing'), 'plans' => []]);
+        $plans = $content->plans();
+
+        return Inertia::render('public/Pricing', [...$content->shared('pricing'), 'plans' => $plans, 'priceCategories' => $content->priceCategories($plans), 'categories' => PriceListCategory::options(publishedOnly: true), 'featuredPlans' => $content->plans(featured: true)]);
     }
 
     public function news(PublicSiteContent $content): Response
