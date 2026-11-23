@@ -330,6 +330,10 @@ Ukrycie kategorii ukrywa jej usługi i karnety. Nie można usunąć kategorii za
 
 Na indeksach kategorii, usług i karnetów obok „Edytuj” są przyciski **Pokaż w cenniku / Ukryj**. Działają bez otwierania formularza i zachowują pozycję listy. Włączona usługa pod ukrytą kategorią ma informację „Ukryta przez kategorię” — aby ją opublikować, pokaż także jej kategorię.
 
+## Obliczanie ważności (TASK-021)
+
+`App\Support\MembershipPeriod` wylicza daty karnetu czasowego zgodnie z PLN-004. `startingOn('2027-01-31', 1)` zwraca `startsOn = 2027-01-31` oraz `expiresOn = 2027-02-28` (włącznie). `fromActivation($activatedAt, $durationMonths)` zamienia czas wizyty na lokalny dzień w `Europe/Warsaw`. Długość okresu przy aktywacji musi pochodzić z zakupionego snapshotu. Kalkulator przygotowuje logikę dla kolejnych zadań; sam nie aktywuje karnetu ani nie zapisuje dat w bazie. Karnety wejściowe pozostają bez ograniczenia czasowego.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.
