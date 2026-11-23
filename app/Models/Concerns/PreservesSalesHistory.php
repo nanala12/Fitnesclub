@@ -37,7 +37,7 @@ trait PreservesSalesHistory
         return DB::transaction(function () use ($options): bool {
             if ($this->exists) {
                 $persisted = $this->newQuery()->lockForUpdate()->whereKey($this->getRawOriginal($this->getKeyName()))->firstOrFail();
-                $fields = ['id', 'created_at', ...$this->immutableHistoryFields(), ...array_filter($this->historyFieldsSetOnce(), fn (string $field): bool => $persisted->getAttribute($field) !== null)];
+                $fields = ['id', 'created_at', ...$persisted->immutableHistoryFields(), ...array_filter($this->historyFieldsSetOnce(), fn (string $field): bool => $persisted->getAttribute($field) !== null)];
                 foreach ($fields as $field) {
                     if ($this->isDirty($field) && ($this->getAttributes()[$field] ?? null) !== ($persisted->getAttributes()[$field] ?? null)) {
                         throw new LogicException('Historical purchase fields cannot be changed.');

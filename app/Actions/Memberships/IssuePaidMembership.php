@@ -3,18 +3,13 @@
 namespace App\Actions\Memberships;
 
 use App\Actions\Audit\RecordAudit;
+use App\Actions\Payments\RequireConfirmedOrderPayment;
 use App\Enums\AuditAction;
 use App\Enums\DeliveryStatus;
-use App\Enums\OrderStatus;
-use App\Enums\PaymentMethod;
-use App\Enums\PaymentProvider;
-use App\Enums\PaymentStatus;
 use App\Enums\PlanKind;
-use App\Enums\SalesChannel;
 use App\Models\DocumentDelivery;
 use App\Models\Membership;
 use App\Models\Order;
-use App\Models\Payment;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -23,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class IssuePaidMembership
 {
-    public function __construct(private RecordAudit $audit) {}
+    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment) {}
 
     /**
      * Internal boundary after trusted payment verification, never a browser-return handler.
@@ -44,12 +39,7 @@ class IssuePaidMembership
                 Gate::forUser($actor)->authorize('issue', Membership::class);
             }
             $order = Order::query()->whereKey($orderId)->lockForUpdate()->firstOrFail();
-            $payments = $order->payments()->where('status', PaymentStatus::Confirmed)->orderBy('id')->lockForUpdate()->get();
-            if ($order->status !== OrderStatus::Paid || $order->paid_at === null || $payments->count() !== 1) {
-                $this->invalidPayment();
-            }
-            $payment = $payments->sole();
-            $this->requireMatchingPayment($order, $payment);
+            $this->payment->handle($order);
             $this->requireSnapshot($order);
 
             $existing = Membership::query()->where('order_id', $order->id)->lockForUpdate()->first();
@@ -77,24 +67,6 @@ class IssuePaidMembership
         }, 3);
     }
 
-    private function requireMatchingPayment(Order $order, Payment $payment): void
-    {
-        if ($payment->confirmed_at === null || $payment->amount_grosz !== $order->amount_grosz
-            || $payment->currency !== $order->currency || $payment->method !== $order->payment_method) {
-            $this->invalidPayment();
-        }
-        $validChannel = match ($order->sales_channel) {
-            SalesChannel::Online => $payment->provider === PaymentProvider::Przelewy24 && $payment->method === PaymentMethod::Przelewy24
-                && $order->accepted_regulation_version_id !== null && $order->regulation_accepted_at !== null,
-            SalesChannel::Reception => $payment->provider === PaymentProvider::Reception
-                && in_array($payment->method, [PaymentMethod::Cash, PaymentMethod::Card], true)
-                && $payment->confirmed_by_user_id !== null && $order->created_by_user_id !== null,
-        };
-        if (! $validChannel) {
-            $this->invalidPayment();
-        }
-    }
-
     private function requireSnapshot(Order $order): void
     {
         $snapshot = $order->plan_snapshot;
@@ -112,10 +84,5 @@ class IssuePaidMembership
             || ($snapshot['price_grosz'] ?? null) !== $order->amount_grosz || ($snapshot['currency'] ?? null) !== $order->currency) {
             throw ValidationException::withMessages(['order' => 'Zapisane warunki zamówienia wymagają sprawdzenia przed wydaniem karnetu.']);
         }
-    }
-
-    private function invalidPayment(): never
-    {
-        throw ValidationException::withMessages(['payment' => 'Wydanie karnetu wymaga zgodnej, potwierdzonej płatności i opłaconego zamówienia.']);
     }
 }

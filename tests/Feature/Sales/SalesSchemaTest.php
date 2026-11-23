@@ -153,6 +153,8 @@ test('core migration rolls back and reapplies without changing existing users CM
     $priceListMigration = require database_path('migrations/2026_11_20_020000_create_price_list_groups_and_services.php');
     $categoryMigration = require database_path('migrations/2026_11_23_000000_create_price_list_categories.php');
     $directMigration = require database_path('migrations/2026_11_23_010000_assign_prices_directly_to_categories.php');
+    $activationMigration = require database_path('migrations/2026_11_23_020000_allow_non_expiring_entry_activation.php');
+    $activationMigration->down();
     $directMigration->down();
     $categoryMigration->down();
     $priceListMigration->down();
@@ -167,6 +169,7 @@ test('core migration rolls back and reapplies without changing existing users CM
     $priceListMigration->up();
     $categoryMigration->up();
     $directMigration->up();
+    $activationMigration->up();
     expect(Membership::factory()->create()->starts_on)->toBeNull()->and(User::findOrFail($user->id)->email)->toBe($user->email);
 });
 

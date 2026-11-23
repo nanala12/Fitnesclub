@@ -7,6 +7,11 @@ use App\Models\User;
 
 class MembershipPolicy
 {
+    public function activate(User $actor): bool
+    {
+        return $this->issue($actor);
+    }
+
     public function issue(User $actor): bool
     {
         return ! $actor->isSuspended() && $actor->hasVerifiedEmail()

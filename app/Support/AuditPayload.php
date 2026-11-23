@@ -8,6 +8,7 @@ class AuditPayload
 {
     /** @var array<string, string> */
     public const array FIELD_LABELS = [
+        'activated_at' => 'Aktywacja przy pierwszej wizycie', 'starts_on' => 'Początek ważności', 'expires_on' => 'Koniec ważności',
         'price_list_group_id' => 'Grupa cennika', 'category' => 'Kategoria cennika',
         'kind' => 'Rodzaj karnetu', 'price_grosz' => 'Cena', 'currency' => 'Waluta', 'duration_months' => 'Okres ważności', 'included_entries' => 'Limit wejść',
         'is_active' => 'Dostępność planu', 'is_public' => 'Widoczność w cenniku', 'is_featured' => 'Wyróżnienie na stronie głównej',
@@ -35,6 +36,13 @@ class AuditPayload
             return null;
         }
         $safe = [];
+        foreach (['starts_on', 'expires_on'] as $field) {
+            $date = $values[$field] ?? null;
+            if (is_string($date) && preg_match('/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/D', $date, $parts)
+                && checkdate((int) $parts[2], (int) $parts[3], (int) $parts[1])) {
+                $safe[$field] = $date;
+            }
+        }
         if (isset($values['price_grosz']) && is_int($values['price_grosz']) && $values['price_grosz'] >= 0) {
             $safe['price_grosz'] = $values['price_grosz'];
         }

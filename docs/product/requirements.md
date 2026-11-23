@@ -158,9 +158,9 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 | ID | Wymaganie | Priorytet | Status |
 |---|---|---|---|
 | MEM-001 | Pierwszy okres nowego opłaconego karnetu rozpoczyna się przy pierwszej wizycie posiadacza, po aktywacji przez pracownika/admina; opłata nie uruchamia ważności. | MUST | CONFIRMED (ACT-01) |
-| MEM-010 | Aktywacja rejestruje czas UTC, aktora, lokalny dzień rozpoczęcia, koniec ważności i zdarzenie audytowe; ponowienie nie zmienia dat. | MUST | CONFIRMED (ACT-01) |
+| MEM-010 | Aktywacja rejestruje czas UTC, aktora, lokalny dzień rozpoczęcia i zdarzenie audytowe. Karnet czasowy otrzymuje koniec ważności, a wejściowy pozostaje bez daty końca; ponowienie nie zmienia dat ani salda wejść. | MUST | CONFIRMED (ACT-01) |
 | MEM-002 | Przedłużenie karnetu czasowego dla danego posiadacza rozpoczyna kolejny okres po zakończeniu aktualnego, a nie od daty przedterminowego zakupu. | MUST | CONFIRMED (D-05, OD-02) |
-| MEM-003 | Karnet zapisuje posiadacza, rodzaj i warunki zakupu; `starts_on`/`expires_on` mogą być NULL do pierwszej aktywacji, później zawierają rzeczywisty okres. | MUST | CONFIRMED (ACT-01) |
+| MEM-003 | Karnet zapisuje posiadacza, rodzaj i warunki zakupu; `starts_on`/`expires_on` są NULL do pierwszej aktywacji; po niej karnet czasowy ma rzeczywisty okres, a wejściowy ma dzień rozpoczęcia i NULL w `expires_on` (bez ograniczenia czasowego). | MUST | CONFIRMED (ACT-01) |
 | MEM-004 | Pracownik może ręcznie odnotować wykorzystanie wejścia w karnecie limitowanym. | MUST | CONFIRMED (D-06) |
 | MEM-005 | System nie pozwala wykorzystać więcej wejść niż przyznano. | MUST | MUST — techniczne |
 | MEM-006 | Historia karnetów, wejść i krytycznych operacji jest dostępna również po wygaśnięciu; operacje mają datę i identyfikację wykonawcy. | MUST | CONFIRMED |
@@ -177,7 +177,7 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 
 ## Potwierdzona reguła aktywacji — ACT-01 (2026-11-05)
 
-**CONFIRMED:** opłacenie zakupu wydaje karnet o statusie `pending_activation`, ale **nie uruchamia** jego okresu ważności. Przy **pierwszej wizycie posiadacza** pracownik lub administrator weryfikuje właściwy karnet i uruchamia okres ważności; zapisujemy `activated_at` (UTC), `activated_by_user_id`, `starts_on` (lokalny dzień wizyty według `Europe/Warsaw`) i wyliczone `expires_on` (włącznie) według zakupionego snapshotu planu. Nie można aktywować nieopłaconego karnetu. Powtórzenie aktywacji niczego nie przelicza. Zapis aktywacji i audytu jest atomowy.
+**CONFIRMED:** opłacenie zakupu wydaje karnet o statusie `pending_activation`, ale **nie uruchamia** jego okresu ważności. Przy **pierwszej wizycie posiadacza** pracownik lub administrator weryfikuje właściwy karnet i uruchamia okres ważności; zapisujemy `activated_at` (UTC), `activated_by_user_id`, `starts_on` (lokalny dzień wizyty według `Europe/Warsaw`) i — dla karnetu czasowego — wyliczone `expires_on` (włącznie) według zakupionego snapshotu planu. Karnet wejściowy ma `starts_on` równy dniowi wizyty i `expires_on = NULL`, zgodnie z PLN-003; aktywacja nie odlicza wejścia. Nie można aktywować nieopłaconego karnetu. Powtórzenie aktywacji niczego nie przelicza. Zapis aktywacji i audytu jest atomowy.
 
 **Przedłużenia:** opłacone przedłużenie aktywnego karnetu o tym samym obsługiwanym typie ma przyszły okres od `previous.expires_on + 1 day` — **bez ponownej wizyty aktywacyjnej**. Dla karnetu, który sam jeszcze nie został aktywowany, sposób kolejkowania następnych zakupów pozostaje `OPEN`; nie przypisujemy automatycznie dat bez znanej daty startu źródła.
 
