@@ -340,6 +340,12 @@ Na indeksach kategorii, usług i karnetów obok „Edytuj” są przyciski **Pok
 
 Akcja waliduje dane i akceptację aktualnego opublikowanego regulaminu, pobiera cenę oraz snapshot z serwera i odrzuca nieaktualną rewizję oferty. Nie tworzy płatności ani karnetu; formularz zakupu i integracja płatności należą do kolejnych zadań. Pełny kontrakt danych i zabezpieczeń: `docs/architecture/database.md`, §20.
 
+## Wydanie opłaconego karnetu (TASK-023)
+
+`IssuePaidMembership::handle($orderId, $actor)` wydaje jeden karnet po zapisanym, zweryfikowanym potwierdzeniu płatności. `$actor` oznacza uprawnionego pracownika/admina; jawne `null` jest zarezerwowane dla zaufanego procesu systemowego. Akcja sprawdza opłacenie zamówienia oraz zgodność płatności, korzysta z zakupionego snapshotu i pozostawia daty aktywacji/ważności puste. Ponowienie zwraca ten sam karnet bez resetowania salda.
+
+W tej samej transakcji powstają audyt oraz pojedynczy rekord `document_deliveries` do późniejszego przygotowania i wysłania PDF. Generowanie i wysyłka PDF należą do TASK-031/032, weryfikacja powiadomień Przelewy24 do TASK-029. TASK-023 nie dodaje publicznego endpointu ani możliwości potwierdzenia płatności z przeglądarki; testy używają wyłącznie fikcyjnych potwierdzeń w bazie testowej.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.
