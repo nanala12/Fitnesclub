@@ -22,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $p24_merchant_id
  * @property int|null $p24_pos_id
  * @property CarbonImmutable|null $registration_started_at
+ * @property int $verification_attempts
+ * @property CarbonImmutable|null $verification_last_attempt_at
  * @property int $amount_grosz
  * @property PaymentStatus $status
  * @property PaymentProvider $provider
@@ -41,7 +43,7 @@ class Payment extends Model
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['provider_token' => 'encrypted', 'p24_merchant_id' => 'integer', 'p24_pos_id' => 'integer', 'registration_started_at' => 'immutable_datetime', 'registration_finished_at' => 'immutable_datetime', 'amount_grosz' => IntegerGrosz::class, 'provider' => PaymentProvider::class, 'method' => PaymentMethod::class, 'status' => PaymentStatus::class, 'confirmed_at' => 'immutable_datetime'];
+        return ['verification_attempts' => 'integer', 'verification_last_attempt_at' => 'immutable_datetime', 'provider_token' => 'encrypted', 'p24_merchant_id' => 'integer', 'p24_pos_id' => 'integer', 'registration_started_at' => 'immutable_datetime', 'registration_finished_at' => 'immutable_datetime', 'amount_grosz' => IntegerGrosz::class, 'provider' => PaymentProvider::class, 'method' => PaymentMethod::class, 'status' => PaymentStatus::class, 'confirmed_at' => 'immutable_datetime'];
     }
 
     /** @return list<string> */

@@ -158,6 +158,8 @@ test('core migration rolls back and reapplies without changing existing users CM
     $renewalMigration = require database_path('migrations/2026_11_23_040000_add_membership_renewal_chain.php');
     $receptionMigration = require database_path('migrations/2026_11_24_000000_add_reception_order_request_id.php');
     $p24Migration = require database_path('migrations/2026_11_24_010000_add_p24_registration_tracking.php');
+    $verificationMigration = require database_path('migrations/2026_11_24_020000_add_p24_verification_tracking.php');
+    $verificationMigration->down();
     $p24Migration->down();
     $receptionMigration->down();
     $renewalMigration->down();
@@ -182,6 +184,7 @@ test('core migration rolls back and reapplies without changing existing users CM
     $renewalMigration->up();
     $receptionMigration->up();
     $p24Migration->up();
+    $verificationMigration->up();
     expect(Membership::factory()->create()->starts_on)->toBeNull()->and(User::findOrFail($user->id)->email)->toBe($user->email);
 });
 

@@ -382,6 +382,23 @@ Unikalna sesja jest zapisana przed kontaktem z operatorem; otrzymany token jest 
 
 Adapter korzysta z [oficjalnej specyfikacji REST Przelewy24](https://developers.przelewy24.pl/yaml/en_documentation_1.0.yaml). Testy używają fikcyjnych odpowiedzi HTTP, bez rzeczywistych płatności. Samo przygotowanie transakcji lub powrót przeglądarki nie potwierdza opłaty i nie wydaje karnetu. Weryfikacja operatora należy do TASK-029, a przycisk zakupu i przekierowanie w interfejsie do TASK-030.
 
+## Potwierdzanie płatności Przelewy24 (TASK-029)
+
+Adres `POST /payments/przelewy24/notification` przyjmuje powiadomienia JSON operatora. Ustaw `P24_STATUS_URL` na pełny publiczny adres HTTPS tego endpointu. Ma własny limit żądań i działa bez sesji przeglądarki. Weryfikuje podpis całego powiadomienia, konto operatora, sesję, identyfikator transakcji, kwoty w groszach i walutę względem utrwalonego zamówienia. Następnie potwierdza opłatę przez API P24. Sam powrót przeglądarki nie zmienia statusu zamówienia.
+
+Potwierdzenie opłaty, `paid_at` w UTC, wydanie karnetu, audyt i zlecenie PDF zapisują się atomowo. Nowy karnet czeka na aktywację przy pierwszej wizycie; zatwierdzone przedłużenie zachowuje reguły TASK-026. Powtórzone lub równoczesne powiadomienia nie tworzą kolejnego karnetu ani zlecenia PDF. Transakcji operatora nie można przypisać do drugiego zakupu.
+
+Zapisane sesje można sprawdzić poleceniem uruchamianym w środowisku z właściwą konfiguracją P24:
+
+```bash
+php artisan payments:reconcile-p24 --limit=25
+php artisan payments:reconcile-p24 --payment=123 --limit=1
+```
+
+`--payment` jest wewnętrznym ID z tabeli `payments`. Polecenie nie rejestruje ani nie obciąża nowej transakcji; pyta operatora o istniejącą sesję i kończy potwierdzenie po zgodnej odpowiedzi. Nie jest podłączone do harmonogramu. Brak sesji lub brak wpłaty nie oznacza automatycznie anulowania zamówienia; zwrócone i niespójne płatności wymagają sprawdzenia. Błąd API lub lokalnego zapisu zachowuje identyfikatory do kolejnej próby. Diagnostyka przechowuje stałe kody błędów, liczbę prób i czas sprawdzenia, bez danych osobowych i treści odpowiedzi P24.
+
+Migracja TASK-029 dodaje metadane weryfikacji i unikalność transakcji w obrębie operatora, środowiska oraz konta sprzedawcy. Cofnięcie użytej historii weryfikacji jest blokowane. Testy nadal korzystają wyłącznie z symulacji HTTP. Przed włączeniem sprzedaży wymagany jest rzeczywisty test sandbox z publicznym HTTPS i właściwymi danymi operatora. Checkout powstaje w TASK-030, generowanie i wysyłka PDF w TASK-031/032.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

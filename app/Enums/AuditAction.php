@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case PaymentVerified = 'payment.verified';
     case PaymentRegistrationStarted = 'payment.registration_started';
     case PaymentRegistrationReady = 'payment.registration_ready';
     case PaymentRegistrationFailed = 'payment.registration_failed';
@@ -68,6 +69,7 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::PaymentVerified => 'Zweryfikowano płatność Przelewy24',
             self::PaymentRegistrationStarted => 'Rozpoczęto przygotowanie płatności',
             self::PaymentRegistrationReady => 'Przygotowano przekierowanie do płatności',
             self::PaymentRegistrationFailed => 'Przygotowanie płatności wymaga uwagi',
@@ -129,7 +131,7 @@ enum AuditAction: string
     public function subjectType(): string
     {
         return match ($this) {
-            self::PaymentRegistrationStarted, self::PaymentRegistrationReady, self::PaymentRegistrationFailed => 'payment',
+            self::PaymentVerified, self::PaymentRegistrationStarted, self::PaymentRegistrationReady, self::PaymentRegistrationFailed => 'payment',
             self::ReceptionOrderCreated, self::ReceptionPaymentConfirmed => 'order',
             self::MembershipIssued, self::MembershipActivated, self::MembershipEntryUsed, self::MembershipRenewed, self::MembershipEntriesTransferred => 'membership',
             self::PriceCategoryCreated, self::PriceCategoryUpdated, self::PriceCategoryDeleted => 'price_category',

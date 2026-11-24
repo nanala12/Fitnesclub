@@ -12,6 +12,8 @@ test('registration migration preserves payment history and enforces unique provi
     $payment = Payment::factory()->create();
     $before = $payment->refresh()->getAttributes();
     $migration = require database_path('migrations/2026_11_24_010000_add_p24_registration_tracking.php');
+    $verificationMigration = require database_path('migrations/2026_11_24_020000_add_p24_verification_tracking.php');
+    $verificationMigration->down();
     $migration->down();
     $legacy = 'legacy-'.Str::uuid();
     DB::table('payments')->where('id', $payment->id)->update(['provider_session_id' => $legacy]);
@@ -20,6 +22,7 @@ test('registration migration preserves payment history and enforces unique provi
     DB::table('payments')->where('id', $other->id)->delete();
     DB::table('payments')->where('id', $payment->id)->update(['provider_session_id' => null]);
     $migration->up();
+    $verificationMigration->up();
     expect($payment->fresh()->getAttributes())->toBe($before);
     DB::table('payments')->where('id', $payment->id)->update(['provider_session_id' => $legacy]);
     expect(fn () => Payment::factory()->create(['provider_session_id' => $legacy]))->toThrow(QueryException::class);

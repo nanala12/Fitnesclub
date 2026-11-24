@@ -5,6 +5,7 @@ namespace App\Services\Payments;
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use App\Exceptions\PaymentRegistrationException;
+use App\Exceptions\PaymentVerificationException;
 use App\Models\Order;
 use App\Models\Payment;
 use Illuminate\Http\Client\ConnectionException;
@@ -14,6 +15,41 @@ use SensitiveParameter;
 
 class Przelewy24Client
 {
+    public function verify(#[SensitiveParameter] Payment $payment, int $orderId, #[SensitiveParameter] Przelewy24Configuration $settings): void
+    {
+        try {
+            $response = Http::withBasicAuth((string) $settings->posId, $settings->apiKey())->acceptJson()->asJson()->withoutRedirecting()
+                ->connectTimeout(5)->timeout(15)->put($settings->baseUrl().'/api/v1/transaction/verify', [
+                    'merchantId' => $settings->merchantId, 'posId' => $settings->posId, 'sessionId' => $payment->provider_session_id,
+                    'amount' => $payment->amount_grosz, 'currency' => $payment->currency, 'orderId' => $orderId,
+                    'sign' => Przelewy24Signature::verification((string) $payment->provider_session_id, $orderId, $payment->amount_grosz, $payment->currency, $settings->crc()),
+                ]);
+        } catch (ConnectionException) {
+            throw new PaymentVerificationException('verification_unavailable', true);
+        }
+        if ($response->status() !== 200 || ! in_array($response->json('responseCode'), [0, 0.0], true) || $response->json('data.status') !== 'success') {
+            throw new PaymentVerificationException('verification_rejected', true);
+        }
+    }
+
+    public function transaction(#[SensitiveParameter] Payment $payment, #[SensitiveParameter] Przelewy24Configuration $settings): ?Przelewy24Transaction
+    {
+        try {
+            $response = Http::withBasicAuth((string) $settings->posId, $settings->apiKey())->acceptJson()->withoutRedirecting()
+                ->connectTimeout(5)->timeout(15)->get($settings->baseUrl().'/api/v1/transaction/by/sessionId/'.rawurlencode((string) $payment->provider_session_id));
+        } catch (ConnectionException) {
+            throw new PaymentVerificationException('lookup_unavailable', true);
+        }
+        if ($response->status() === 404) {
+            return null;
+        }
+        if ($response->status() !== 200 || ! in_array($response->json('responseCode'), [0, 0.0], true)) {
+            throw new PaymentVerificationException('lookup_unavailable', true);
+        }
+
+        return Przelewy24Transaction::fromData($response->json('data'));
+    }
+
     public function register(#[SensitiveParameter] Order $order, #[SensitiveParameter] Payment $payment, #[SensitiveParameter] Przelewy24Configuration $settings): string
     {
         if ($payment->order_id !== $order->id || ! is_string($payment->provider_session_id) || $payment->provider_session_id === '' || strlen($payment->provider_session_id) > 100) {
