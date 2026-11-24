@@ -4,7 +4,12 @@ export type PublicPriceCategory = {
     id: string;
     name: string;
     category: string;
-    items: { id: string; name: string; priceLabel: string }[];
+    items: {
+        id: string;
+        name: string;
+        priceLabel: string;
+        purchaseUrl?: string;
+    }[];
 };
 export type AdminPriceItem = {
     id: number;

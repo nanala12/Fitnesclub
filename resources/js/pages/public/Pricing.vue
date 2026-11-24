@@ -5,6 +5,7 @@ import PublicSeo from '@/components/public/PublicSeo.vue';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import { Button } from '@/components/ui/button';
 import { pricing, contact } from '@/routes/public';
+import { create } from '@/routes/checkout';
 import type { PublicMembershipPlan } from '@/types/plans';
 import type { PriceCategory, PublicPriceCategory } from '@/types/pricing';
 import type { ClubInfo } from '@/types/public';
@@ -92,7 +93,17 @@ const filters = computed(() => [
                             class="pricing-row"
                         >
                             <dt>{{ item.name }}</dt>
-                            <dd>{{ item.priceLabel }}</dd>
+                            <dd>
+                                <span>{{ item.priceLabel }}</span
+                                ><Link
+                                    v-if="item.purchaseUrl"
+                                    :href="item.purchaseUrl"
+                                    class="ml-3 inline-flex min-h-11 items-center text-xs underline"
+                                    >Kup karnet<span class="sr-only">
+                                        {{ item.name }}</span
+                                    ></Link
+                                >
+                            </dd>
                         </div>
                     </dl>
                 </article>
@@ -167,8 +178,8 @@ const filters = computed(() => [
                         }}
                     </p>
                     <Button as-child class="mt-auto w-full"
-                        ><Link :href="contact()"
-                            >Zapytaj o karnet →<span class="sr-only">
+                        ><Link :href="create({ query: { plan: plan.id } })"
+                            >Kup karnet →<span class="sr-only">
                                 {{ plan.name }}</span
                             ></Link
                         ></Button

@@ -16,6 +16,7 @@ use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -27,13 +28,34 @@ class CreateOnlineOrder
      *
      * @param  array<string, mixed>  $input
      */
-    public function handle(?User $account, array $input): Order
+    public function handle(?User $account, array $input, ?string $checkoutRequestId = null): Order
     {
         $data = $this->validate($input);
 
-        return DB::transaction(function () use ($account, $data): Order {
+        if ($checkoutRequestId !== null && ! Str::isUuid($checkoutRequestId)) {
+            throw ValidationException::withMessages(['checkout_request_id' => 'Odśwież formularz zakupu i spróbuj ponownie.']);
+        }
+        $fingerprint = $checkoutRequestId === null ? null : $this->fingerprint($account, $data);
+
+        return DB::transaction(function () use ($account, $data, $checkoutRequestId, $fingerprint): Order {
             // Share catalog/publication locks with CMS writers before taking individual row locks.
             DB::table('membership_catalog_states')->where('id', 1)->lockForUpdate()->sole();
+            if ($account !== null) {
+                $current = $account->exists ? User::query()->whereKey($account->id)->lockForUpdate()->first() : null;
+                if ($current === null || $current->isSuspended()) {
+                    throw new AuthorizationException;
+                }
+            }
+            if ($checkoutRequestId !== null) {
+                $existing = Order::query()->where('checkout_request_id', $checkoutRequestId)->lockForUpdate()->first();
+                if ($existing !== null) {
+                    if ($existing->purchaser_user_id !== $account?->id || ! hash_equals((string) $existing->checkout_fingerprint, (string) $fingerprint)) {
+                        throw ValidationException::withMessages(['checkout_request_id' => 'Ten formularz został już użyty do innego zakupu. Otwórz nowy formularz.']);
+                    }
+
+                    return $existing;
+                }
+            }
             $plan = MembershipPlan::query()->whereKey($data['membership_plan_id'])->lockForUpdate()->first();
             $category = $plan === null ? null : PriceListCategory::query()->where('key', $plan->category)->lockForUpdate()->first();
             if ($plan === null || ! $plan->is_active || ! $plan->is_public || ! ($category->is_published ?? false)) {
@@ -51,7 +73,7 @@ class CreateOnlineOrder
             }
 
             $buyer = $account === null ? null : User::query()->whereKey($account->id)->lockForUpdate()->first();
-            if ($account !== null && ($buyer === null || $buyer->isSuspended() || ! $account->exists)) {
+            if ($account !== null && ($buyer === null || $buyer->isSuspended())) {
                 throw new AuthorizationException('To konto nie może teraz złożyć zamówienia.');
             }
             $other = (bool) $data['for_other_person'];
@@ -59,6 +81,7 @@ class CreateOnlineOrder
             $holder = $other ? $data['holder'] : $purchaser;
             $order = new Order;
             $order->forceFill([
+                'checkout_request_id' => $checkoutRequestId, 'checkout_fingerprint' => $fingerprint,
                 'purchaser_user_id' => $buyer?->id, 'holder_user_id' => $other ? null : $buyer?->id,
                 'membership_plan_id' => $plan->id,
                 'purchaser_first_name' => $purchaser['first_name'], 'purchaser_last_name' => $purchaser['last_name'],
@@ -76,6 +99,16 @@ class CreateOnlineOrder
 
             return $order;
         }, 3);
+    }
+
+    /** @param array<string, mixed> $data */
+    private function fingerprint(?User $account, array $data): string
+    {
+        $person = fn (array $values): array => array_map(fn (string $key): string => $values[$key], ['first_name', 'last_name', 'email', 'phone']);
+
+        return hash_hmac('sha256', json_encode([(int) $data['membership_plan_id'], (int) $data['plan_revision'], (bool) $data['for_other_person'],
+            $person($data['purchaser']), $data['for_other_person'] ? $person($data['holder']) : null,
+            (int) $data['accepted_regulation_version_id'], $account?->id], JSON_THROW_ON_ERROR), (string) config('app.key'));
     }
 
     /** @param array<string, mixed> $input
@@ -112,7 +145,7 @@ class CreateOnlineOrder
             $rules[$person.'.email'] = [$required, 'string', 'email', 'max:254'];
             $rules[$person.'.phone'] = [$required, 'string', 'regex:/^\+[1-9][0-9]{6,14}$/D'];
         }
-        foreach (['reception_request_id', 'renewal_source_membership_id', 'purchaser_user_id', 'holder_user_id', 'created_by_user_id', 'amount_grosz', 'price_grosz', 'price', 'currency', 'plan_snapshot', 'status', 'sales_channel', 'payment_method', 'paid_at', 'ordered_at', 'regulation_accepted_at', 'recipient_email', 'memberships', 'items', 'quantity'] as $field) {
+        foreach (['checkout_request_id', 'checkout_fingerprint', 'reception_request_id', 'renewal_source_membership_id', 'purchaser_user_id', 'holder_user_id', 'created_by_user_id', 'amount_grosz', 'price_grosz', 'price', 'currency', 'plan_snapshot', 'status', 'sales_channel', 'payment_method', 'paid_at', 'ordered_at', 'regulation_accepted_at', 'recipient_email', 'memberships', 'items', 'quantity'] as $field) {
             $rules[$field] = ['prohibited'];
         }
 

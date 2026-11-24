@@ -399,6 +399,33 @@ php artisan payments:reconcile-p24 --payment=123 --limit=1
 
 Migracja TASK-029 dodaje metadane weryfikacji i unikalność transakcji w obrębie operatora, środowiska oraz konta sprzedawcy. Cofnięcie użytej historii weryfikacji jest blokowane. Testy nadal korzystają wyłącznie z symulacji HTTP. Przed włączeniem sprzedaży wymagany jest rzeczywisty test sandbox z publicznym HTTPS i właściwymi danymi operatora. Checkout powstaje w TASK-030, generowanie i wysyłka PDF w TASK-031/032.
 
+## Formularz zakupu online (TASK-030)
+
+Na `/kup-karnet` działa formularz zakupu dla siebie albo dla innej osoby. Przyciski **Kup karnet** na stronie głównej i w cenniku prowadzą do formularza z wybranym planem. Pozycje informacyjne usług pozostają elementami cennika. Formularz pobiera aktualne publiczne plany i wersję regulaminu; nie wymaga konta. Dla zalogowanej osoby uzupełnia dane z profilu, bez zmieniania profilu przy zakupie. PDF dla innej osoby jest przeznaczony na e-mail posiadacza.
+
+Po zapisaniu zamówienia formularz przekierowuje do Przelewy24. Ponowne wysłanie tego samego formularza i ponowienie płatności wykorzystują ten sam zakup. Zmiana danych po jego zapisaniu wymaga nowego formularza. Ekran `/zakup/{reference}` pozwala sprawdzić stan lub wrócić do przygotowanej płatności. Nieznany wynik blokuje kolejną rejestrację i informuje o sprawdzaniu opłaty. Potwierdzona opłata pokazuje **Opłacono — karnet czeka na aktywację**. Sam powrót przeglądarki nie potwierdza płatności.
+
+Dla zakupów z konta dostęp ma wyłącznie kupujący. Zakup gościnny jest dostępny w sesji, w której otwarto formularz (do 2 godzin, maksymalnie 20 ostatnich formularzy). Numer zamówienia, zgodny e-mail czy późniejsza rejestracja konta nie przyznają dostępu do cudzej lub dawnej gościnnej historii. Wylogowanie/utrata sesji usuwa ten dostęp, zachowując zakup w bazie. Docelowa historia i dalsze ekrany wyników są częścią TASK-033.
+
+W konfiguracji operatora ustaw `P24_RETURN_URL=https://TWOJA-DOMENA/platnosc/powrot` oraz `P24_STATUS_URL=https://TWOJA-DOMENA/payments/przelewy24/notification`. Adapter sam dołącza numer konkretnego zamówienia do adresu powrotnego, z zachowaniem limitu długości operatora. Domyślnie P24 pozostaje wyłączone — formularz pokazuje wówczas komunikat o niedostępności i blokuje zapis nowego zakupu. Nie dodano fikcyjnego potwierdzania opłat w aplikacji.
+
+Migracja dodaje ukryty unikalny UUID formularza i jego odcisk HMAC do zamówienia. Dane zapisane raz nie mogą być zmieniane; cofnięcie migracji usuwałoby użyte klucze, więc jest blokowane. Migrację zastosowano lokalnie bez zmiany liczby rekordów. Generowanie i wysyłka PDF nadal należą do TASK-031/032; przed włączeniem prawdziwej sprzedaży wymagany jest test integracji sandbox.
+
+Test przeglądarkowy korzysta z Chrome DevTools bez dodatkowych pakietów. Uruchom w osobnym terminalu wyłącznie przygotowany serwer testowy (tworzy fikcyjne dane w tymczasowym SQLite wewnątrz jednorazowego kontenera):
+
+```bash
+docker compose run --rm --no-deps -T -p 127.0.0.1:18080:8000 \
+  -e APP_ENV=testing -e APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA= \
+  -e APP_URL=http://127.0.0.1:18080 -e DB_CONNECTION=sqlite \
+  -e DB_DATABASE=/tmp/activefit-checkout-browser.sqlite -e DB_URL= \
+  -e SESSION_DRIVER=file -e SESSION_COOKIE=checkout_browser_test \
+  -e CACHE_STORE=array -e MAIL_MAILER=array app sh -c \
+  'php tests/Support/Checkout/browser-seed.php && php -S 0.0.0.0:8000 -t public tests/Support/Checkout/browser-router.php'
+node --experimental-websocket tests/Browser/checkout.mjs
+```
+
+Wcześniej wykonaj `npm run build` w kontenerze aplikacji. Stały klucz powyżej służy wyłącznie izolowanym testom. Test przechwytuje wszystkie żądania do P24 w przeglądarce, a backend używa HTTP fake; nie kontaktuje się z operatorem. Sprawdza zakup dla innej osoby, walidację, zmianę planu, podwójne kliknięcie, powrót bez potwierdzenia, potwierdzenie opłaty, timeout i układ mobilny. Skrypt oczekuje Chrome pod `/usr/bin/google-chrome` (można ustawić `CHROME_BIN`), wolnych portów 18080/19222 i Node z wbudowanym WebSocket. Po teście zatrzymaj ten kontener; pomocnicze endpointy istnieją wyłącznie w jego routerze i są chronione kontrolą środowiska oraz ścieżki testowej bazy.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

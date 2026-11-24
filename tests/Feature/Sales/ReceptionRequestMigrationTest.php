@@ -14,7 +14,10 @@ test('receipt request migration preserves historical snapshots checks and unique
     $migration = require database_path('migrations/2026_11_24_000000_add_reception_order_request_id.php');
     $migration->down();
     $migration->up();
-    expect($order->fresh()->getAttributes())->toBe($before);
+    $after = $order->fresh()->getAttributes();
+    ksort($before);
+    ksort($after);
+    expect($after)->toBe($before);
     $uuid = (string) Str::uuid();
     DB::table('orders')->where('id', $order->id)->update(['reception_request_id' => $uuid]);
     try {

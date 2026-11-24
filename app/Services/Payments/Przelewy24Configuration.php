@@ -36,6 +36,19 @@ final readonly class Przelewy24Configuration
         return $this->environment === 'sandbox' ? 'https://sandbox.przelewy24.pl' : 'https://secure.przelewy24.pl';
     }
 
+    public function returnUrlFor(string $orderReference): string
+    {
+        [$base, $query] = array_pad(explode('?', $this->returnUrl, 2), 2, '');
+        parse_str($query, $parameters);
+        $parameters['zamowienie'] = $orderReference;
+        $url = $base.'?'.http_build_query($parameters, '', '&', PHP_QUERY_RFC3986);
+        if (strlen($url) > 250) {
+            throw ValidationException::withMessages(['payment' => 'Płatności online nie są jeszcze dostępne. Skontaktuj się z klubem.']);
+        }
+
+        return $url;
+    }
+
     public function apiKey(): string
     {
         return $this->apiKey;

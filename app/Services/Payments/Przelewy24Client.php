@@ -59,7 +59,7 @@ class Przelewy24Client
             'merchantId' => $settings->merchantId, 'posId' => $settings->posId, 'sessionId' => $payment->provider_session_id,
             'amount' => $payment->amount_grosz, 'currency' => $payment->currency,
             'description' => 'Karnet ActiveFit', 'email' => $order->purchaser_email,
-            'country' => 'PL', 'language' => 'pl', 'urlReturn' => $settings->returnUrl, 'urlStatus' => $settings->statusUrl,
+            'country' => 'PL', 'language' => 'pl', 'urlReturn' => $settings->returnUrlFor($order->public_reference), 'urlStatus' => $settings->statusUrl,
             'sign' => Przelewy24Signature::registration($payment->provider_session_id, $settings->merchantId, $payment->amount_grosz, $payment->currency, $settings->crc()),
             'encoding' => 'UTF-8',
         ];

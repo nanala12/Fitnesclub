@@ -50,7 +50,7 @@ class PublicSiteContent
             $items = [];
             foreach ($plans as $plan) {
                 if ($plan['category'] === $category->key) {
-                    $items[] = ['id' => 'plan-'.$plan['id'], 'name' => $plan['name'], 'priceLabel' => $plan['priceLabel'], 'order' => $plan['sortOrder'], 'rank' => 0, 'sourceId' => $plan['id']];
+                    $items[] = ['id' => 'plan-'.$plan['id'], 'name' => $plan['name'], 'priceLabel' => $plan['priceLabel'], 'purchaseUrl' => route('checkout.create', ['plan' => $plan['id']], absolute: false), 'order' => $plan['sortOrder'], 'rank' => 0, 'sourceId' => $plan['id']];
                 }
             }
             foreach ($category->services as $service) {
@@ -58,7 +58,7 @@ class PublicSiteContent
             }
             usort($items, fn (array $a, array $b): int => [$a['order'], $a['rank'], $a['sourceId']] <=> [$b['order'], $b['rank'], $b['sourceId']]);
             if ($items !== []) {
-                $result[] = ['id' => $category->key, 'name' => $category->name, 'category' => $category->key, 'items' => array_map(fn (array $item): array => array_intersect_key($item, array_flip(['id', 'name', 'priceLabel'])), $items)];
+                $result[] = ['id' => $category->key, 'name' => $category->name, 'category' => $category->key, 'items' => array_map(fn (array $item): array => array_intersect_key($item, array_flip(['id', 'name', 'priceLabel', 'purchaseUrl'])), $items)];
             }
         }
 

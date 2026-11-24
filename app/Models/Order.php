@@ -37,7 +37,7 @@ class Order extends Model
 
     use PreservesSalesHistory;
 
-    protected $hidden = ['reception_request_id', 'purchaser_first_name', 'purchaser_last_name', 'purchaser_email', 'purchaser_phone', 'holder_first_name', 'holder_last_name', 'holder_email', 'holder_phone', 'recipient_email'];
+    protected $hidden = ['checkout_request_id', 'checkout_fingerprint', 'reception_request_id', 'purchaser_first_name', 'purchaser_last_name', 'purchaser_email', 'purchaser_phone', 'holder_first_name', 'holder_last_name', 'holder_email', 'holder_phone', 'recipient_email'];
 
     protected static function booted(): void
     {
@@ -57,7 +57,7 @@ class Order extends Model
     /** @return list<string> */
     public function immutableHistoryFields(): array
     {
-        return ['public_reference', 'reception_request_id', 'purchaser_user_id', 'holder_user_id', 'membership_plan_id', 'purchaser_first_name', 'purchaser_last_name', 'purchaser_email', 'purchaser_phone', 'holder_first_name', 'holder_last_name', 'holder_email', 'holder_phone', 'recipient_email', 'plan_snapshot', 'amount_grosz', 'currency', 'sales_channel', 'payment_method', 'ordered_at', 'created_by_user_id'];
+        return ['checkout_request_id', 'checkout_fingerprint', 'public_reference', 'reception_request_id', 'purchaser_user_id', 'holder_user_id', 'membership_plan_id', 'purchaser_first_name', 'purchaser_last_name', 'purchaser_email', 'purchaser_phone', 'holder_first_name', 'holder_last_name', 'holder_email', 'holder_phone', 'recipient_email', 'plan_snapshot', 'amount_grosz', 'currency', 'sales_channel', 'payment_method', 'ordered_at', 'created_by_user_id'];
     }
 
     /** @return list<string> */

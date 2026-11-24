@@ -67,7 +67,7 @@ test('registration commits session before HTTP uses basic authentication and exa
             ->and($request->header('Authorization'))->toBe(['Basic '.base64_encode('456:fake-api-secret')])
             ->and($request['amount'])->toBe(12050)->and($request['merchantId'])->toBe(123)->and($request['posId'])->toBe(456)
             ->and($request['currency'])->toBe('PLN')->and($request['email'])->toBe('buyer@example.test')
-            ->and($request['urlReturn'])->toBe('https://merchant.example.test/payment/return')
+            ->and($request['urlReturn'])->toBe('https://merchant.example.test/payment/return?zamowienie='.$this->order->public_reference)
             ->and($request['urlStatus'])->toBe('https://merchant.example.test/payment/status');
         $expected = hash('sha384', json_encode(['sessionId' => $request['sessionId'], 'merchantId' => 123, 'amount' => 12050, 'currency' => 'PLN', 'crc' => 'fake-crc-secret'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
         expect($request['sign'])->toBe($expected)->and($request->data())->not->toHaveKeys(['client', 'phone', 'regulationAccept', 'crc']);

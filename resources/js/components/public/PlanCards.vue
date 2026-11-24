@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
-import { contact } from '@/routes/public';
+import { create } from '@/routes/checkout';
 import type { PublicMembershipPlan } from '@/types/plans';
 defineProps<{ plans: PublicMembershipPlan[] }>();
 </script>
@@ -51,8 +51,8 @@ defineProps<{ plans: PublicMembershipPlan[] }>();
                 Bez ograniczenia czasowego — do wykorzystania wejść.
             </p>
             <Button as-child variant="outline" class="mt-auto"
-                ><Link :href="contact()"
-                    >Zapytaj o karnet<span class="sr-only">
+                ><Link :href="create({ query: { plan: plan.id } })"
+                    >Kup karnet<span class="sr-only">
                         {{ plan.name }}</span
                     ></Link
                 ></Button

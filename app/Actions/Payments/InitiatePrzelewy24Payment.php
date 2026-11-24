@@ -68,6 +68,7 @@ class InitiatePrzelewy24Payment
             Validator::make(['purchaser' => ['email' => $order->purchaser_email]], ['purchaser.email' => ['required', 'string', 'email', 'max:50']],
                 ['purchaser.email.max' => 'Przelewy24 obsługuje adres e-mail kupującego o długości do 50 znaków.'])->validate();
             $settings = Przelewy24Configuration::load();
+            $settings->returnUrlFor($order->public_reference);
             $payments = $order->payments()->orderBy('id')->lockForUpdate()->get();
             foreach ($payments as $attempt) {
                 if ($attempt->provider !== PaymentProvider::Przelewy24 || $attempt->method !== PaymentMethod::Przelewy24
