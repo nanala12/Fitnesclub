@@ -426,6 +426,25 @@ node --experimental-websocket tests/Browser/checkout.mjs
 
 Wcześniej wykonaj `npm run build` w kontenerze aplikacji. Stały klucz powyżej służy wyłącznie izolowanym testom. Test przechwytuje wszystkie żądania do P24 w przeglądarce, a backend używa HTTP fake; nie kontaktuje się z operatorem. Sprawdza zakup dla innej osoby, walidację, zmianę planu, podwójne kliknięcie, powrót bez potwierdzenia, potwierdzenie opłaty, timeout i układ mobilny. Skrypt oczekuje Chrome pod `/usr/bin/google-chrome` (można ustawić `CHROME_BIN`), wolnych portów 18080/19222 i Node z wbudowanym WebSocket. Po teście zatrzymaj ten kontener; pomocnicze endpointy istnieją wyłącznie w jego routerze i są chronione kontrolą środowiska oraz ścieżki testowej bazy.
 
+## PDF karnetu i prywatne pobieranie (TASK-031)
+
+Po potwierdzeniu opłaty na ekranie zakupu jest dostępny przycisk **Pobierz PDF karnetu**. Dokument powstaje z utrwalonych danych zakupu: imię i nazwisko posiadacza, nazwa klubu i planu, cena oraz warunki czasowe lub limit wejść. Nie zawiera telefonu, e-maila, danych kupującego ani dowolnych wewnętrznych notatek. Oczekujący karnet ma komunikat „Ważność rozpocznie się przy pierwszej wizycie w klubie”; daty pojawiają się tylko wtedy, gdy zostały ustalone przez aktywację lub zatwierdzone przedłużenie. Pakiet wejściowy pozostaje bez ograniczenia czasowego; PDF odróżnia kupiony pakiet od łącznego limitu po przeniesieniu wejść, bez obiecywania aktualnego salda.
+
+Pierwsze pobranie generuje i zapisuje PDF. Kolejne korzystają z tego samego pliku. Dokument przedstawia stan z chwili wygenerowania; późniejsza aktywacja nie powoduje automatycznej drugiej wysyłki. Brakujący plik można odtworzyć, zachowując tożsamość zakupu i zlecenia. Błąd generatora lub dysku pozostawia zamówienie opłacone i karnet bez zmian.
+
+Pliki są na osobnym dysku `membership_documents`, w `storage/app/membership-documents`, poza katalogiem publicznym i domyślnym dyskiem `local`. Brak publicznego URL lub linku symbolicznego. Dostęp przez `/zakup/{reference}/pdf` wymaga właściciela zakupu albo pierwotnej sesji gościa. `/karnety/{membership}/pdf` wymaga zalogowanego posiadacza/kupującego lub aktywnego, zweryfikowanego pracownika/admina. Zgodny e-mail lub telefon nie przyznaje dostępu. Endpointy mają limity żądań i nagłówki zabraniające buforowania; nie przyjmują ścieżki pliku od klienta.
+
+PDF-y można przygotować wcześniej, po opłaceniu zakupu:
+
+```bash
+docker compose exec app php artisan documents:generate-membership-pdfs --limit=25
+docker compose exec app php artisan documents:generate-membership-pdfs --delivery=123 --limit=1
+```
+
+`--delivery` jest ID z `document_deliveries`. Polecenie nie wysyła e-maila ani nie zmienia statusu dostarczenia. Automatyczne przetwarzanie kolejki i wysyłka z retry są częścią TASK-032. Nie trzeba wykonywać migracji dla TASK-031. Generator wymaga `composer install` po pobraniu zmian; dodano Dompdf 3.1.6 z lokalnym fontem obsługującym polskie znaki. PHP, JavaScript i zdalne zasoby są wyłączone w rendererze.
+
+Testy obejmują rzeczywiste pliki PDF, treść/snapshoty, uprawnienia, błędy zapisu i współbieżność. Dotychczasowy test Chrome sprawdza również prywatne pobranie po symulowanym potwierdzeniu opłaty. Audyt Composer nie wykazał alertów dla nowych zależności PDF; wykazał 18 alertów w 8 dotychczasowych pakietach. Wymagają osobnego przeglądu i aktualizacji przed produkcją (`composer audit`). Okres retencji prywatnych PDF i kopii zapasowych nadal wymaga decyzji OD-11.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

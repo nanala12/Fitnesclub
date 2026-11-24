@@ -197,6 +197,18 @@ try {
     assert.equal(data.deliveries, 1);
     assert.equal(data.membership.startsOn, null);
     assert.equal(data.membership.balance, 8);
+    const pdf = await evaluate(`(async () => {
+        const link = [...document.querySelectorAll('a')].find((item) => item.textContent.includes('Pobierz PDF karnetu'));
+        if (!link) throw new Error('Missing PDF download link');
+        const response = await fetch(link.href);
+        const bytes = new Uint8Array(await response.arrayBuffer());
+        return { status: response.status, type: response.headers.get('Content-Type'), prefix: new TextDecoder().decode(bytes.slice(0, 5)) };
+    })()`);
+    assert.deepEqual(pdf, {
+        status: 200,
+        type: 'application/pdf',
+        prefix: '%PDF-',
+    });
     await navigate('/kup-karnet');
     await until(`!!document.getElementById('purchaser-first-name')`);
     await evaluate(`document.cookie = 'checkout_test_gateway=timeout; path=/'`);
@@ -239,7 +251,7 @@ try {
     );
     assert.deepEqual(errors, [], 'Unexpected browser JavaScript exceptions');
     console.log(
-        'PASS: desktop purchase, dynamic holder/plan fields, validation, duplicate submit, mocked redirect, untrusted return, verified pending activation, timeout and mobile layout.',
+        'PASS: desktop purchase, dynamic holder/plan fields, validation, duplicate submit, mocked redirect, untrusted return, verified pending activation, private PDF download, timeout and mobile layout.',
     );
 } finally {
     ws?.close();

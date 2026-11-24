@@ -3,6 +3,7 @@ import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { computed, ref } from 'vue';
 import ActionButton from '@/components/shared/ActionButton.vue';
 import FeedbackMessage from '@/components/shared/FeedbackMessage.vue';
+import { Button } from '@/components/ui/button';
 import { create, pay, show } from '@/routes/checkout';
 import type { CheckoutOrder } from '@/types/checkout';
 
@@ -103,6 +104,9 @@ function refresh() {
                 <dd class="break-all">{{ order.reference }}</dd>
             </div>
         </dl>
+        <Button v-if="order.pdfUrl" as-child class="min-h-11 w-full"
+            ><a :href="order.pdfUrl">Pobierz PDF karnetu</a></Button
+        >
         <form
             v-if="order.canPay"
             @submit.prevent="form.post(pay.url(order.reference))"

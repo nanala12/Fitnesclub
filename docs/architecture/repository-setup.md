@@ -27,7 +27,7 @@ Pojedyncze repozytorium aplikacji **ActiveFit**: publiczna strona klubu, CMS, pa
 | Format / analiza | Laravel Pint, ESLint, Prettier, Vue/TS typecheck | RECOMMENDED |
 | Queue | Laravel Queue (początkowo database), worker na produkcji | RECOMMENDED |
 | Płatności | Przelewy24 | CONFIRMED; integracja po konfiguracji sandbox |
-| Pliki/PDF | Laravel Storage + generator PDF do wyboru na etapie implementacji | PDF wymagany; biblioteka OPEN |
+| Pliki/PDF | Laravel Storage + Dompdf (TASK-031) | Dompdf 3.1.6 w lockfile; lokalny renderer bez zdalnych zasobów/skryptów, osobny prywatny dysk |
 | Język UI / czas | polski (`pl`), runtime i sesja MySQL `UTC`, daty biznesowe `Europe/Warsaw` | Implemented in TASK-002; `config('app.business_timezone')` for business dates |
 
 Źródła wersji: [Laravel 13 release notes](https://laravel.com/docs/13.x/releases), [oficjalny Vue starter kit](https://laravel.com/docs/13.x/starter-kits). **Nie przypinaj najnowszych patchy na sztywno w tym dokumencie:** źródłem prawdy są wersjonowane `composer.lock` i `package-lock.json`.

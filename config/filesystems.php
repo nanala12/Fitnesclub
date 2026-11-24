@@ -30,6 +30,15 @@ return [
 
     'disks' => [
 
+        'membership_documents' => [
+            'driver' => 'local',
+            'root' => storage_path('app/membership-documents'),
+            'visibility' => 'private',
+            'serve' => false,
+            'throw' => true,
+            'report' => false,
+        ],
+
         'local' => [
             'driver' => 'local',
             'root' => storage_path('app/private'),

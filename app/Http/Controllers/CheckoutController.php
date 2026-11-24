@@ -79,6 +79,7 @@ class CheckoutController extends Controller
             'state' => $paid ? 'pending_activation' : ($uncertain ? 'checking_payment' : ($order->status === OrderStatus::Pending ? 'awaiting_payment' : 'stopped')),
             'canPay' => $retry && $this->available(), 'paymentAvailable' => $this->available(),
             'isGuest' => $order->purchaser_user_id === null,
+            'pdfUrl' => $paid && $order->membership()->exists() ? route('checkout.pdf', $order->public_reference, absolute: false) : null,
         ], 'notice' => $request->session()->get('checkout_notice')])->toResponse($request);
         $response->headers->add($this->privateHeaders());
 

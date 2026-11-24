@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\PriceListController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\MembershipPdfController;
 use App\Http\Controllers\PublicSite\MediaController;
 use App\Http\Controllers\PublicSite\PageController;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
@@ -22,12 +23,15 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
 Route::name('checkout.')->group(function (): void {
+    Route::get('zakup/{reference}/pdf', [MembershipPdfController::class, 'checkout'])->whereUlid('reference')->middleware('throttle:10,1,membership-pdf:')->name('pdf');
     Route::get('kup-karnet', [CheckoutController::class, 'create'])->middleware('throttle:60,1,checkout-read:')->block(40, 20)->name('create');
     Route::post('kup-karnet', [CheckoutController::class, 'store'])->middleware('throttle:10,1,checkout-write:')->block(40, 20)->name('store');
     Route::get('zakup/{reference}', [CheckoutController::class, 'show'])->whereUlid('reference')->middleware('throttle:60,1,checkout-read:')->name('show');
     Route::post('zakup/{reference}/platnosc', [CheckoutController::class, 'pay'])->whereUlid('reference')->middleware('throttle:15,1,checkout-pay:')->block(40, 20)->name('pay');
     Route::get('platnosc/powrot', [CheckoutController::class, 'paymentReturn'])->middleware('throttle:60,1,checkout-read:')->name('return');
 });
+Route::get('karnety/{membership}/pdf', [MembershipPdfController::class, 'show'])->whereNumber('membership')
+    ->middleware(['auth', 'throttle:10,1,membership-pdf:'])->name('memberships.pdf');
 Route::name('public.')->group(function (): void {
     Route::get('oferta', [PageController::class, 'offer'])->name('offer');
     Route::get('oferta/{offerTile}', [PageController::class, 'offerShow'])->whereNumber('offerTile')->name('offer.show');

@@ -3,10 +3,17 @@
 namespace App\Policies;
 
 use App\Enums\UserRole;
+use App\Models\Membership;
 use App\Models\User;
 
 class MembershipPolicy
 {
+    public function downloadPdf(User $actor, Membership $membership): bool
+    {
+        return ! $actor->isSuspended() && ($membership->holder_user_id === $actor->id
+            || $membership->order->purchaser_user_id === $actor->id || $this->issue($actor));
+    }
+
     public function renew(User $actor): bool
     {
         return $this->issue($actor);

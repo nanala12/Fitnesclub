@@ -28,4 +28,5 @@ export type CheckoutOrder = {
     canPay: boolean;
     paymentAvailable: boolean;
     isGuest: boolean;
+    pdfUrl: string | null;
 };

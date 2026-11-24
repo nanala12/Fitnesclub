@@ -12,6 +12,7 @@ if (! $app->environment('testing') || DB::getDriverName() !== 'sqlite' || DB::co
     throw new RuntimeException('Dedicated disposable checkout browser database required.');
 }
 config(['inertia.ssr.enabled' => false, 'session.files' => '/tmp/activefit-checkout-browser-sessions',
+    'filesystems.disks.membership_documents.root' => '/tmp/activefit-checkout-browser-documents',
     'payments.przelewy24' => ['enabled' => true, 'environment' => 'sandbox', 'live_enabled' => false,
         'merchant_id' => 123, 'pos_id' => 456, 'api_key' => 'fake-api-secret', 'crc' => 'fake-crc-secret',
         'return_url' => 'https://merchant.example.test/platnosc/powrot', 'status_url' => 'https://merchant.example.test/payments/przelewy24/notification']]);
