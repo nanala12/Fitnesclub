@@ -112,7 +112,7 @@ class CreateOnlineOrder
             $rules[$person.'.email'] = [$required, 'string', 'email', 'max:254'];
             $rules[$person.'.phone'] = [$required, 'string', 'regex:/^\+[1-9][0-9]{6,14}$/D'];
         }
-        foreach (['renewal_source_membership_id', 'purchaser_user_id', 'holder_user_id', 'created_by_user_id', 'amount_grosz', 'price_grosz', 'price', 'currency', 'plan_snapshot', 'status', 'sales_channel', 'payment_method', 'paid_at', 'ordered_at', 'regulation_accepted_at', 'recipient_email', 'memberships', 'items', 'quantity'] as $field) {
+        foreach (['reception_request_id', 'renewal_source_membership_id', 'purchaser_user_id', 'holder_user_id', 'created_by_user_id', 'amount_grosz', 'price_grosz', 'price', 'currency', 'plan_snapshot', 'status', 'sales_channel', 'payment_method', 'paid_at', 'ordered_at', 'regulation_accepted_at', 'recipient_email', 'memberships', 'items', 'quantity'] as $field) {
             $rules[$field] = ['prohibited'];
         }
 

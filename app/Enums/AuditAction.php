@@ -4,6 +4,8 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case ReceptionOrderCreated = 'reception.order_created';
+    case ReceptionPaymentConfirmed = 'reception.payment_confirmed';
     case MembershipIssued = 'membership.issued';
     case MembershipActivated = 'membership.activated';
     case MembershipEntryUsed = 'membership.entry_used';
@@ -63,6 +65,8 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::ReceptionOrderCreated => 'Zapisano zamówienie na recepcji',
+            self::ReceptionPaymentConfirmed => 'Potwierdzono płatność na recepcji',
             self::MembershipIssued => 'Wydano opłacony karnet',
             self::MembershipActivated => 'Aktywowano karnet przy pierwszej wizycie',
             self::MembershipEntryUsed => 'Odnotowano wejście z karnetu',
@@ -119,6 +123,7 @@ enum AuditAction: string
     public function subjectType(): string
     {
         return match ($this) {
+            self::ReceptionOrderCreated, self::ReceptionPaymentConfirmed => 'order',
             self::MembershipIssued, self::MembershipActivated, self::MembershipEntryUsed, self::MembershipRenewed, self::MembershipEntriesTransferred => 'membership',
             self::PriceCategoryCreated, self::PriceCategoryUpdated, self::PriceCategoryDeleted => 'price_category',
             self::PriceGroupCreated, self::PriceGroupUpdated, self::PriceGroupDeleted => 'price_group',

@@ -353,6 +353,14 @@ New additive migration provides source/root FKs and root/successor indexes witho
 - **Acceptance:** Receipt payment method and sale channel are distinguishable; unpaid reception order never issues pass.
 - **Tests/checks:** Pest staff permissions, cash/card, duplicate submits.
 
+**Execution — 2026-11-24 (PAY-005/006, STF-004, AC-PAY-03, E2E-03):** added separate staff-only `CreateReceptionOrder` and `ConfirmReceptionPayment` boundaries. Creation validates/normalizes purchaser/holder data, explicit optional account/source selections and cash/card method, then freezes the server catalog price/terms in a pending reception order. Active hidden plans remain available internally; inactive/stale offers fail. No account/phone matching or profile modification occurs, and another person's PDF recipient is that holder. No online-consent evidence is invented for reception.
+
+An immutable hidden UUID column deduplicates creation by seller and normalized intent, including plan revision and source selection. Confirmation reauthorizes/reloads staff, locks an approved renewal root before the current target order, records received money/UTC confirmer with one matching reception payment and issues the pass/renewal plus PDF outbox atomically. Original seller and payment confirmer remain separately recorded. Replays preserve original money/time/actor; changed request intent, online/cancelled/failed/inconsistent records and untrusted payment fields are rejected. A current Order returned by creation can be passed into confirmation inside an outer REPEATABLE READ transaction; all critical fields are reread under locks. No bank/terminal charge is initiated. Audit safely displays receipt method/channel/price without contact details. Staff sale form/confirmation controls are explicitly included in TASK-035, with no new HTTP endpoint added here.
+
+The additive nullable unique request-key migration preserves historical values, CHECKs/FKs and refuses lossy reversal once keys are used. Applied only to verified local `activefit`, preserving all counts (3 plans, 0 orders/payments/memberships/entries/adjustments/deliveries). Docker test DB had been stopped; it was restarted before rerunning MySQL. No sample sales, real payments, outbound email or production operation occurred.
+
+**Verification:** **62 MySQL tests passed / 344 assertions**, including simultaneous create, confirm by two employees and complete create+confirm with old RR snapshots; pending/payment/issuance/outbox rollback and source rollover; migration data/constraint/unique protection. Final broader SQLite unit/sales/audit: **492 passed / 2328 assertions**, twenty-two MySQL-only cases skipped. PHPStan and whole-project Pint (271 PHP files) passed; `git diff --check` passed. No frontend source changed, so frontend build/browser checks were not repeated; unrelated full suites were not run. No dependency/configuration changes, commit or push. Next task: TASK-028.
+
 #### TASK-028 — Przelewy24 adapter and order initiation
 - **Priority:** P0 · **Depends on:** TASK-022–023 · **Source:** PAY-001–002, `security.md`.
 - **Scope:** Isolate P24 client; credentials only from secure config; initialize transaction using order snapshot, persist external IDs and retries; handle unavailable provider.
@@ -399,7 +407,7 @@ New additive migration provides source/root FKs and root/successor indexes witho
 
 #### TASK-035 — Staff holder search, details and activation screen
 - **Priority:** P0 · **Depends on:** TASK-024–025, TASK-005 · **Source:** STAFF, ACC-010, ADR-001.
-- **Scope:** Search by normalized phone, list holders separately even for shared contact, show payment/pass status, activation action with confirmation, entry redemption separate, dated entry history.
+- **Scope:** Search by normalized phone, list holders separately even for shared contact, show payment/pass status, reception sale form with a separate cash/card money-received confirmation using TASK-027, activation action with confirmation, entry redemption separate, dated entry history.
 - **Acceptance:** Staff does not confuse family holders; pending pass shows no fake expiry; activation button disabled after successful activation; concurrent backend protection remains authoritative.
 - **Tests/checks:** Pest access/search and E2E first-visit flow.
 

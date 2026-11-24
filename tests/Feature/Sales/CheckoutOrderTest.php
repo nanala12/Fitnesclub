@@ -128,7 +128,7 @@ test('timed order records duration without calculating activation dates', functi
 
 test('checkout rejects server controlled or multiple item fields', function (string $field) {
     assertCheckoutInvalid([...$this->input, $field => 'forged'], $field);
-})->with(['renewal_source_membership_id', 'purchaser_user_id', 'holder_user_id', 'created_by_user_id', 'amount_grosz', 'price_grosz', 'price', 'currency', 'plan_snapshot', 'status', 'sales_channel', 'payment_method', 'paid_at', 'ordered_at', 'regulation_accepted_at', 'recipient_email', 'memberships', 'items', 'quantity']);
+})->with(['reception_request_id', 'renewal_source_membership_id', 'purchaser_user_id', 'holder_user_id', 'created_by_user_id', 'amount_grosz', 'price_grosz', 'price', 'currency', 'plan_snapshot', 'status', 'sales_channel', 'payment_method', 'paid_at', 'ordered_at', 'regulation_accepted_at', 'recipient_email', 'memberships', 'items', 'quantity']);
 
 test('checkout validates required and nested person fields', function (string $field, mixed $value) {
     $input = $this->input;

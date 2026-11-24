@@ -364,6 +364,14 @@ Aktywacja pozostaje osobną czynnością i niczego nie odlicza. Bezterminowe kar
 
 Pracownik jawnie wskazuje źródłowy karnet, a wybór zostaje trwale powiązany z zamówieniem. Zaufany proces płatności może automatycznie wydać przedłużenie przez `IssuePaidMembership`, jeśli zamówienie ma już zatwierdzone powiązanie. Obecny formularz danych nowego zakupu odrzuca surowe źródłowe ID od klienta; bezpieczny wybór w interfejsach zakupów/recepcji powstaje w kolejnych zadaniach. Migrację powiązań przedłużeń zastosowano lokalnie, zachowując liczbę rekordów. Nie łączymy historii gościnnej z kontem ani nie dobieramy posiadacza po samym telefonie. Kolejkowanie początkowych nieaktywowanych karnetów, wygasłe źródła i pozostałe zmiany typów pozostają poza zatwierdzonym zakresem.
 
+## Sprzedaż na recepcji (TASK-027)
+
+`CreateReceptionOrder::handle($actor, $input)` zapisuje nieopłacone zamówienie na aktywny plan z ceną i warunkami pobranymi z katalogu. Wymaga uprawnionego pracownika/admina, UUID operacji, rewizji planu, gotówki/karty oraz osobnych danych kupującego i ewentualnego innego posiadacza. Konto wybiera się jawnie; zgodny telefon/e-mail nie łączy gościa z kontem. Widoczność planu w publicznym cenniku nie blokuje jego sprzedaży na recepcji. Akceptacja regulaminu online pozostaje odrębnym wymaganiem ścieżki internetowej.
+
+`ConfirmReceptionPayment::handle($actor, $order)` zapisuje potwierdzenie pieniędzy już otrzymanych przez pracownika. Rejestruje kanał `reception`, gotówkę/kartę, kwotę w groszach, czas UTC i wykonawcę; w tej samej transakcji wydaje karnet oraz zlecenie PDF. Nowy karnet czeka na pierwszą aktywację, a zatwierdzone przedłużenie korzysta z TASK-026. Akcja nie obciąża terminala ani banku. UUID zapobiega podwójnemu zapisowi zamówienia, a blokady zamówienia chronią potwierdzenie przed powieleniem płatności i karnetu. Przy łączeniu obu kroków w transakcji przekaż do potwierdzenia model zwrócony przez tworzenie; krytyczne dane są zawsze ponownie czytane pod blokadą.
+
+Migracja dodaje wyłącznie unikalny, opcjonalny identyfikator operacji recepcji, zachowując historię i ograniczenia bazy. Odwrócenie, które usunęłoby użyte klucze operacji, jest blokowane. Migrację zastosowano lokalnie bez zmiany liczby rekordów. Formularz i przyciski sprzedaży recepcyjnej są częścią ekranów pracownika w TASK-035.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

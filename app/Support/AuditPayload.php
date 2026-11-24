@@ -2,12 +2,15 @@
 
 namespace App\Support;
 
+use App\Enums\PaymentMethod;
+use App\Enums\SalesChannel;
 use App\Enums\UserRole;
 
 class AuditPayload
 {
     /** @var array<string, string> */
     public const array FIELD_LABELS = [
+        'payment_method' => 'Forma płatności', 'sales_channel' => 'Kanał sprzedaży',
         'entries_remaining' => 'Pozostałe wejścia', 'used_at' => 'Data wykorzystania wejścia',
         'activated_at' => 'Aktywacja przy pierwszej wizycie', 'starts_on' => 'Początek ważności', 'expires_on' => 'Koniec ważności',
         'price_list_group_id' => 'Grupa cennika', 'category' => 'Kategoria cennika',
@@ -37,6 +40,12 @@ class AuditPayload
             return null;
         }
         $safe = [];
+        if (isset($values['payment_method']) && is_string($values['payment_method']) && PaymentMethod::tryFrom($values['payment_method']) !== null) {
+            $safe['payment_method'] = $values['payment_method'];
+        }
+        if (isset($values['sales_channel']) && is_string($values['sales_channel']) && SalesChannel::tryFrom($values['sales_channel']) !== null) {
+            $safe['sales_channel'] = $values['sales_channel'];
+        }
         if (isset($values['entries_remaining']) && is_int($values['entries_remaining']) && $values['entries_remaining'] >= 0 && $values['entries_remaining'] <= 4294967295) {
             $safe['entries_remaining'] = $values['entries_remaining'];
         }
