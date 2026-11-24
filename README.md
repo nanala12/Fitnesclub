@@ -372,6 +372,16 @@ Pracownik jawnie wskazuje źródłowy karnet, a wybór zostaje trwale powiązany
 
 Migracja dodaje wyłącznie unikalny, opcjonalny identyfikator operacji recepcji, zachowując historię i ograniczenia bazy. Odwrócenie, które usunęłoby użyte klucze operacji, jest blokowane. Migrację zastosowano lokalnie bez zmiany liczby rekordów. Formularz i przyciski sprzedaży recepcyjnej są częścią ekranów pracownika w TASK-035.
 
+## Rozpoczęcie płatności Przelewy24 (TASK-028)
+
+`InitiatePrzelewy24Payment::handle($orderId, $purchaser)` przygotowuje transakcję dla zapisanego i zatwierdzonego zamówienia online. Wymaga wcześniejszego zakończenia transakcji tworzącej zamówienie. Dla zakupu z konta sprawdza aktualnego właściciela; jawne `null` jest przeznaczone wyłącznie dla zaufanego kodu checkoutu gościa, który właśnie utworzył zamówienie lub zweryfikował dostęp do niego. Akcja nie jest publicznym endpointem. Kwota i waluta pochodzą z utrwalonego zakupu, a e-mail płatnika z danych kupującego, również przy zakupie dla innej osoby. API operatora ogranicza ten e-mail do 50 znaków; dłuższego adresu nie obcinamy.
+
+Konfiguracja w `config/payments.php` jest domyślnie wyłączona. `.env.example` zawiera wyłącznie puste pola i bezpieczne wartości domyślne: `P24_ENABLED`, `P24_ENVIRONMENT`, `P24_MERCHANT_ID`, `P24_POS_ID`, `P24_API_KEY`, `P24_CRC`, `P24_RETURN_URL`, `P24_STATUS_URL` i `P24_LIVE_ENABLED`. Dane sandbox wprowadza się lokalnie poza Gitem; klucz API/report i CRC są odrębnymi sekretami. Oba adresy wymagają HTTPS. Środowisko produkcyjne operatora wymaga jednocześnie `APP_ENV=production` i jawnego `P24_LIVE_ENABLED=true`. Nie włączaj płatności przed wdrożeniem oraz sprawdzeniem obsługi powiadomień TASK-029 i checkoutu TASK-030.
+
+Unikalna sesja jest zapisana przed kontaktem z operatorem; otrzymany token jest szyfrowany przy użyciu `APP_KEY`. Ponowienie gotowej płatności wykorzystuje ten sam token. Timeout, niejednoznaczna odpowiedź lub utrata wyniku nie uruchamiają automatycznie nowego żądania rejestracji; zachowana sesja wymaga sprawdzenia w TASK-029. Jawnie odrzucone rejestracje można ponowić do trzech prób. Migracja dodaje metadane rejestracji i unikalność sesji operatora, a jej cofnięcie blokuje usunięcie użytej historii.
+
+Adapter korzysta z [oficjalnej specyfikacji REST Przelewy24](https://developers.przelewy24.pl/yaml/en_documentation_1.0.yaml). Testy używają fikcyjnych odpowiedzi HTTP, bez rzeczywistych płatności. Samo przygotowanie transakcji lub powrót przeglądarki nie potwierdza opłaty i nie wydaje karnetu. Weryfikacja operatora należy do TASK-029, a przycisk zakupu i przekierowanie w interfejsie do TASK-030.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

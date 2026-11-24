@@ -33,7 +33,7 @@ class AuditLogController extends Controller
         $new = $payload->values(is_array($entry->getAttribute('new_values')) ? $entry->getAttribute('new_values') : null) ?? [];
         $metadata = $payload->metadata(is_array($entry->getAttribute('metadata')) ? $entry->getAttribute('metadata') : []);
         $changes = [];
-        foreach (['payment_method' => 'Forma płatności', 'sales_channel' => 'Kanał sprzedaży', 'entries_remaining' => 'Pozostałe wejścia', 'starts_on' => 'Początek ważności', 'expires_on' => 'Koniec ważności', 'role' => 'Rola', 'suspended' => 'Dostęp do konta', 'price_grosz' => 'Cena', 'is_active' => 'Dostępność planu', 'is_public' => 'Widoczność w cenniku', 'is_featured' => 'Wyróżnienie'] as $field => $label) {
+        foreach (['payment_status' => 'Stan płatności', 'payment_method' => 'Forma płatności', 'sales_channel' => 'Kanał sprzedaży', 'entries_remaining' => 'Pozostałe wejścia', 'starts_on' => 'Początek ważności', 'expires_on' => 'Koniec ważności', 'role' => 'Rola', 'suspended' => 'Dostęp do konta', 'price_grosz' => 'Cena', 'is_active' => 'Dostępność planu', 'is_public' => 'Widoczność w cenniku', 'is_featured' => 'Wyróżnienie'] as $field => $label) {
             if (($old[$field] ?? null) !== ($new[$field] ?? null)) {
                 $changes[] = ['label' => $label, 'before' => $this->displayValue($old[$field] ?? null, $field), 'after' => $this->displayValue($new[$field] ?? null, $field)];
             }
@@ -42,6 +42,7 @@ class AuditLogController extends Controller
         return [
             'id' => $entry->id, 'action' => $action?->label() ?? 'Zdarzenie audytu',
             'subjectLabel' => match ($action?->subjectType()) {
+                'payment' => 'Płatność #'.$entry->getAttribute('subject_id'),
                 'order' => 'Zamówienie #'.$entry->getAttribute('subject_id'),
                 'membership' => 'Karnet #'.$entry->getAttribute('subject_id'),
                 'price_category' => 'Kategoria cennika #'.$entry->getAttribute('subject_id'),
@@ -90,6 +91,8 @@ class AuditLogController extends Controller
         }
 
         return match ($value) {
+            'initiated' => 'Przygotowywanie', 'pending' => 'Oczekuje na płatność', 'unknown' => 'Wymaga sprawdzenia',
+            'failed' => 'Nieudana', 'confirmed' => 'Potwierdzona', 'cancelled' => 'Anulowana',
             'cash' => 'Gotówka', 'card' => 'Karta', 'przelewy24' => 'Przelewy24',
             'reception' => 'Recepcja', 'online' => 'Online',
             true => 'Zawieszony', false => 'Włączony', 'admin' => 'Administrator',

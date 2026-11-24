@@ -21,6 +21,7 @@ use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Symfony\Component\Process\Process;
@@ -50,7 +51,7 @@ function fakeIssuePayment(Order $order, array $overrides = []): Payment
         'order_id' => $order->id, 'status' => PaymentStatus::Confirmed, 'confirmed_at' => now(),
         'provider' => $order->sales_channel === SalesChannel::Online ? PaymentProvider::Przelewy24 : PaymentProvider::Reception,
         'method' => $order->payment_method, 'confirmed_by_user_id' => $order->created_by_user_id,
-        'provider_session_id' => 'fake-session-'.$order->id, 'provider_transaction_id' => 'fake-transaction-'.$order->id,
+        'provider_session_id' => 'fake-session-'.Str::uuid(), 'provider_transaction_id' => 'fake-transaction-'.$order->id,
         ...$overrides,
     ]);
 }
