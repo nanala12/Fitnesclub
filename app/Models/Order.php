@@ -62,7 +62,7 @@ class Order extends Model
     /** @return list<string> */
     public function historyFieldsSetOnce(): array
     {
-        return ['paid_at', 'accepted_regulation_version_id', 'regulation_accepted_at'];
+        return ['paid_at', 'accepted_regulation_version_id', 'regulation_accepted_at', 'renewal_source_membership_id'];
     }
 
     /** @return BelongsTo<MembershipPlan, $this> */

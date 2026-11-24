@@ -18,7 +18,7 @@ use Illuminate\Validation\ValidationException;
 
 class IssuePaidMembership
 {
-    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment) {}
+    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment, private LockMembershipOrder $orders, private RenewPaidMembership $renewals) {}
 
     /**
      * Internal boundary after trusted payment verification, never a browser-return handler.
@@ -38,13 +38,21 @@ class IssuePaidMembership
                 }
                 Gate::forUser($actor)->authorize('issue', Membership::class);
             }
-            $order = Order::query()->whereKey($orderId)->lockForUpdate()->firstOrFail();
+            $sourceId = Order::query()->whereKey($orderId)->value('renewal_source_membership_id');
+            if ($sourceId !== null) {
+                return $this->renewals->handle($actor, $orderId, (int) $sourceId);
+            }
+            $locator = Membership::query()->where('order_id', $orderId)->first(['order_id', 'renewal_root_membership_id']);
+            $order = $locator === null ? Order::query()->whereKey($orderId)->lockForUpdate()->firstOrFail() : $this->orders->handle($locator);
             $this->payment->handle($order);
             $this->requireSnapshot($order);
 
             $existing = Membership::query()->where('order_id', $order->id)->lockForUpdate()->first();
             if ($existing !== null) {
                 return $existing;
+            }
+            if ($order->renewal_source_membership_id !== null) {
+                throw ValidationException::withMessages(['renewal' => 'Zakup został powiązany z przedłużanym karnetem. Ponów wydanie na aktualnych danych.']);
             }
 
             $membership = new Membership;

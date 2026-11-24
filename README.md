@@ -358,6 +358,12 @@ Migracja `2026_11_23_020000_allow_non_expiring_entry_activation` dopuszcza aktyw
 
 Aktywacja pozostaje osobną czynnością i niczego nie odlicza. Bezterminowe karnety wejściowe nie wygasają z upływem miesięcy. `GetMembershipEntryHistory` udostępnia uprawnionemu pracownikowi/adminowi stronicowaną historię z datą i wykonawcą, także gdy karnetu nie można już użyć. Migracja TASK-025 zmienia techniczne znaczniki czasu karnetu na `DATETIME(6)`, aby użycie po 2038 roku nie było blokowane limitem typu `TIMESTAMP`. Migrację zastosowano lokalnie, zachowując liczbę rekordów. Ekran obsługi recepcji i przyciski powstaną w TASK-035.
 
+## Przedłużenia i niewykorzystane wejścia (TASK-026)
+
+`RenewPaidMembership` obsługuje opłacone przedłużenie wskazanego karnetu: ten sam plan oraz zatwierdzone przejście 4 → 8 wejść. Czasowy otrzymuje kolejny okres od dnia po poprzedniej dacie końca; kilka zakupów układa się kolejno, bez nakładania dni. Wejściowy dodaje pozostałe wejścia do kupionej liczby (np. 3 + 8 = 11), od razu pozwala z nich korzystać i nie wymaga nowej aktywacji. Stary karnet zachowuje historię, a przeniesione saldo spada do zera. Transfer zapisuje obie strony ruchu wejść i audyt w jednej transakcji.
+
+Pracownik jawnie wskazuje źródłowy karnet, a wybór zostaje trwale powiązany z zamówieniem. Zaufany proces płatności może automatycznie wydać przedłużenie przez `IssuePaidMembership`, jeśli zamówienie ma już zatwierdzone powiązanie. Obecny formularz danych nowego zakupu odrzuca surowe źródłowe ID od klienta; bezpieczny wybór w interfejsach zakupów/recepcji powstaje w kolejnych zadaniach. Migrację powiązań przedłużeń zastosowano lokalnie, zachowując liczbę rekordów. Nie łączymy historii gościnnej z kontem ani nie dobieramy posiadacza po samym telefonie. Kolejkowanie początkowych nieaktywowanych karnetów, wygasłe źródła i pozostałe zmiany typów pozostają poza zatwierdzonym zakresem.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

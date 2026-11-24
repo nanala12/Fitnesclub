@@ -7,7 +7,6 @@ use App\Actions\Payments\RequireConfirmedOrderPayment;
 use App\Enums\AuditAction;
 use App\Enums\PlanKind;
 use App\Models\Membership;
-use App\Models\Order;
 use App\Models\User;
 use App\Support\MembershipPeriod;
 use Carbon\CarbonImmutable;
@@ -19,7 +18,7 @@ use InvalidArgumentException;
 
 class ActivateMembership
 {
-    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment) {}
+    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment, private LockMembershipOrder $orders) {}
 
     public function handle(User $actor, int $membershipId): Membership
     {
@@ -34,8 +33,8 @@ class ActivateMembership
             Gate::forUser($actor)->authorize('activate', Membership::class);
 
             // The order link is immutable. Lock in the same order as payment issuance.
-            $orderId = Membership::query()->whereKey($membershipId)->firstOrFail(['order_id'])->order_id;
-            $order = Order::query()->whereKey($orderId)->lockForUpdate()->firstOrFail();
+            $locator = Membership::query()->whereKey($membershipId)->firstOrFail(['order_id', 'renewal_root_membership_id']);
+            $order = $this->orders->handle($locator);
             $this->payment->handle($order);
             $membership = Membership::query()->whereKey($membershipId)->lockForUpdate()->firstOrFail();
             if ($membership->activated_at !== null) {

@@ -7,7 +7,6 @@ use App\Actions\Payments\RequireConfirmedOrderPayment;
 use App\Enums\AuditAction;
 use App\Models\Membership;
 use App\Models\MembershipEntry;
-use App\Models\Order;
 use App\Models\User;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -18,7 +17,7 @@ use Illuminate\Validation\ValidationException;
 
 class RedeemMembershipEntry
 {
-    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment) {}
+    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment, private LockMembershipOrder $orders) {}
 
     public function handle(User $actor, int $membershipId, string $requestId): MembershipEntry
     {
@@ -36,8 +35,8 @@ class RedeemMembershipEntry
                 throw new AuthorizationException;
             }
             Gate::forUser($actor)->authorize('redeem', Membership::class);
-            $orderId = Membership::query()->whereKey($membershipId)->firstOrFail(['order_id'])->order_id;
-            $order = Order::query()->whereKey($orderId)->lockForUpdate()->firstOrFail();
+            $locator = Membership::query()->whereKey($membershipId)->firstOrFail(['order_id', 'renewal_root_membership_id']);
+            $order = $this->orders->handle($locator);
             $this->payment->handle($order);
             $membership = Membership::query()->whereKey($membershipId)->lockForUpdate()->firstOrFail();
             $now = CarbonImmutable::now('UTC');
@@ -60,8 +59,11 @@ class RedeemMembershipEntry
             }
 
             $today = $now->setTimezone('Europe/Warsaw')->toDateString();
-            if ($membership->activated_at === null || $membership->starts_on === null || $membership->starts_on->toDateString() > $today) {
+            if (($membership->activated_at === null && ($membership->renewed_from_id === null || $membership->renewal_root_membership_id === null)) || $membership->starts_on === null) {
                 throw ValidationException::withMessages(['membership' => 'Najpierw aktywuj karnet przy pierwszej wizycie.']);
+            }
+            if ($membership->starts_on->toDateString() > $today) {
+                throw ValidationException::withMessages(['membership' => 'Ten karnet jeszcze nie rozpoczął ważności.']);
             }
             if ($membership->expires_on !== null && $membership->expires_on->toDateString() < $today) {
                 throw ValidationException::withMessages(['membership' => 'Ważność tego karnetu już się zakończyła.']);

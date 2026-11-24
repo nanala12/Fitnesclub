@@ -155,6 +155,8 @@ test('core migration rolls back and reapplies without changing existing users CM
     $directMigration = require database_path('migrations/2026_11_23_010000_assign_prices_directly_to_categories.php');
     $activationMigration = require database_path('migrations/2026_11_23_020000_allow_non_expiring_entry_activation.php');
     $timestampMigration = require database_path('migrations/2026_11_23_030000_use_datetime_for_membership_timestamps.php');
+    $renewalMigration = require database_path('migrations/2026_11_23_040000_add_membership_renewal_chain.php');
+    $renewalMigration->down();
     $timestampMigration->down();
     $activationMigration->down();
     $directMigration->down();
@@ -173,6 +175,7 @@ test('core migration rolls back and reapplies without changing existing users CM
     $directMigration->up();
     $activationMigration->up();
     $timestampMigration->up();
+    $renewalMigration->up();
     expect(Membership::factory()->create()->starts_on)->toBeNull()->and(User::findOrFail($user->id)->email)->toBe($user->email);
 });
 

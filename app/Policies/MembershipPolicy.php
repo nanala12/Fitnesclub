@@ -7,6 +7,11 @@ use App\Models\User;
 
 class MembershipPolicy
 {
+    public function renew(User $actor): bool
+    {
+        return $this->issue($actor);
+    }
+
     public function redeem(User $actor): bool
     {
         return $this->issue($actor);

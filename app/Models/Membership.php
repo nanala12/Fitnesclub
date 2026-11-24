@@ -39,8 +39,8 @@ class Membership extends Model
     /** @return list<string> */
     public function immutableHistoryFields(): array
     {
-        return ['order_id', 'membership_plan_id', 'holder_user_id', 'renewed_from_id', 'holder_first_name', 'holder_last_name', 'holder_phone', 'holder_email', 'plan_snapshot',
-            ...($this->activated_at === null ? [] : ['starts_on', 'expires_on', 'activated_at', 'activated_by_user_id'])];
+        return ['order_id', 'membership_plan_id', 'holder_user_id', 'renewed_from_id', 'renewal_root_membership_id', 'holder_first_name', 'holder_last_name', 'holder_phone', 'holder_email', 'plan_snapshot',
+            ...($this->activated_at === null && $this->renewed_from_id === null ? [] : ['starts_on', 'expires_on', 'activated_at', 'activated_by_user_id'])];
     }
 
     /** @return list<string> */

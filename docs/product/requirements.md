@@ -165,8 +165,8 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 | MEM-005 | System nie pozwala wykorzystać więcej wejść niż przyznano. | MUST | MUST — techniczne |
 | MEM-006 | Historia karnetów, wejść i krytycznych operacji jest dostępna również po wygaśnięciu; operacje mają datę i identyfikację wykonawcy. | MUST | CONFIRMED |
 | MEM-007 | Korekty i anulowanie karnetu przez pracownika/administratora wymagają polityki uprawnień. | MUST | OPEN (D-07, D-17) |
-| MEM-008 | Przy przedłużeniu karnetu wejściowego niewykorzystane wejścia przechodzą na nowy limit i są do niego dodawane. | MUST | CONFIRMED (OD-02) |
-| MEM-009 | Zasady łączenia różnych typów karnetów (np. czasowy z wejściowym) i niezależnych pakietów jednej osoby wymagają ustalenia. | MUST | OPEN (OD-02a) |
+| MEM-008 | Przy przedłużeniu karnetu wejściowego niewykorzystane wejścia przechodzą na nowy limit i są do niego dodawane. Nowy pakiet jest dostępny od razu, bez kolejnej aktywacji; stare saldo jest wyzerowane, a historia zachowana. Obsługujemy ten sam plan oraz przejście z 4 na 8 wejść (potwierdzone 2026-11-23). | MUST | CONFIRMED (OD-02) |
+| MEM-009 | Zasady łączenia różnych typów karnetów (np. czasowy z wejściowym) i niezależnych pakietów jednej osoby wymagają ustalenia. Wyjątek potwierdzony 2026-11-23: przedłużenie tego samego planu oraz 4 → 8 wejść. | MUST | OPEN (OD-02a) |
 
 **AC-MEM-01** — Given posiadacz ma aktywny karnet, When kupuje kolejny objęty regułą przedłużenia, Then nowy karnet nie rozpoczyna się przed końcem bieżącego. Dla karnetu czasowego kolejny okres nie biegnie od dnia wcześniejszego zakupu; nie zachodzi nakładanie się dni ważności.  
 **AC-MEM-04** — Given karnet wejściowy ma 3 niewykorzystane wejścia, When posiadacz kupuje przedłużenie na 8 wejść, Then nowy dostępny limit wynosi 11 wejść, bez utraty trzech poprzednich.  
@@ -289,7 +289,7 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 | ID | Stan na 2026-11-04 | Wpływ |
 |---|---|---|
 | OD-01 | RESOLVED — reguła dat z BR-010 (bez kotwiczenia ostatniego dnia). | Testy dat 28/29/30/31 |
-| OD-02 | PARTIAL — przedłużenie miesięcznego od końca poprzedniego; wejścia niewykorzystane doliczane. Zasady łączenia różnych typów i przenoszenia po wygaśnięciu nadal OPEN. | Reguły przejść |
+| OD-02 | PARTIAL — przedłużenie miesięcznego od końca poprzedniego; wejścia niewykorzystane doliczane. Ten sam plan oraz 4 → 8 wejść są zatwierdzone; pakiet wejściowy po przedłużeniu jest dostępny od razu bez nowej aktywacji (2026-11-23). Pozostałe połączenia i przenoszenie po wygaśnięciu nadal OPEN. | Reguły przejść |
 | OD-03 | RESOLVED — potwierdzenie płatności wyznacza `paid_at` i wydanie karnetu; ACT-01 wyznacza start ważności przy pierwszej wizycie. | Płatności i aktywacja |
 | OD-04 | OPEN — zwroty, anulowanie i korekty. | Administracja |
 | OD-05 | RESOLVED — unikalność telefonu i e-maila w `users`, brak łączenia gości z kontami. | Tożsamość |
