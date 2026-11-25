@@ -60,6 +60,7 @@ class AuditLogController extends Controller
                 'homepage_tile' => 'Kafelek #'.$entry->getAttribute('subject_id'),
                 'homepage_slide' => 'Slajd #'.$entry->getAttribute('subject_id'),
                 'media_asset' => 'Zdjęcie #'.$entry->getAttribute('subject_id'),
+                'document_delivery' => 'Wysyłka PDF #'.$entry->getAttribute('subject_id'),
                 default => 'Zapis historyczny',
             },
             'occurredAt' => $entry->occurred_at->toISOString(),

@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command('cms:retry-media-cleanup')->everyMinute()->withoutOverlapping();
+Schedule::command('documents:retry-deliveries')->everyMinute()->withoutOverlapping();

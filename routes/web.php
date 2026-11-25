@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\Cms\MediaController as CmsMediaController;
 use App\Http\Controllers\Admin\Cms\NewsPostController;
 use App\Http\Controllers\Admin\Cms\RegulationController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Admin\DocumentDeliveryController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\MembershipPlanController;
 use App\Http\Controllers\Admin\PriceListController;
@@ -46,6 +47,10 @@ Route::name('public.')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('admin/wysylki-pdf')->name('admin.deliveries.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [DocumentDeliveryController::class, 'index'])->middleware('throttle:60,1,delivery-read:')->name('index');
+        Route::post('/{delivery}/ponow', [DocumentDeliveryController::class, 'resend'])->whereNumber('delivery')->middleware('throttle:5,1,delivery-resend:')->name('resend');
+    });
     Route::prefix('admin/cennik')->name('admin.pricing.')->middleware('can:access-admin-panel')->group(function (): void {
         Route::get('/', [PriceListController::class, 'index'])->middleware('throttle:60,1,pricing-read:')->name('index');
         Route::get('/{type}/nowa', [PriceListController::class, 'create'])->whereIn('type', ['kategorie', 'uslugi'])->name('create');

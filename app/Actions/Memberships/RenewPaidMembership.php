@@ -3,6 +3,7 @@
 namespace App\Actions\Memberships;
 
 use App\Actions\Audit\RecordAudit;
+use App\Actions\Documents\DispatchDocumentDelivery;
 use App\Actions\Payments\RequireConfirmedOrderPayment;
 use App\Enums\AuditAction;
 use App\Enums\DeliveryStatus;
@@ -21,7 +22,7 @@ use InvalidArgumentException;
 
 class RenewPaidMembership
 {
-    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment) {}
+    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment, private DispatchDocumentDelivery $documents) {}
 
     /** Staff selects a source explicitly; system calls require a source already bound to the order. */
     public function handle(?User $actor, int $orderId, int $sourceMembershipId): Membership
@@ -152,6 +153,7 @@ class RenewPaidMembership
             $delivery->forceFill(['membership_id' => $membership->id, 'kind' => 'membership_pdf', 'recipient_email' => $order->recipient_email,
                 'idempotency_key' => 'membership:'.$membership->id.':initial-pdf', 'scheduled_for' => $now,
                 'status' => DeliveryStatus::Pending, 'sent_at' => null, 'storage_path' => null])->save();
+            $this->documents->afterCommit($delivery->id);
             $this->audit->handle(AuditAction::MembershipRenewed, $membership->id, $actor, null,
                 ['starts_on' => $start, 'expires_on' => $expiry, ...($grant === null ? [] : ['entries_remaining' => $grant])],
                 ['changed_fields' => ['starts_on', ...($expiry === null ? ['entries_remaining'] : ['expires_on'])]]);

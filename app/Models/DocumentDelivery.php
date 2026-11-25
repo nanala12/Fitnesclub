@@ -17,27 +17,37 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property DeliveryStatus $status
  * @property CarbonImmutable $scheduled_for
  * @property CarbonImmutable|null $sent_at
+ * @property int $attempts_count
+ * @property bool $needs_review
+ * @property CarbonImmutable|null $queued_at
+ * @property CarbonImmutable|null $processing_started_at
  */
 #[UseEloquentBuilder(SalesHistoryBuilder::class)]
 class DocumentDelivery extends Model
 {
+    public const int MAX_ATTEMPTS = 5;
+
+    public const int LEASE_SECONDS = 180;
+
+    public const array RETRY_DELAYS = [60, 300, 900, 3600];
+
     /** @use HasFactory<DocumentDeliveryFactory> */
     use HasFactory;
 
     use PreservesSalesHistory;
 
-    protected $hidden = ['recipient_email', 'storage_path'];
+    protected $hidden = ['recipient_email', 'storage_path', 'processing_token', 'request_id'];
 
     /** @return array<string, string> */
     protected function casts(): array
     {
-        return ['scheduled_for' => 'immutable_datetime', 'sent_at' => 'immutable_datetime', 'status' => DeliveryStatus::class];
+        return ['attempts_count' => 'integer', 'needs_review' => 'boolean', 'queued_at' => 'immutable_datetime', 'processing_started_at' => 'immutable_datetime', 'scheduled_for' => 'immutable_datetime', 'sent_at' => 'immutable_datetime', 'status' => DeliveryStatus::class];
     }
 
     /** @return list<string> */
     public function immutableHistoryFields(): array
     {
-        return ['membership_id', 'kind', 'recipient_email', 'idempotency_key'];
+        return ['root_delivery_id', 'requested_by_user_id', 'request_id', 'membership_id', 'kind', 'recipient_email', 'idempotency_key'];
     }
 
     /** @return list<string> */

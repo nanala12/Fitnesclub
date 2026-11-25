@@ -249,9 +249,71 @@ try {
         '/tmp/activefit-checkout-mobile.png',
         Buffer.from(shot.data, 'base64'),
     );
+    await evaluate(`fetch('/__checkout_test/deliver', { method: 'POST' })`);
+    await evaluate(`fetch('/__checkout_test/login-admin', { method: 'POST' })`);
+    await call('Emulation.setDeviceMetricsOverride', {
+        width: 1440,
+        height: 1000,
+        deviceScaleFactor: 1,
+        mobile: false,
+    });
+    await navigate('/admin/wysylki-pdf');
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Wysyłki PDF')`,
+    );
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('holder@example.test')`,
+        ),
+        false,
+    );
+    await evaluate(
+        `[...document.querySelectorAll('button')].find((button) => button.textContent.includes('Wyślij ponownie')).click()`,
+    );
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await evaluate(
+        `[...document.querySelector('[role="dialog"]').querySelectorAll('button')].find((button) => button.textContent.includes('Anuluj')).click()`,
+    );
+    assert.equal((await state()).deliveries, 1);
+    await evaluate(
+        `[...document.querySelectorAll('button')].find((button) => button.textContent.includes('Wyślij ponownie')).click()`,
+    );
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await evaluate(
+        `[...document.querySelector('[role="dialog"]').querySelectorAll('button')].find((button) => button.textContent.includes('Potwierdź wysyłkę')).click()`,
+    );
+    await until(
+        `!document.querySelector('[role="dialog"]') && document.body.textContent.includes('Ponowna wysyłka')`,
+    );
+    assert.equal((await state()).deliveries, 2);
+    await evaluate(`document.cookie = 'checkout_test_mail=fail; path=/'`);
+    await evaluate(`fetch('/__checkout_test/deliver', { method: 'POST' })`);
+    await navigate('/admin/wysylki-pdf');
+    await until(`document.body.textContent.includes('Wysyłka nieudana')`);
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+    await call('Emulation.setDeviceMetricsOverride', {
+        width: 390,
+        height: 844,
+        deviceScaleFactor: 1,
+        mobile: true,
+    });
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+    const deliveryShot = await call('Page.captureScreenshot', {
+        captureBeyondViewport: true,
+    });
+    await writeFile(
+        '/tmp/activefit-deliveries-mobile.png',
+        Buffer.from(deliveryShot.data, 'base64'),
+    );
     assert.deepEqual(errors, [], 'Unexpected browser JavaScript exceptions');
     console.log(
-        'PASS: desktop purchase, dynamic holder/plan fields, validation, duplicate submit, mocked redirect, untrusted return, verified pending activation, private PDF download, timeout and mobile layout.',
+        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure and desktop/mobile layouts.',
     );
 } finally {
     ws?.close();

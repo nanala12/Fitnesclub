@@ -4,6 +4,7 @@ namespace App\Enums;
 
 enum AuditAction: string
 {
+    case DocumentResendRequested = 'document.resend_requested';
     case PaymentVerified = 'payment.verified';
     case PaymentRegistrationStarted = 'payment.registration_started';
     case PaymentRegistrationReady = 'payment.registration_ready';
@@ -69,6 +70,7 @@ enum AuditAction: string
     public function label(): string
     {
         return match ($this) {
+            self::DocumentResendRequested => 'Zlecono ponowną wysyłkę PDF karnetu',
             self::PaymentVerified => 'Zweryfikowano płatność Przelewy24',
             self::PaymentRegistrationStarted => 'Rozpoczęto przygotowanie płatności',
             self::PaymentRegistrationReady => 'Przygotowano przekierowanie do płatności',
@@ -131,6 +133,7 @@ enum AuditAction: string
     public function subjectType(): string
     {
         return match ($this) {
+            self::DocumentResendRequested => 'document_delivery',
             self::PaymentVerified, self::PaymentRegistrationStarted, self::PaymentRegistrationReady, self::PaymentRegistrationFailed => 'payment',
             self::ReceptionOrderCreated, self::ReceptionPaymentConfirmed => 'order',
             self::MembershipIssued, self::MembershipActivated, self::MembershipEntryUsed, self::MembershipRenewed, self::MembershipEntriesTransferred => 'membership',

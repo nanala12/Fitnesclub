@@ -1,12 +1,15 @@
 <?php
 
+use App\Actions\Documents\DeliverMembershipDocument;
 use App\Actions\Payments\VerifyPrzelewy24Payment;
 use App\Models\DocumentDelivery;
 use App\Models\Membership;
 use App\Models\Order;
 use App\Models\Payment;
+use App\Models\User;
 use App\Services\Payments\Przelewy24Notification;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
@@ -15,6 +18,18 @@ if ($path !== '/' && is_file(__DIR__.'/../../../public'.$path)) {
 }
 $app = require __DIR__.'/browser-app.php';
 // These fixture-only endpoints are never loaded by the application routes.
+Route::post('__checkout_test/login-admin', function (Request $request) {
+    Auth::login(User::where('role', 'admin')->firstOrFail());
+    $request->session()->regenerate();
+
+    return response('OK');
+})->middleware('web');
+Route::post('__checkout_test/deliver', function () {
+    $delivery = DocumentDelivery::latest('id')->firstOrFail();
+    app(DeliverMembershipDocument::class)->handle($delivery->id, $delivery->attempts_count);
+
+    return response('OK');
+});
 Route::get('__checkout_test/state', fn () => response()->json([
     'orders' => Order::count(), 'payments' => Payment::count(), 'memberships' => Membership::count(), 'deliveries' => DocumentDelivery::count(),
     'lastReference' => Order::latest('id')->first()?->public_reference,

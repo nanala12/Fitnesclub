@@ -20,6 +20,7 @@ import PanelLayout from '@/layouts/PanelLayout.vue';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as employees } from '@/routes/admin/employees';
 import { index as audit } from '@/routes/admin/audit';
+import { index as deliveries } from '@/routes/admin/deliveries';
 import { edit } from '@/routes/profile';
 import type { PanelLayoutProps } from '@/types';
 withDefaults(defineProps<PanelLayoutProps>(), {
@@ -72,6 +73,7 @@ withDefaults(defineProps<PanelLayoutProps>(), {
             icon: ClipboardList,
         },
         { title: 'Historia zmian', href: audit(), icon: ClipboardList },
+        { title: 'Wysyłki PDF', href: deliveries(), icon: ClipboardList },
         { title: 'Mój profil', href: edit(), icon: UserRound },
     ],
 });

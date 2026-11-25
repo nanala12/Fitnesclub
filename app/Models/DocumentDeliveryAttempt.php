@@ -4,12 +4,17 @@ namespace App\Models;
 
 use App\Database\SalesHistoryBuilder;
 use App\Models\Concerns\PreservesSalesHistory;
+use Carbon\CarbonImmutable;
 use Database\Factories\DocumentDeliveryAttemptFactory;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property CarbonImmutable $attempted_at
+ * @property int $attempt_number
+ */
 #[UseEloquentBuilder(SalesHistoryBuilder::class)]
 class DocumentDeliveryAttempt extends Model
 {

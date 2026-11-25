@@ -441,9 +441,37 @@ docker compose exec app php artisan documents:generate-membership-pdfs --limit=2
 docker compose exec app php artisan documents:generate-membership-pdfs --delivery=123 --limit=1
 ```
 
-`--delivery` jest ID z `document_deliveries`. Polecenie nie wysyła e-maila ani nie zmienia statusu dostarczenia. Automatyczne przetwarzanie kolejki i wysyłka z retry są częścią TASK-032. Nie trzeba wykonywać migracji dla TASK-031. Generator wymaga `composer install` po pobraniu zmian; dodano Dompdf 3.1.6 z lokalnym fontem obsługującym polskie znaki. PHP, JavaScript i zdalne zasoby są wyłączone w rendererze.
+`--delivery` jest ID z `document_deliveries`. Polecenie nie wysyła e-maila ani nie zmienia statusu dostarczenia. Automatyczne przetwarzanie kolejki i wysyłkę z retry opisuje TASK-032 poniżej. Nie trzeba wykonywać migracji dla TASK-031. Generator wymaga `composer install` po pobraniu zmian; dodano Dompdf 3.1.6 z lokalnym fontem obsługującym polskie znaki. PHP, JavaScript i zdalne zasoby są wyłączone w rendererze.
 
 Testy obejmują rzeczywiste pliki PDF, treść/snapshoty, uprawnienia, błędy zapisu i współbieżność. Dotychczasowy test Chrome sprawdza również prywatne pobranie po symulowanym potwierdzeniu opłaty. Audyt Composer nie wykazał alertów dla nowych zależności PDF; wykazał 18 alertów w 8 dotychczasowych pakietach. Wymagają osobnego przeglądu i aktualizacji przed produkcją (`composer audit`). Okres retencji prywatnych PDF i kopii zapasowych nadal wymaga decyzji OD-11.
+
+## Wysyłka PDF i ponowienia (TASK-032)
+
+Po zatwierdzeniu płatności, również w recepcji i przy przedłużeniu, aplikacja zleca wysyłkę dopiero po zatwierdzeniu transakcji bazy. Dla zakupu na inną osobę odbiorcą jest zapisany e-mail posiadacza; dla siebie — kupującego. Błąd PDF, SMTP lub kolejki nie cofa opłaty i nie tworzy drugiego karnetu.
+
+Wiadomości z PDF używają osobnego mailera `membership` przez SMTP, z ustawieniami `MAIL_HOST`, `MAIL_PORT`, `MAIL_USERNAME`, `MAIL_PASSWORD`, `MAIL_SCHEME` oraz `MAIL_FROM_ADDRESS`/`MAIL_FROM_NAME`. Domyślny `MAIL_MAILER=log` nie zapisuje tych wiadomości ani załączników do logów. Przed rzeczywistą wysyłką skonfiguruj działający serwer SMTP; sam domyślny adres localhost:2525 go nie uruchamia. Lokalnie używaj przechwytującego serwera testowego, bez dostarczania do prawdziwych odbiorców.
+
+Wymagana jest nowa migracja, proces kolejki **database/default** oraz scheduler. Przy działającym kontenerze aplikacji:
+
+```bash
+docker compose exec app php artisan migrate
+docker compose exec app php artisan queue:work database --queue=default --timeout=60
+docker compose exec app php artisan schedule:work
+```
+
+Worker i scheduler są długotrwałymi procesami — uruchom je w osobnych terminalach/procesach. `composer run dev` już uruchamia worker; nie dubluj go bez potrzeby. Na wdrożeniu użyj nadzorowanego workera i wywołania `schedule:run` co minutę. Job wymusza bazodanową kolejkę, także gdy domyślna konfiguracja wskazuje `sync`. Wspólny prywatny dysk PDF musi być dostępny dla aplikacji i workera. Worker ma jedną próbę wykonania joba; limit ponowień jest trwale zapisany przy wysyłce.
+
+Każde zlecenie ma najwyżej 5 prób: pierwszą oraz ponowienia po 1, 5, 15 i 60 minutach. Scheduler odzyskuje niewstawione lub zagubione zadania. Można też jednorazowo zlecić przegląd:
+
+```bash
+docker compose exec app php artisan documents:retry-deliveries --limit=100
+```
+
+Polecenie kolejkuje pracę; samo nie wysyła wiadomości. Zadania zawierają tylko ID i numer próby. Stare lub zdublowane joby nie zużywają następnej próby. Przerwane przetwarzanie po 180 sekundach wymaga sprawdzenia przez administratora, bez automatycznego ponowienia niepewnego wyniku. „Wysłano” oznacza przyjęcie wiadomości przez transport, bez gwarancji dostarczenia do skrzynki; SMTP nie zapewnia dokładnie jednej dostawy.
+
+W panelu administratora jest pozycja **Wysyłki PDF** (`/admin/wysylki-pdf`): zamaskowany odbiorca, status, próby i ponowna wysyłka z potwierdzeniem. Ponowienie tworzy osobne, audytowane zlecenie na dotychczasowy adres, zachowuje historię i nie pozwala zmienić odbiorcy. Jest dostępne po zakończeniu wysyłki, wyczerpaniu prób lub sprawdzeniu niepewnego wyniku. Trwające automatyczne próby blokują kolejne zlecenie. Pracownik i klient nie mają dostępu do tego panelu.
+
+Testy używają atrap oraz transportu `array`, także przy rzeczywistym wykonaniu workera i składaniu MIME z prywatnym załącznikiem. Test Chrome sprawdza potwierdzenie/anulowanie ponowienia, błąd wysyłki i widok mobilny. Nie wykonano wysyłki przez zewnętrzny SMTP; odbiór rzeczywistej wiadomości pozostaje sprawdzeniem konfiguracji przed wdrożeniem.
 
 ## Kluczowe ustalenia
 

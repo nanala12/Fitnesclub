@@ -3,6 +3,7 @@
 namespace App\Actions\Memberships;
 
 use App\Actions\Audit\RecordAudit;
+use App\Actions\Documents\DispatchDocumentDelivery;
 use App\Actions\Payments\RequireConfirmedOrderPayment;
 use App\Enums\AuditAction;
 use App\Enums\DeliveryStatus;
@@ -18,7 +19,7 @@ use Illuminate\Validation\ValidationException;
 
 class IssuePaidMembership
 {
-    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment, private LockMembershipOrder $orders, private RenewPaidMembership $renewals) {}
+    public function __construct(private RecordAudit $audit, private RequireConfirmedOrderPayment $payment, private LockMembershipOrder $orders, private RenewPaidMembership $renewals, private DispatchDocumentDelivery $documents) {}
 
     /**
      * Internal boundary after trusted payment verification, never a browser-return handler.
@@ -69,6 +70,7 @@ class IssuePaidMembership
             $delivery->forceFill(['membership_id' => $membership->id, 'kind' => 'membership_pdf',
                 'recipient_email' => $order->recipient_email, 'idempotency_key' => 'membership:'.$membership->id.':initial-pdf',
                 'scheduled_for' => now(), 'status' => DeliveryStatus::Pending, 'sent_at' => null, 'storage_path' => null])->save();
+            $this->documents->afterCommit($delivery->id);
             $this->audit->handle(AuditAction::MembershipIssued, $membership->id, $actor, null, ['price_grosz' => $order->amount_grosz]);
 
             return $membership;
