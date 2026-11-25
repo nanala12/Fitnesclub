@@ -6,7 +6,6 @@ use App\Actions\Orders\CreateOnlineOrder;
 use App\Actions\Payments\InitiatePrzelewy24Payment;
 use App\Actions\PublicSite\PublicSiteContent;
 use App\Enums\OrderStatus;
-use App\Enums\PaymentStatus;
 use App\Enums\SalesChannel;
 use App\Exceptions\PaymentRegistrationException;
 use App\Http\Requests\CheckoutRequest;
@@ -15,6 +14,7 @@ use App\Models\Order;
 use App\Services\Payments\Przelewy24Client;
 use App\Services\Payments\Przelewy24Configuration;
 use App\Support\CheckoutAccess;
+use App\Support\OrderSummary;
 use App\Support\PlanPrice;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -67,20 +67,11 @@ class CheckoutController extends Controller
     public function show(string $reference, Request $request, PublicSiteContent $content): HttpResponse
     {
         $order = $this->find($reference, $request);
-        $payment = $order->payments()->latest('id')->first();
-        $paid = $order->status === OrderStatus::Paid;
-        $uncertain = in_array($payment?->status, [PaymentStatus::Unknown, PaymentStatus::Initiated], true);
-        $retry = $order->status === OrderStatus::Pending && ! $uncertain
-            && ($payment === null || in_array($payment->status, [PaymentStatus::Pending, PaymentStatus::Failed], true));
         Inertia::encryptHistory();
-
-        $response = Inertia::render('public/Checkout/Show', [...$content->shared('checkout'), 'order' => [
-            'reference' => $order->public_reference, 'planName' => $order->plan_snapshot['name'], 'priceLabel' => PlanPrice::label($order->amount_grosz),
-            'state' => $paid ? 'pending_activation' : ($uncertain ? 'checking_payment' : ($order->status === OrderStatus::Pending ? 'awaiting_payment' : 'stopped')),
-            'canPay' => $retry && $this->available(), 'paymentAvailable' => $this->available(),
-            'isGuest' => $order->purchaser_user_id === null,
-            'pdfUrl' => $paid && $order->membership()->exists() ? route('checkout.pdf', $order->public_reference, absolute: false) : null,
-        ], 'notice' => $request->session()->get('checkout_notice')])->toResponse($request);
+        $response = Inertia::render('public/Checkout/Show', [...$content->shared('checkout'),
+            'order' => app(OrderSummary::class)->make($order, $this->available()),
+            'notice' => $request->session()->get('checkout_notice'),
+        ])->toResponse($request);
         $response->headers->add($this->privateHeaders());
 
         return $response;

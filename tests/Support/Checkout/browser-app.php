@@ -29,6 +29,9 @@ Http::fake(function ($request) {
         throw new RuntimeException('Unexpected test transport.');
     }
     if ($request->method() === 'POST') {
+        if (($_COOKIE['checkout_test_gateway'] ?? '') === 'reject') {
+            return Http::response(['error' => 'Synthetic rejection'], 400);
+        }
         if (($_COOKIE['checkout_test_gateway'] ?? '') === 'timeout') {
             return Http::failedConnection();
         }

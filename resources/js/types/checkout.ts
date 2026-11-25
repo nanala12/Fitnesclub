@@ -24,7 +24,22 @@ export type CheckoutOrder = {
         | 'pending_activation'
         | 'checking_payment'
         | 'awaiting_payment'
-        | 'stopped';
+        | 'failed'
+        | 'cancelled'
+        | 'awaiting_reception'
+        | 'active'
+        | 'scheduled'
+        | 'expired'
+        | 'exhausted';
+    paid: boolean;
+    salesChannel: 'online' | 'reception';
+    paymentMethod: 'przelewy24' | 'cash' | 'card';
+    orderedAt: string;
+    paidAt: string | null;
+    startsOn: string | null;
+    expiresOn: string | null;
+    entriesRemaining: number | null;
+    showUrl: string;
     canPay: boolean;
     paymentAvailable: boolean;
     isGuest: boolean;

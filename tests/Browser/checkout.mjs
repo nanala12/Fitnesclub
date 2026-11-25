@@ -311,9 +311,115 @@ try {
         '/tmp/activefit-deliveries-mobile.png',
         Buffer.from(deliveryShot.data, 'base64'),
     );
+    await evaluate(
+        `fetch('/__checkout_test/login-customer', { method: 'POST' })`,
+    );
+    await navigate('/moje-zamowienia');
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Moje zamówienia')`,
+    );
+    assert.equal(
+        await evaluate(`document.querySelectorAll('article').length`),
+        3,
+        'Guest purchases must remain separate',
+    );
+    for (const label of [
+        'Recepcja',
+        'Gotówka',
+        'Karta w recepcji',
+        'jest aktywny',
+        'ustalony termin',
+        'okres karnetu zakończony',
+    ]) {
+        assert.equal(
+            await evaluate(
+                `document.body.textContent.includes(${JSON.stringify(label)})`,
+            ),
+            true,
+            label,
+        );
+    }
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+    const historyShot = await call('Page.captureScreenshot', {
+        captureBeyondViewport: true,
+    });
+    await writeFile(
+        '/tmp/activefit-orders-mobile.png',
+        Buffer.from(historyShot.data, 'base64'),
+    );
+    await evaluate(
+        `[...document.querySelectorAll('article')].find((row) => row.textContent.includes('ustalony termin')).querySelector('a').click()`,
+    );
+    await until(
+        `document.querySelector('h1')?.textContent.includes('ustalony termin')`,
+    );
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('bez kolejnej aktywacji')`,
+        ),
+        true,
+    );
+    assert.equal(
+        await evaluate(`!!document.querySelector('button[type="submit"]')`),
+        false,
+    );
+    await navigate('/kup-karnet');
+    await until(`!!document.getElementById('purchaser-first-name')`);
+    await evaluate(
+        `document.cookie = 'checkout_test_gateway=reject; path=/'; document.querySelector('input[type="checkbox"]').click(); document.querySelector('button[type="submit"]').click()`,
+    );
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Płatność nieudana')`,
+    );
+    const failedReference = (await state()).lastReference;
+    const failedOrders = (await state()).orders;
+    await navigate('/moje-zamowienia');
+    await until(`document.querySelectorAll('article').length === 4`);
+    await evaluate(
+        `[...document.querySelectorAll('article')].find((row) => row.textContent.includes('Płatność nieudana')).querySelector('a').click()`,
+    );
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Płatność nieudana')`,
+    );
+    await evaluate(
+        `document.cookie = 'checkout_test_gateway=; path=/'; document.querySelector('button[type="submit"]').click()`,
+    );
+    await until(`location.hostname === 'sandbox.przelewy24.pl'`);
+    assert.equal(
+        (await state()).orders,
+        failedOrders,
+        'Retry must retain the same order',
+    );
+    await navigate(
+        `/platnosc/powrot?zamowienie=${failedReference}&status=paid`,
+    );
+    await until(
+        `document.querySelector('h1')?.textContent.includes('oczekuje na opłatę')`,
+    );
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('karnet jest aktywny')`,
+        ),
+        false,
+    );
+    await call('Emulation.setDeviceMetricsOverride', {
+        width: 1440,
+        height: 1000,
+        deviceScaleFactor: 1,
+        mobile: false,
+    });
+    await navigate('/moje-zamowienia');
+    await until(`document.querySelectorAll('article').length === 4`);
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
     assert.deepEqual(errors, [], 'Unexpected browser JavaScript exceptions');
     console.log(
-        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure and desktop/mobile layouts.',
+        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry and desktop/mobile layouts.',
     );
 } finally {
     ws?.close();

@@ -473,6 +473,16 @@ W panelu administratora jest pozycja **Wysyłki PDF** (`/admin/wysylki-pdf`): za
 
 Testy używają atrap oraz transportu `array`, także przy rzeczywistym wykonaniu workera i składaniu MIME z prywatnym załącznikiem. Test Chrome sprawdza potwierdzenie/anulowanie ponowienia, błąd wysyłki i widok mobilny. Nie wykonano wysyłki przez zewnętrzny SMTP; odbiór rzeczywistej wiadomości pozostaje sprawdzeniem konfiguracji przed wdrożeniem.
 
+## Wynik płatności i moje zamówienia (TASK-033)
+
+Po zalogowaniu wybierz **Moje zamówienia** (`/moje-zamowienia`). Historia obejmuje zakupy przypisane do konta jako kupującego — także dla innych osób, w recepcji i po wygaśnięciu karnetu. Pokazuje zapisany plan/cenę, datę, kanał Online/Recepcja i metodę Przelewy24/Gotówka/Karta w recepcji. Szczegóły pozwalają pobrać prywatny PDF opłaconego karnetu lub wrócić do rozpoczętej płatności online. Lista ma paginację; nie jest raportem wszystkich sprzedaży dla pracownika czy administratora.
+
+Widok rozróżnia brak opłaty, sprawdzanie płatności, znaną nieudaną/anulowaną próbę oraz opłacony karnet: oczekujący na pierwszą wizytę, aktywny, przyszłe przedłużenie, wygasły lub z wyczerpanymi/przeniesionymi wejściami. Ważność do podanej daty jest włącznie; dzień biznesowy i wyświetlane godziny (24h) korzystają z Europe/Warsaw. Odczyt i odświeżenie strony nie aktywują karnetu, nie odliczają wejść ani nie potwierdzają płatności.
+
+Powrót z P24, również z parametrem sugerującym sukces lub anulowanie, nie zmienia statusu. Przy niepewnym wyniku strona proponuje odświeżenie i kontakt z klubem, bez nowej rejestracji płatności. Przy znanej nieudanej/anulowanej próbie można kontynuować to samo zamówienie w dotychczasowym limicie trzech rejestracji. Istniejący gotowy formularz P24 jest używany ponownie. Po wyczerpaniu limitu lub zatrzymaniu zamówienia przycisk płatności znika; zasady zwrotów/anulowania zamówień pozostają OD-04.
+
+Zakup gościnny nadal jest dostępny przez swój ekran w pierwotnej przeglądarce przez okres ważności sesyjnego uprawnienia (2 godziny). Nie pojawia się w historii konta założonego później, nawet przy zgodnym telefonie/e-mailu. Nie dodano odzyskiwania dostępu na podstawie danych kontaktowych. Nie jest potrzebna nowa migracja ani dodatkowa konfiguracja.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

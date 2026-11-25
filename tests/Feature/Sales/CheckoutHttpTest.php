@@ -245,3 +245,60 @@ test('expired guest session grant cannot authorize order access', function () {
     $this->travel(121)->minutes();
     $this->get(route('checkout.show', Order::sole()->public_reference))->assertNotFound();
 });
+
+test('known failed or cancelled attempt can retry the same saved order and verified replay issues only one pass', function (string $status) {
+    $input = checkoutHttpInput();
+    Http::fake(['*/transaction/register' => Http::response(['data' => ['token' => 'retry-token'], 'responseCode' => 0]),
+        '*/transaction/verify' => Http::response(['data' => ['status' => 'success'], 'responseCode' => 0])]);
+    $this->post(route('checkout.store'), $input)->assertRedirect();
+    Payment::sole()->forceFill(['status' => $status])->save();
+    $order = Order::sole();
+    $this->get(route('checkout.show', $order->public_reference))->assertInertia(fn (Assert $page) => $page
+        ->where('order.state', $status)->where('order.canPay', true)->where('order.paid', false)->where('order.pdfUrl', null));
+    $this->post(route('checkout.pay', $order->public_reference))->assertRedirect();
+    $this->post(route('checkout.pay', $order->public_reference))->assertRedirect();
+    expect(Order::count())->toBe(1)->and(Payment::count())->toBe(2)->and(Membership::count())->toBe(0);
+    $payment = Payment::latest('id')->firstOrFail();
+    $data = ['merchantId' => 123, 'posId' => 456, 'sessionId' => $payment->provider_session_id, 'amount' => 12050, 'originAmount' => 12050,
+        'currency' => 'PLN', 'orderId' => 987654, 'methodId' => 25, 'statement' => 'retry test'];
+    $data['sign'] = hash('sha384', json_encode([...$data, 'crc' => 'fake-crc-secret']));
+    $notice = Przelewy24Notification::fromArray($data);
+    app(VerifyPrzelewy24Payment::class)->handle($notice);
+    app(VerifyPrzelewy24Payment::class)->handle($notice);
+    $this->post(route('checkout.pay', $order->public_reference))->assertRedirect(route('checkout.show', $order->public_reference));
+    $this->get(route('checkout.show', $order->public_reference))->assertInertia(fn (Assert $page) => $page->where('order.state', 'pending_activation')->where('order.paid', true));
+    expect(Membership::count())->toBe(1)->and(DocumentDelivery::count())->toBe(1)->and(Membership::sole()->activated_at)->toBeNull();
+    Http::assertSentCount(3);
+})->with(['failed', 'cancelled']);
+
+test('unknown or in-progress registration stays unresolved despite browser success or cancellation parameters', function (string $status) {
+    $input = checkoutHttpInput();
+    Http::fake(['*' => Http::response(['data' => ['token' => 'token'], 'responseCode' => 0])]);
+    $this->post(route('checkout.store'), $input)->assertRedirect();
+    Payment::sole()->forceFill(['status' => $status])->save();
+    $order = Order::sole();
+    $this->get(route('checkout.return', ['zamowienie' => $order->public_reference, 'status' => 'paid', 'cancelled' => 1]))->assertRedirect(route('checkout.show', $order->public_reference));
+    $this->get(route('checkout.show', $order->public_reference))->assertInertia(fn (Assert $page) => $page
+        ->where('order.state', 'checking_payment')->where('order.canPay', false)->where('order.paid', false)->where('order.pdfUrl', null));
+    $this->post(route('checkout.pay', $order->public_reference))->assertRedirect(route('checkout.show', $order->public_reference));
+    expect(Order::sole()->status->value)->toBe('pending')->and(Membership::count())->toBe(0)->and(Payment::count())->toBe(1);
+    Http::assertSentCount(1);
+})->with(['initiated', 'unknown']);
+
+test('three terminal attempts and stopped orders do not offer or initiate another payment', function (string $status) {
+    $input = checkoutHttpInput();
+    Http::fake(['*' => Http::response(['data' => ['token' => 'token'], 'responseCode' => 0])]);
+    $this->post(route('checkout.store'), $input)->assertRedirect();
+    for ($attempt = 1; $attempt < 3; $attempt++) {
+        Payment::latest('id')->firstOrFail()->forceFill(['status' => 'failed'])->save();
+        $this->post(route('checkout.pay', Order::sole()->public_reference))->assertRedirect();
+    }
+    Payment::latest('id')->firstOrFail()->forceFill(['status' => 'failed'])->save();
+    $order = Order::sole();
+    $order->forceFill(['status' => $status])->save();
+    $this->get(route('checkout.show', $order->public_reference))->assertInertia(fn (Assert $page) => $page
+        ->where('order.canPay', false)->where('order.paid', false)->where('order.pdfUrl', null));
+    $this->post(route('checkout.pay', $order->public_reference))->assertRedirect(route('checkout.show', $order->public_reference));
+    expect(Payment::count())->toBe(3)->and(Membership::count())->toBe(0);
+    Http::assertSentCount(3);
+})->with(['pending', 'cancelled', 'failed']);

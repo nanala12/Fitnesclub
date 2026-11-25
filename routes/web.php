@@ -17,6 +17,7 @@ use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipPdfController;
+use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\PublicSite\MediaController;
 use App\Http\Controllers\PublicSite\PageController;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
@@ -47,6 +48,8 @@ Route::name('public.')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('moje-zamowienia', [OrderHistoryController::class, 'index'])->middleware('throttle:60,1,order-history:')->name('orders.index');
+    Route::get('moje-zamowienia/{reference}', [OrderHistoryController::class, 'show'])->whereUlid('reference')->middleware('throttle:60,1,order-history:')->name('orders.show');
     Route::prefix('admin/wysylki-pdf')->name('admin.deliveries.')->middleware('can:access-admin-panel')->group(function (): void {
         Route::get('/', [DocumentDeliveryController::class, 'index'])->middleware('throttle:60,1,delivery-read:')->name('index');
         Route::post('/{delivery}/ponow', [DocumentDeliveryController::class, 'resend'])->whereNumber('delivery')->middleware('throttle:5,1,delivery-resend:')->name('resend');
