@@ -591,6 +591,20 @@ Audyt i wysyłki mają odnośnik powrotny do sprzedaży. Globalne widoki **Histo
 
 Migracja `2026_11_26_000000_add_sales_history_indexes` dodaje wyłącznie indeksy wspierające filtry kanału/metody i telefonu kupującego; nie zmienia treści zakupów. Po pobraniu zmian wykonaj zwykłe `php artisan migrate` w odpowiednim środowisku zgodnie z procedurą wdrożenia. Rzeczywisty odbiór sandboxu P24 z TASK-034 pozostaje osobnym oczekującym krokiem.
 
+## Dashboard administratora (TASK-038)
+
+Pulpit `/admin` pokazuje stan karnetów na bieżący dzień w Europe/Warsaw oraz sprzedaż w wybranym okresie. **Aktywne karnety** mają potwierdzoną opłatę, rozpoczęty okres i dostępny limit wejść lub brak limitu. Nowe karnety oczekujące na pierwszą wizytę, przyszłe przedłużenia, karnety wygasłe i z zerowym saldem wejść nie podnoszą tego licznika. Dostępne już przedłużenie wejściowe jest liczone bez kolejnej aktywacji.
+
+**Kończące ważność** to aktywne karnety czasowe, których ostatni dzień przypada dziś albo w ciągu kolejnych 7 dni, włącznie z siódmym dniem. Karnet ważny do dzisiaj nadal jest aktywny; bezterminowe pakiety wejściowe nie trafiają do wygasających.
+
+Sprzedaż domyślnie obejmuje okres od początku bieżącego miesiąca do dzisiaj. Możesz zmienić daty **Od** i **Do (włącznie)**. Liczymy datę opłaty (`paid_at`), a nie datę utworzenia zamówienia lub aktywacji. Zamówienie musi mieć dokładnie jedną zgodną potwierdzoną płatność; nieudane/niepewne próby nie zwiększają wyniku. Liczba zakupów i suma opłat powstają jednym zapytaniem, w groszach bez obliczeń zmiennoprzecinkowych. Granice dni są przeliczane z Warszawy na UTC także przy zmianie czasu.
+
+Lista **Najnowsze zamówienia** pokazuje ostatnich 10 zakupów we wszystkich stanach, niezależnie od okresu sprzedaży. Szczegóły prowadzą do istniejącego administracyjnego przeglądu sprzedaży. Pozostałe liczniki opisują bieżący stan i nie zmieniają się przy wyborze historycznego okresu opłat.
+
+Sposób liczenia zatwierdzonej metryki „liczba klientów” wymaga jeszcze wyboru: wszystkie zarejestrowane konta klientów albo tylko konta z opłaconym karnetem. Ten licznik nie jest wyświetlany do czasu doprecyzowania; nie wyprowadzamy liczby osób z kontaktów gości.
+
+Migracja `2026_11_26_010000_add_dashboard_indexes` dodaje wyłącznie indeksy dla okresu opłat, kolejności ostatnich zamówień i okna wygasania. Nie zmienia zakupów ani dat ważności. Dashboard jest dostępny wyłącznie dla aktywnego, zweryfikowanego administratora i nie wykonuje operacji płatniczych, aktywacji, odliczania wejść lub wysyłania wiadomości.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

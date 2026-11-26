@@ -235,6 +235,8 @@ Dostęp do danych osobowych i operacji musi być kontrolowany po stronie serwera
 | ADM-010 | Audit Log: kto, kiedy, co zmienił w karnetach i konfiguracji sprzedaży; historia niemodyfikowalna z poziomu panelu pracownika. | MUST | CONFIRMED |
 | ADM-011 | Eksporty i rozbudowane raporty sprzedaży. | SHOULD | OPEN (D-19) |
 
+**Doprecyzowanie TASK-038 — 2026-11-26:** zatwierdzony zakres ADM-001 / OD-08 pozostaje bez zmian. Brakuje operacyjnej definicji „liczby klientów”: wszystkie zarejestrowane konta roli klient czy tylko konta z opłaconym karnetem. Pytanie przekazano właścicielce; do odpowiedzi nie wdrażamy tego licznika ani nie zliczamy tożsamości gości po kontaktach. Pozostałe metryki są wdrażane niezależnie.
+
 **AC-ADM-01** — Given administrator utworzy konto pracownika, When zapis się powiedzie, Then konto ma wskazane dane i rolę, a pracownik otrzymuje powiadomienie e-mail.  
 **AC-ADM-02** — Given administrator zawiesi pracownika, When pracownik próbuje wykonać kolejne chronione żądanie, Then serwer odmawia dostępu, także gdy sesja została utworzona wcześniej.  
 **AC-ADM-03** — Given pracownik podejmie próbę otwarcia funkcji dostępnej tylko dla administratora, When serwer sprawdzi autoryzację, Then operacja zostaje odrzucona.

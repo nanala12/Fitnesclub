@@ -131,6 +131,24 @@ try {
         deviceScaleFactor: 1,
         mobile: false,
     });
+    await navigate('/login');
+    await until(`!!document.querySelector('form')`);
+    await evaluate(`fetch('/__checkout_test/login-admin', { method: 'POST' })`);
+    await navigate('/admin');
+    await until(`!!document.querySelector('[data-metric="active"]')`);
+    assert.equal(
+        await evaluate(
+            `document.querySelector('[data-metric="active"]').textContent.trim()`,
+        ),
+        '0',
+    );
+    assert.equal(
+        await evaluate(
+            `document.querySelector('[data-metric="sales-total"]').textContent.trim()`,
+        ),
+        '0,00 zł',
+    );
+    await evaluate(`fetch('/logout', { method: 'POST' })`);
     await navigate('/cennik');
     await until(`!!document.querySelector('a[href*="/kup-karnet?plan="]')`);
     await evaluate(
@@ -678,9 +696,65 @@ try {
         '/tmp/activefit-admin-sales-mobile.png',
         Buffer.from(salesShot.data, 'base64'),
     );
+    await navigate('/admin');
+    await until(`!!document.querySelector('[data-metric="active"]')`);
+    assert.equal(
+        await evaluate(
+            `document.querySelector('[data-metric="active"]').textContent.trim()`,
+        ),
+        '2',
+        'Pending/scheduled/expired passes must not count as active',
+    );
+    assert.equal(
+        await evaluate(
+            `document.querySelector('[data-metric="expiring"]').textContent.trim()`,
+        ),
+        '0',
+    );
+    assert.equal(
+        await evaluate(
+            `document.querySelector('[data-metric="sales-count"]').textContent.trim()`,
+        ),
+        '6',
+    );
+    assert.equal(
+        await evaluate(
+            `document.querySelector('[data-metric="sales-total"]').textContent.trim()`,
+        ),
+        '881,00 zł',
+    );
+    await evaluate(
+        `(() => { for (const [id, value] of [['sales-from', '2000-01-01'], ['sales-to', '2000-01-02']]) { const input = document.getElementById(id); input.value = value; input.dispatchEvent(new Event('input', { bubbles: true })); } })()`,
+    );
+    await evaluate(`document.querySelector('button[type="submit"]').click()`);
+    await until(
+        `document.querySelector('[data-metric="sales-count"]')?.textContent.trim() === '0'`,
+    );
+    assert.equal(
+        await evaluate(
+            `document.querySelector('[data-metric="active"]').textContent.trim()`,
+        ),
+        '2',
+    );
+    assert.equal(
+        await evaluate(`document.querySelectorAll('article').length`),
+        7,
+        'Recent orders must remain independent of sales date window',
+    );
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+    const dashboardShot = await call('Page.captureScreenshot', {
+        captureBeyondViewport: true,
+    });
+    await writeFile(
+        '/tmp/activefit-admin-dashboard-mobile.png',
+        Buffer.from(dashboardShot.data, 'base64'),
+    );
     assert.deepEqual(errors, [], 'Unexpected browser JavaScript exceptions');
     console.log(
-        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup, own membership pending/scheduled/expired/empty states, protected PDF, admin sales filters, scoped audit/delivery links and desktop/mobile layouts.',
+        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup, own membership pending/scheduled/expired/empty states, protected PDF, admin sales filters, scoped audit/delivery links, administrator metrics, date window and desktop/mobile layouts.',
     );
 } finally {
     ws?.close();
