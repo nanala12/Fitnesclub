@@ -7,6 +7,7 @@ defineProps<{
     prefix: 'purchaser' | 'holder';
     errors: Record<string, string>;
     disabled: boolean;
+    emailMaxLength?: number;
 }>();
 </script>
 
@@ -38,7 +39,7 @@ defineProps<{
             label="Adres e-mail *"
             type="email"
             required
-            :maxlength="prefix === 'purchaser' ? 50 : 254"
+            :maxlength="emailMaxLength ?? (prefix === 'purchaser' ? 50 : 254)"
             :autocomplete="`section-${prefix} email`"
             :error="errors[`${prefix}.email`]"
             :disabled="disabled"

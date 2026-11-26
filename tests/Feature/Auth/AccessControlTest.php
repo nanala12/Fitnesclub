@@ -14,7 +14,7 @@ test('panel routes enforce the role matrix', function (UserRole $role, string $r
     $user = User::factory()->create(['role' => $role]);
     $response = $this->actingAs($user)->get(route($route))->assertStatus($status);
     if ($route === 'staff.dashboard' && $status === 302) {
-        $response->assertRedirect(route('profile.edit'));
+        $response->assertRedirect(route('staff.memberships.index'));
     }
 })->with([
     'customer admin' => [UserRole::Customer, 'admin.dashboard', 403],
@@ -40,7 +40,7 @@ test('unverified users cannot bypass panel email verification', function (UserRo
 test('the entry dashboard directs staff to their authorized panel', function (UserRole $role, string $destination) {
     $this->actingAs(User::factory()->create(['role' => $role]))
         ->get(route('dashboard'))->assertRedirect(route($destination));
-})->with([[UserRole::Admin, 'admin.dashboard'], [UserRole::Employee, 'profile.edit']]);
+})->with([[UserRole::Admin, 'admin.dashboard'], [UserRole::Employee, 'staff.memberships.index']]);
 
 test('all roles can only read and edit their own profile', function (UserRole $role) {
     $user = User::factory()->create(['role' => $role]);

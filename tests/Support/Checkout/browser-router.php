@@ -4,6 +4,7 @@ use App\Actions\Documents\DeliverMembershipDocument;
 use App\Actions\Payments\VerifyPrzelewy24Payment;
 use App\Models\DocumentDelivery;
 use App\Models\Membership;
+use App\Models\MembershipEntry;
 use App\Models\MembershipPlan;
 use App\Models\Order;
 use App\Models\Payment;
@@ -53,6 +54,13 @@ Route::post('__checkout_test/login-customer', function (Request $request) {
 
     return response('OK');
 })->middleware('web');
+Route::post('__checkout_test/login-staff', function (Request $request) {
+    $staff = User::where('email', 'staff@example.test')->first() ?? User::factory()->employee()->create(['email' => 'staff@example.test', 'first_name' => 'Pracownik', 'last_name' => 'Testowy']);
+    Auth::login($staff);
+    $request->session()->regenerate();
+
+    return response('OK');
+})->middleware('web');
 Route::post('__checkout_test/deliver', function () {
     $delivery = DocumentDelivery::latest('id')->firstOrFail();
     app(DeliverMembershipDocument::class)->handle($delivery->id, $delivery->attempts_count);
@@ -61,6 +69,8 @@ Route::post('__checkout_test/deliver', function () {
 });
 Route::get('__checkout_test/state', fn () => response()->json([
     'orders' => Order::count(), 'payments' => Payment::count(), 'memberships' => Membership::count(), 'deliveries' => DocumentDelivery::count(),
+    'entries' => MembershipEntry::count(),
+    'latestMembership' => Membership::latest('id')->first() === null ? null : ['startsOn' => Membership::latest('id')->first()->starts_on, 'balance' => Membership::latest('id')->first()->entries_remaining],
     'lastReference' => Order::latest('id')->first()?->public_reference,
     'order' => Order::first() === null ? null : ['buyer' => Order::first()->purchaser_email, 'holder' => Order::first()->holder_email,
         'recipient' => Order::first()->recipient_email, 'account' => Order::first()->purchaser_user_id],

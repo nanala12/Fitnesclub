@@ -21,6 +21,7 @@ use App\Http\Controllers\OrderHistoryController;
 use App\Http\Controllers\PublicSite\MediaController;
 use App\Http\Controllers\PublicSite\PageController;
 use App\Http\Controllers\Staff\DashboardController as StaffDashboardController;
+use App\Http\Controllers\Staff\MembershipController as StaffMembershipController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', HomeController::class)->name('home');
@@ -48,6 +49,16 @@ Route::name('public.')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('recepcja/karnety')->name('staff.memberships.')->middleware('can:access-staff-panel')->group(function (): void {
+        Route::get('/', [StaffMembershipController::class, 'index'])->middleware('throttle:60,1,staff-read:')->name('index');
+        Route::post('/szukaj', [StaffMembershipController::class, 'search'])->middleware('throttle:30,1,staff-search:')->name('search');
+        Route::get('/sprzedaz', [StaffMembershipController::class, 'create'])->name('create');
+        Route::post('/sprzedaz', [StaffMembershipController::class, 'store'])->middleware('throttle:15,1,staff-sale:')->name('store');
+        Route::post('/{reference}/oplata', [StaffMembershipController::class, 'confirmPayment'])->whereUlid('reference')->middleware('throttle:15,1,staff-payment:')->name('confirmPayment');
+        Route::get('/{reference}', [StaffMembershipController::class, 'show'])->whereUlid('reference')->middleware('throttle:60,1,staff-read:')->name('show');
+        Route::post('/{membership}/aktywuj', [StaffMembershipController::class, 'activate'])->whereNumber('membership')->middleware('throttle:15,1,staff-activate:')->name('activate');
+        Route::post('/{membership}/wejscie', [StaffMembershipController::class, 'redeem'])->whereNumber('membership')->middleware('throttle:30,1,staff-entry:')->name('redeem');
+    });
     Route::get('moje-zamowienia', [OrderHistoryController::class, 'index'])->middleware('throttle:60,1,order-history:')->name('orders.index');
     Route::get('moje-zamowienia/{reference}', [OrderHistoryController::class, 'show'])->whereUlid('reference')->middleware('throttle:60,1,order-history:')->name('orders.show');
     Route::prefix('admin/wysylki-pdf')->name('admin.deliveries.')->middleware('can:access-admin-panel')->group(function (): void {

@@ -9,6 +9,6 @@ class DashboardController extends Controller
 {
     public function __invoke(): RedirectResponse
     {
-        return to_route('profile.edit');
+        return to_route('staff.memberships.index');
     }
 }

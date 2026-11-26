@@ -19,6 +19,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Str;
 
 /**
+ * @property string $holder_first_name
+ * @property string $holder_last_name
  * @property array<string, mixed> $plan_snapshot
  * @property int $amount_grosz
  * @property OrderStatus $status

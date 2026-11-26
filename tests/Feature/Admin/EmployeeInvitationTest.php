@@ -48,7 +48,7 @@ test('invitation acceptance verifies the address sets a password and cannot be r
     $this->post(route('password.update'), acceptInvitation($employee, $token))->assertSessionHasErrors('email');
     expect($employee->fresh()->password)->toBe($password);
     $this->post(route('login.store'), ['email' => $employee->email, 'password' => 'Staff-only!Password42'])->assertSessionHasNoErrors();
-    $this->get(route('staff.dashboard'))->assertRedirect(route('profile.edit'));
+    $this->get(route('staff.dashboard'))->assertRedirect(route('staff.memberships.index'));
 });
 
 test('expired incorrect or foreign invitation tokens cannot set a password', function (string $kind) {

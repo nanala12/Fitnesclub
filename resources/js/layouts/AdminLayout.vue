@@ -22,6 +22,7 @@ import { index as employees } from '@/routes/admin/employees';
 import { index as audit } from '@/routes/admin/audit';
 import { index as deliveries } from '@/routes/admin/deliveries';
 import { edit } from '@/routes/profile';
+import { index as reception } from '@/routes/staff/memberships';
 import { index as orders } from '@/routes/orders';
 import type { PanelLayoutProps } from '@/types';
 withDefaults(defineProps<PanelLayoutProps>(), {
@@ -76,6 +77,7 @@ withDefaults(defineProps<PanelLayoutProps>(), {
         { title: 'Historia zmian', href: audit(), icon: ClipboardList },
         { title: 'Wysyłki PDF', href: deliveries(), icon: ClipboardList },
         { title: 'Moje zamówienia', href: orders(), icon: ClipboardList },
+        { title: 'Obsługa karnetów', href: reception(), icon: ClipboardList },
         { title: 'Mój profil', href: edit(), icon: UserRound },
     ],
 });

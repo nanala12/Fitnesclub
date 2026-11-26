@@ -417,9 +417,113 @@ try {
         await evaluate('document.documentElement.scrollWidth <= innerWidth'),
         true,
     );
+    await evaluate(`fetch('/__checkout_test/login-staff', { method: 'POST' })`);
+    await navigate('/recepcja/karnety');
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Obsługa karnetów')`,
+    );
+    await evaluate(
+        `document.querySelector('a[href="/recepcja/karnety/sprzedaz"]').click()`,
+    );
+    await until(`!!document.getElementById('purchaser-first-name')`);
+    await fill('purchaser', 'Maria', 'reception@example.test');
+    await evaluate(
+        `(() => { const select = document.getElementById('plan'); select.value = [...select.options].find((item) => item.textContent.includes('8 wejść')).value; select.dispatchEvent(new Event('change', { bubbles: true })); document.querySelector('input[value="card"]').click(); document.querySelector('button[type="submit"]').click(); })()`,
+    );
+    const beforeSale = (await state()).orders;
+    const dialogButton = async (text) =>
+        evaluate(
+            `[...document.querySelector('[role="dialog"]').querySelectorAll('button')].find((button) => button.textContent.includes(${JSON.stringify(text)})).click()`,
+        );
+    const pageButton = async (text) =>
+        evaluate(
+            `[...document.querySelectorAll('button')].find((button) => button.textContent.includes(${JSON.stringify(text)})).click()`,
+        );
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await dialogButton('Anuluj');
+    assert.equal((await state()).orders, beforeSale);
+    await evaluate(`document.querySelector('button[type="submit"]').click()`);
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await dialogButton('Zapisz zamówienie');
+    await until(
+        `document.body.textContent.includes('Oczekuje na potwierdzenie opłaty w recepcji')`,
+    );
+    assert.equal((await state()).orders, beforeSale + 1);
+    assert.equal(
+        await evaluate(`document.body.textContent.includes('Aktywuj karnet')`),
+        false,
+    );
+    await pageButton('Potwierdź otrzymanie opłaty');
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await dialogButton('Potwierdź');
+    await until(`document.body.textContent.includes('Aktywuj karnet')`);
+    assert.equal((await state()).latestMembership.startsOn, null);
+    assert.equal((await state()).latestMembership.balance, 8);
+    await pageButton('Aktywuj karnet');
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await dialogButton('Anuluj');
+    assert.equal((await state()).latestMembership.startsOn, null);
+    await pageButton('Aktywuj karnet');
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await dialogButton('Potwierdź');
+    await until(`document.body.textContent.includes('Odlicz jedno wejście')`);
+    assert.equal(
+        (await state()).latestMembership.balance,
+        8,
+        'Activation must not redeem an entry',
+    );
+    assert.equal(
+        await evaluate(`document.body.textContent.includes('Aktywuj karnet')`),
+        false,
+    );
+    const beforeEntry = (await state()).entries;
+    await pageButton('Odlicz jedno wejście');
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await dialogButton('Potwierdź');
+    await until(
+        `!document.querySelector('[role="dialog"]') && document.body.textContent.includes('jedno wejście')`,
+    );
+    assert.equal((await state()).latestMembership.balance, 7);
+    assert.equal((await state()).entries, beforeEntry + 1);
+    await navigate('/recepcja/karnety');
+    await until(`!!document.getElementById('holder-search')`);
+    await evaluate(
+        `(() => { const field = document.getElementById('holder-search'); field.value = '0048 600 111 222'; field.dispatchEvent(new Event('input', { bubbles: true })); })()`,
+    );
+    await evaluate(`document.querySelector('button[type="submit"]').click()`);
+    await until(`document.querySelectorAll('article').length >= 2`);
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('Maria Testowy') && document.body.textContent.includes('Jan Testowy')`,
+        ),
+        true,
+        'Shared phone must show separate holders',
+    );
+    assert.equal(
+        await evaluate(`location.search.includes('600')`),
+        false,
+        'Search phone must not enter URL',
+    );
+    await call('Emulation.setDeviceMetricsOverride', {
+        width: 390,
+        height: 844,
+        deviceScaleFactor: 1,
+        mobile: true,
+    });
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+    const staffShot = await call('Page.captureScreenshot', {
+        captureBeyondViewport: true,
+    });
+    await writeFile(
+        '/tmp/activefit-staff-mobile.png',
+        Buffer.from(staffShot.data, 'base64'),
+    );
     assert.deepEqual(errors, [], 'Unexpected browser JavaScript exceptions');
     console.log(
-        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry and desktop/mobile layouts.',
+        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup and desktop/mobile layouts.',
     );
 } finally {
     ws?.close();

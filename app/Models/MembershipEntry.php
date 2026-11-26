@@ -4,12 +4,14 @@ namespace App\Models;
 
 use App\Database\SalesHistoryBuilder;
 use App\Models\Concerns\PreservesSalesHistory;
+use Carbon\CarbonImmutable;
 use Database\Factories\MembershipEntryFactory;
 use Illuminate\Database\Eloquent\Attributes\UseEloquentBuilder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/** @property CarbonImmutable $used_at */
 #[UseEloquentBuilder(SalesHistoryBuilder::class)]
 class MembershipEntry extends Model
 {

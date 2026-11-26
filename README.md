@@ -544,6 +544,23 @@ docker compose exec app php artisan sales:diagnose --limit=25
 
 Jeśli callback nie dotrze, `sales:diagnose --order=NUMER_ULID` pokaże wewnętrzne ID płatności. Operator może sprawdzić istniejącą sesję przez `payments:reconcile-p24 --payment=123 --limit=1`; nie wykonuje to nowego obciążenia. Błąd e-maila obsługuje kolejka i panel **Wysyłki PDF**, bez ponawiania zakupu. Nie zeruj stanów/liczników bezpośrednio w bazie.
 
+## Obsługa karnetów w recepcji (TASK-035)
+
+Pracownik po wejściu do panelu trafia do **Obsługi karnetów** (`/recepcja/karnety`). Administrator ma do niej odnośnik w swoim menu. Profil i własne zamówienia pozostają osobnymi pozycjami.
+
+Wpisz pełny telefon posiadacza, np. `+48 600 111 222`; zapis `0048 (600) 111-222` zostanie znormalizowany. Wyniki zawierają osobne zakupy z imieniem i nazwiskiem posiadacza, planem i stanem opłaty/karnetu. Wspólny numer nie łączy osób. Wyszukiwanie obejmuje także nieopłacone zamówienia i wygasłe karnety, z paginacją. Numer jest wysyłany przez POST i przechowywany w sesji wyszukiwania, bez umieszczania go w adresie URL. **Wyczyść** usuwa bieżący filtr; bez telefonu nie jest wyświetlana lista wszystkich klientów.
+
+Na szczegółach można sprawdzić kontakt posiadacza, kanał/metodę opłaty, rzeczywiste daty i saldo wejść, pobrać prywatny PDF oraz przejrzeć datowane wpisy z nazwiskiem pracownika. Nowy opłacony karnet ma przycisk **Aktywuj karnet**, wymagający potwierdzenia. Aktywacja przy pierwszej wizycie nie odlicza wejścia. Dopiero osobny przycisk **Odlicz jedno wejście** zapisuje wykorzystanie limitowanego karnetu. Kolejny egzemplarz tego samego żądania nie odlicza następnego wejścia; brak salda, przyszły termin lub brak opłaty blokują operację na serwerze. Karnety czasowe nie mają przycisku odliczania limitu wejść.
+
+**Sprzedaż w recepcji** ma dwa kroki:
+
+1. Wybierz dostępny plan, dane kupującego/posiadacza oraz gotówkę lub kartę. Potwierdź zapis zamówienia. Ten krok nie wydaje karnetu i nie potwierdza pieniędzy.
+2. Po faktycznym otrzymaniu gotówki lub opłaty na terminalu wybierz **Potwierdź otrzymanie opłaty** na zapisanym zamówieniu. Powstaje jeden opłacony karnet oczekujący na pierwszą wizytę oraz zlecenie PDF. Aplikacja zapisuje pracownika; nie wykonuje transakcji terminalowej.
+
+Konto nie jest wymagane. Po wyszukaniu telefonu zarejestrowanej osoby można jawnie wybrać **Sprzedaż dla tego konta**, aby przypisać wyłącznie nowy zakup. Wcześniejsze zakupy gościnne pozostają bez zmian. Przy zakupie dla innej osoby posiadacz i kupujący mają osobne dane, a PDF trafia do posiadacza. Formularz nie wykonuje korekt, zwrotów ani zmiany już zakupionych warunków.
+
+Nie ma nowej migracji ani konfiguracji. Do rzeczywistej wysyłki PDF nadal potrzebny jest worker i SMTP z TASK-032. Odbiór sandbox P24 z TASK-034 pozostaje osobnym oczekującym krokiem.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.
