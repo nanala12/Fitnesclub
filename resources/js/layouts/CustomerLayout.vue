@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { LayoutGrid, ShieldCheck, UserRound } from '@lucide/vue';
 import PanelLayout from '@/layouts/PanelLayout.vue';
-import { dashboard } from '@/routes';
 import { edit as profile } from '@/routes/profile';
 import { edit as security } from '@/routes/security';
 import { index as orders } from '@/routes/orders';
+import { index as memberships } from '@/routes/memberships';
 import type { PanelLayoutProps } from '@/types';
 withDefaults(defineProps<PanelLayoutProps>(), {
     navigation: () => [
-        { title: 'Moje konto', href: dashboard(), icon: LayoutGrid },
+        { title: 'Moje karnety', href: memberships(), icon: LayoutGrid },
         { title: 'Moje zamówienia', href: orders(), icon: LayoutGrid },
         { title: 'Profil', href: profile(), icon: UserRound },
         { title: 'Bezpieczeństwo', href: security(), icon: ShieldCheck },

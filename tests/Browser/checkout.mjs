@@ -366,6 +366,40 @@ try {
         await evaluate(`!!document.querySelector('button[type="submit"]')`),
         false,
     );
+    await navigate('/moje-karnety');
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Moje karnety')`,
+    );
+    assert.equal(
+        await evaluate(`document.querySelectorAll('article').length`),
+        3,
+        'Guest passes must not enter customer panel',
+    );
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+    const ownShot = await call('Page.captureScreenshot', {
+        captureBeyondViewport: true,
+    });
+    await writeFile(
+        '/tmp/activefit-memberships-mobile.png',
+        Buffer.from(ownShot.data, 'base64'),
+    );
+    await evaluate(
+        `[...document.querySelectorAll('article')].find((row) => row.textContent.includes('ustalony termin')).querySelector('a').click()`,
+    );
+    await until(`document.body.textContent.includes('Historia wejść')`);
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('ponownej aktywacji')`,
+        ),
+        true,
+    );
+    const ownPdf = await evaluate(
+        `(async () => { const link = [...document.querySelectorAll('a')].find((item) => item.textContent.includes('Pobierz PDF')); const response = await fetch(link.href); const bytes = new Uint8Array(await response.arrayBuffer()); return { status: response.status, prefix: new TextDecoder().decode(bytes.slice(0, 5)) }; })()`,
+    );
+    assert.deepEqual(ownPdf, { status: 200, prefix: '%PDF-' });
     await navigate('/kup-karnet');
     await until(`!!document.getElementById('purchaser-first-name')`);
     await evaluate(
@@ -415,6 +449,26 @@ try {
     await until(`document.querySelectorAll('article').length === 4`);
     assert.equal(
         await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+    await evaluate(
+        `fetch('/__checkout_test/confirm-latest', { method: 'POST' })`,
+    );
+    await navigate('/moje-karnety');
+    await until(`document.querySelectorAll('article').length === 4`);
+    await evaluate(
+        `[...document.querySelectorAll('article')].find((row) => row.textContent.includes('czeka na aktywację')).querySelector('a').click()`,
+    );
+    await until(`document.body.textContent.includes('Historia wejść')`);
+    assert.equal(
+        await evaluate(`document.body.textContent.includes('Ważny od')`),
+        false,
+        'Pending pass must not show invented start date',
+    );
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('pierwszej wizycie')`,
+        ),
         true,
     );
     await evaluate(`fetch('/__checkout_test/login-staff', { method: 'POST' })`);
@@ -521,13 +575,29 @@ try {
         '/tmp/activefit-staff-mobile.png',
         Buffer.from(staffShot.data, 'base64'),
     );
+    await evaluate(
+        `fetch('/__checkout_test/login-empty-customer', { method: 'POST' })`,
+    );
+    await navigate('/moje-karnety');
+    await until(
+        `document.body.textContent.includes('Nie masz jeszcze karnetów')`,
+    );
+    assert.equal(
+        await evaluate(`document.querySelectorAll('article').length`),
+        0,
+    );
     assert.deepEqual(errors, [], 'Unexpected browser JavaScript exceptions');
     console.log(
-        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup and desktop/mobile layouts.',
+        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup, own membership pending/scheduled/expired/empty states, protected PDF and desktop/mobile layouts.',
     );
 } finally {
     ws?.close();
     chrome.kill('SIGTERM');
     await new Promise((resolve) => chrome.once('exit', resolve));
-    await rm(profile, { recursive: true, force: true });
+    await rm(profile, {
+        recursive: true,
+        force: true,
+        maxRetries: 5,
+        retryDelay: 100,
+    });
 }

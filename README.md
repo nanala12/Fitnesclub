@@ -561,6 +561,18 @@ Konto nie jest wymagane. Po wyszukaniu telefonu zarejestrowanej osoby można jaw
 
 Nie ma nowej migracji ani konfiguracji. Do rzeczywistej wysyłki PDF nadal potrzebny jest worker i SMTP z TASK-032. Odbiór sandbox P24 z TASK-034 pozostaje osobnym oczekującym krokiem.
 
+## Panel klienta i historia karnetów (TASK-036)
+
+Po zalogowaniu klient trafia do **Moich karnetów** (`/moje-karnety`). Lista obejmuje karnety przypisane do konta jako posiadacza oraz zakupione z konta dla innych osób. Te ostatnie mają oznaczenie **Kupiony dla innej osoby** i nazwę posiadacza. **Moje zamówienia** pokazują osobno historię zakupów i płatności, a **Profil** nadal służy do edycji danych konta.
+
+Karta pokazuje stan: oczekiwanie na pierwszą wizytę, aktywny karnet, przyszłe przedłużenie, zakończoną ważność albo wykorzystane/przeniesione wejścia. Daty pojawiają się tylko wtedy, gdy są zapisane; karnet wejściowy nie ma ważności w miesiącach. Szczegóły zawierają saldo, datę zakupu, zapis aktywacji i historię wejść z datą oraz pracownikiem. Historia pozostaje po wygaśnięciu. Listy karnetów i wejść mają paginację; godziny są 24-godzinne, w Europe/Warsaw.
+
+**Pobierz PDF** korzysta z istniejącego prywatnego dostępu do opłaconego karnetu. Odczyt panelu i pobranie dokumentu nie aktywują karnetu ani nie odliczają wejścia. Nie ma przycisku samodzielnej aktywacji lub odliczania wejść; wykonuje je pracownik. Przy przyszłym przedłużeniu panel informuje o ustalonym terminie bez ponownej wizyty aktywacyjnej.
+
+Powiązanie wynika wyłącznie z identyfikatorów kont zapisanych przy zakupie. Zgodny e-mail, telefon albo nazwisko nie importują zakupów gościnnych. Nowe konto nie otrzymuje wcześniejszej historii gościa. W osobistym panelu pracownik i administrator również widzą tylko własne karnety; obsługa pozostałych osób pozostaje w recepcji. Panel nie ujawnia kontaktów kupującego/posiadacza, kwoty cudzego zakupu, danych operatora ani ścieżek PDF.
+
+Nie jest potrzebna migracja ani dodatkowa konfiguracja. Odbiór zewnętrznego sandboxu P24 z TASK-034 nadal pozostaje osobnym krokiem.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

@@ -8,6 +8,11 @@ use App\Models\User;
 
 class MembershipPolicy
 {
+    public function viewOwn(User $actor, Membership $membership): bool
+    {
+        return ! $actor->isSuspended() && ($membership->holder_user_id === $actor->id || $membership->order->purchaser_user_id === $actor->id);
+    }
+
     public function downloadPdf(User $actor, Membership $membership): bool
     {
         return ! $actor->isSuspended() && ($membership->holder_user_id === $actor->id

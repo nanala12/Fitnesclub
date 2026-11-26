@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\MembershipPlanController;
 use App\Http\Controllers\Admin\PriceListController;
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\CustomerMembershipController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MembershipPdfController;
@@ -49,6 +50,8 @@ Route::name('public.')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('moje-karnety', [CustomerMembershipController::class, 'index'])->middleware('throttle:60,1,own-memberships:')->name('memberships.index');
+    Route::get('moje-karnety/{membership}', [CustomerMembershipController::class, 'show'])->whereNumber('membership')->middleware('throttle:60,1,own-memberships:')->name('memberships.show');
     Route::prefix('recepcja/karnety')->name('staff.memberships.')->middleware('can:access-staff-panel')->group(function (): void {
         Route::get('/', [StaffMembershipController::class, 'index'])->middleware('throttle:60,1,staff-read:')->name('index');
         Route::post('/szukaj', [StaffMembershipController::class, 'search'])->middleware('throttle:30,1,staff-search:')->name('search');

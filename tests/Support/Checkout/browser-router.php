@@ -46,7 +46,8 @@ Route::post('__checkout_test/login-customer', function (Request $request) {
             } else {
                 $attributes += ['activated_at' => now()->subDays(61), 'activated_by_user_id' => $actor->id];
             }
-            Membership::factory()->create(['order_id' => $order->id, ...$attributes]);
+            $member = Membership::factory()->create(['order_id' => $order->id, ...$attributes]);
+            DocumentDelivery::factory()->create(['membership_id' => $member->id, 'idempotency_key' => 'membership:'.$member->id.':initial-pdf']);
         }
     }
     Auth::login($customer);
@@ -54,6 +55,23 @@ Route::post('__checkout_test/login-customer', function (Request $request) {
 
     return response('OK');
 })->middleware('web');
+Route::post('__checkout_test/login-empty-customer', function (Request $request) {
+    $customer = User::where('email', 'empty@example.test')->first() ?? User::factory()->create(['email' => 'empty@example.test']);
+    Auth::login($customer);
+    $request->session()->regenerate();
+
+    return response('OK');
+})->middleware('web');
+Route::post('__checkout_test/confirm-latest', function () {
+    $payment = Payment::where('provider', 'przelewy24')->latest('id')->firstOrFail();
+    $data = ['merchantId' => 123, 'posId' => 456, 'sessionId' => $payment->provider_session_id,
+        'amount' => $payment->amount_grosz, 'originAmount' => $payment->amount_grosz, 'currency' => 'PLN',
+        'orderId' => 987700 + $payment->id, 'methodId' => 25, 'statement' => 'browser latest fixture'];
+    $data['sign'] = hash('sha384', json_encode([...$data, 'crc' => 'fake-crc-secret']));
+    app(VerifyPrzelewy24Payment::class)->handle(Przelewy24Notification::fromArray($data));
+
+    return response('OK');
+});
 Route::post('__checkout_test/login-staff', function (Request $request) {
     $staff = User::where('email', 'staff@example.test')->first() ?? User::factory()->employee()->create(['email' => 'staff@example.test', 'first_name' => 'Pracownik', 'last_name' => 'Testowy']);
     Auth::login($staff);

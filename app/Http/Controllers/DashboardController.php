@@ -5,12 +5,10 @@ namespace App\Http\Controllers;
 use App\Enums\UserRole;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class DashboardController extends Controller
 {
-    public function __invoke(Request $request): Response|RedirectResponse
+    public function __invoke(Request $request): RedirectResponse
     {
         if ($request->user()?->role === UserRole::Admin) {
             return to_route('admin.dashboard');
@@ -20,8 +18,6 @@ class DashboardController extends Controller
             return to_route('staff.memberships.index');
         }
 
-        return Inertia::render('Dashboard', [
-            'accountCreatedAt' => $request->user()?->created_at?->toISOString(),
-        ]);
+        return to_route('memberships.index');
     }
 }

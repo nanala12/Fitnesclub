@@ -25,11 +25,12 @@ test('the dashboard shows only the current users account data', function () {
     $user->setAttribute('internal_note', 'Private staff note');
 
     $this->actingAs($user)
-        ->get(route('dashboard'))
+        ->get(route('dashboard'))->assertRedirect(route('memberships.index'));
+
+    $this->get(route('memberships.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Dashboard')
-            ->where('accountCreatedAt', $user->created_at->toISOString())
+            ->component('memberships/Index')
             ->where('auth.user', [
                 'id' => $user->id,
                 'name' => $user->name,
@@ -46,7 +47,7 @@ test('the dashboard cannot be switched to another user through query parameters'
     $other = User::factory()->create();
 
     $this->actingAs($user)
-        ->get(route('dashboard', ['user_id' => $other->id]))
+        ->get(route('memberships.index', ['user_id' => $other->id]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('auth.user.id', $user->id)
