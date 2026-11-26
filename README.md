@@ -483,6 +483,67 @@ Powrót z P24, również z parametrem sugerującym sukces lub anulowanie, nie zm
 
 Zakup gościnny nadal jest dostępny przez swój ekran w pierwotnej przeglądarce przez okres ważności sesyjnego uprawnienia (2 godziny). Nie pojawia się w historii konta założonego później, nawet przy zgodnym telefonie/e-mailu. Nie dodano odzyskiwania dostępu na podstawie danych kontaktowych. Nie jest potrzebna nowa migracja ani dodatkowa konfiguracja.
 
+## Konfiguracja testów P24 i odzyskiwanie (TASK-034)
+
+Pełna [procedura testów i odzyskiwania](docs/development/testing-strategy.md#17-task-034--procedura-odzyskiwania-i-odbiór-sandbox-p24) opisuje brak callbacku, opóźnioną weryfikację, błąd SMTP, limity prób oraz raport odbioru. Poniższe kroki dotyczą **osobnej instalacji testowej**. Rzeczywisty test sandbox nie został jeszcze wykonany.
+
+1. Przygotuj dostęp do konta **sandbox Przelewy24** oraz osobną instalację ActiveFit z własną bazą. Instalacja musi mieć publiczny HTTPS (domena testowa z certyfikatem albo kontrolowany tunel HTTPS). Sam `localhost:8000` nie jest osiągalnym adresem callbacku dla operatora. Obecnego portu aplikacji i MySQL nie trzeba zmieniać; HTTPS kieruje ruch do aplikacji. Nie wystawiaj MySQL ani panelu poczty na Internet.
+2. W sekretach/`.env` **tej instalacji testowej** ustaw poniższe wartości. Domenę zastąp swoim rzeczywistym adresem, a cztery puste pola uzupełnij z panelu sandbox. Klucz API/report i CRC to różne dane. Nie publikuj ich w repozytorium ani w rozmowie.
+
+```dotenv
+APP_ENV=staging
+APP_DEBUG=false
+APP_URL=https://twoj-adres-testowy.example
+SESSION_SECURE_COOKIE=true
+QUEUE_CONNECTION=database
+P24_ENVIRONMENT=sandbox
+P24_LIVE_ENABLED=false
+P24_MERCHANT_ID=
+P24_POS_ID=
+P24_API_KEY=
+P24_CRC=
+P24_RETURN_URL=https://twoj-adres-testowy.example/platnosc/powrot
+P24_STATUS_URL=https://twoj-adres-testowy.example/payments/przelewy24/notification
+P24_ENABLED=true
+```
+
+Ustaw też osobne `DB_*` i `APP_KEY`; nie zmieniaj klucza aplikacji istniejącej bazy. Przy tunelu/reverse proxy sprawdź poprawną obsługę HTTPS i zaufanych proxy. Callback musi przyjmować POST JSON bez logowania; podpis i weryfikacja P24 pozostają obowiązkowe.
+
+3. Uruchom przechwytującą pocztę. Przykład dla **testowego Compose** z tego repozytorium, po utworzeniu jego sieci przez `docker compose up -d mysql`:
+
+```bash
+docker run -d --rm --name activefit-mailpit --network activefit_default -p 127.0.0.1:8025:8025 axllent/mailpit
+```
+
+To tymczasowy kontener zgodny z [oficjalną instrukcją Mailpit](https://mailpit.axllent.org/docs/install/docker/); wiadomości odczytasz lokalnie pod `http://127.0.0.1:8025`. SMTP działa wewnątrz sieci Dockera na porcie 1025, bez publikowania tego portu na hoście. Na zdalnym stagingu skorzystaj z tunelu SSH do panelu. W `.env` tej instalacji ustaw:
+
+```dotenv
+MAIL_MAILER=smtp
+MAIL_SCHEME=null
+MAIL_HOST=activefit-mailpit
+MAIL_PORT=1025
+MAIL_USERNAME=null
+MAIL_PASSWORD=null
+MAIL_FROM_ADDRESS=test@activefit.example
+MAIL_FROM_NAME=ActiveFit
+```
+
+Wysyłki PDF korzystają z tych samych parametrów SMTP przez dedykowany mailer `membership`. Nie konfiguruj relay/forwardingu do zewnętrznych odbiorców dla tego testu. Jeśli masz inny serwer przechwytujący, podaj jego host i port.
+
+4. Wdróż migracje na osobnej bazie testowej, zastosuj konfigurację i uruchom workera/scheduler zgodnie z sekcją TASK-032. Po zmianie cache/config zrestartuj procesy, aby używały tych samych ustawień. Sprawdź:
+
+```bash
+docker compose exec app php artisan config:clear
+docker compose exec app php artisan queue:restart
+docker compose exec app php artisan sales:diagnose --limit=25
+```
+
+`configuration_valid`, `sandbox` i dopasowanie ścieżek powinny być `true`. To kontrola lokalnych ustawień, **nie potwierdzenie łączności z P24**. Raport celowo nie drukuje kluczy ani adresów klientów.
+
+5. Dodaj w testowym CMS plan i regulamin. Kup karnet testowymi danymi, przejdź przez symulator płatności sandbox, a następnie odśwież zakup. Po zweryfikowanym callbacku ma powstać jeden karnet oczekujący na pierwszą wizytę i PDF w Mailpit. Sam powrót przeglądarki nie potwierdza opłaty. Następnie wykonaj scenariusze A–C z procedury i zapisz wyniki w raporcie odbioru.
+
+Jeśli callback nie dotrze, `sales:diagnose --order=NUMER_ULID` pokaże wewnętrzne ID płatności. Operator może sprawdzić istniejącą sesję przez `payments:reconcile-p24 --payment=123 --limit=1`; nie wykonuje to nowego obciążenia. Błąd e-maila obsługuje kolejka i panel **Wysyłki PDF**, bez ponawiania zakupu. Nie zeruj stanów/liczników bezpośrednio w bazie.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.

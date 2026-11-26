@@ -297,3 +297,92 @@ Tests may assert **unsupported actions are rejected** until a decision is approv
 ## 16. Next step
 
 Prepare `docs/development/implementation-plan.md`, breaking requirements into small, ordered tasks with dependencies and references to test IDs T-001–T-030. Start with repository foundation, CI, authentication/authorization, core membership dates/states and payment boundary. Existing HTML in `design/reference-html/` remains the UX reference, not production Vue code.
+
+## 17. TASK-034 — Procedura odzyskiwania i odbiór sandbox P24
+
+### Zakres i warunki uruchomienia
+
+Procedura dotyczy PAY-003/004/007, NTF-002/003 i ACT-01. Diagnostyka i automatyczne testy są oddzielne od odbioru rzeczywistej integracji. Pozytywny test HTTP fake nie potwierdza połączenia z operatorem, publicznego callbacku ani dostarczenia SMTP. Źródło kontraktu sprawdzone 2026-11-25: [oficjalna dokumentacja P24 REST](https://developers.przelewy24.pl/index.php?en) i [specyfikacja 1.0.18](https://developers.przelewy24.pl/yaml/en_documentation_1.0.yaml). Powiadomienie dotyczy skutecznej opłaty; sam brak callbacku nie dowodzi niepowodzenia lub anulowania.
+
+Rzeczywisty odbiór wykonujemy na osobnym stagingu z własną bazą, prywatnym dyskiem PDF i testowymi danymi. Nie używamy bazy klubu, klientów, produkcyjnego P24 ani rzeczywistych obciążeń. Klucze wpisuje operator do sekretów środowiska; nie przesyła ich przez czat, Git, argumenty poleceń lub raport. SMTP powinien kierować do przechwytującej skrzynki testowej. Faktyczna wysyłka na zewnętrzny adres wymaga osobnej zgody zgodnie z AGENTS.md.
+
+Przygotowanie stagingu:
+
+1. Ustaw publiczny `APP_URL` z HTTPS, `APP_ENV=staging`, `APP_DEBUG=false`, osobną bazę i klucz aplikacji. Wdróż kod/zależności, wykonaj migracje wyłącznie na tej bazie i sprawdź uprawnienia prywatnego dysku PDF. Nie kopiuj danych osobowych z produkcji.
+2. Ustaw `P24_ENVIRONMENT=sandbox`, `P24_LIVE_ENABLED=false`, `P24_ENABLED=true` oraz identyfikator sprzedawcy, POS, klucz API/report i osobny CRC z konta sandbox. `P24_RETURN_URL` ma wskazywać na publiczne `/platnosc/powrot`, a `P24_STATUS_URL` na `/payments/przelewy24/notification` tej samej instalacji. Zastosuj zmianę cache konfiguracji i zrestartuj workery zgodnie ze sposobem wdrożenia. Nie drukuj konfiguracji ani pełnego `.env`.
+3. Sprawdź poprawny HTTPS/certyfikat, reverse proxy, bezpieczne cookies i zachowanie pierwotnej sesji po powrocie. Callback musi być osiągalny dla P24 bez logowania, sesji, blokady Basic Auth i CSRF. Pozostałe formularze zachowują CSRF. Nie wyłączaj podpisu ani weryfikacji transakcji, aby „przepuścić” test.
+4. Przygotuj testowy plan oraz opublikowany regulamin w izolowanym CMS, konta testowego administratora/pracownika i kontrolowane dane kupującego/posiadacza. Dane konta P24 muszą być zgodne z sandboxem; nie wolno zmieniać przestrzeni sprzedawcy istniejącej płatności.
+5. Uruchom worker database/default i scheduler. Przy działającym Compose aplikacji, w osobnych procesach:
+
+```bash
+docker compose exec app php artisan queue:work database --queue=default --tries=1 --timeout=60
+docker compose exec app php artisan schedule:work
+docker compose exec app php artisan sales:diagnose --limit=25
+```
+
+Na serwerze bez Compose użyj odpowiadających poleceń `php artisan` i nadzorowanych procesów; na wdrożeniu scheduler to `schedule:run` co minutę. Diagnostyka nie uruchamia procesów i nie sprawdza ich żywotności.
+
+### Diagnostyka przed działaniem
+
+`sales:diagnose` wykonuje wyłącznie odczyty bazy i walidację konfiguracji, bez żądań do P24, e-maila, generowania PDF lub zlecania pracy. Zwraca JSON z ograniczoną liczbą wierszy w każdej sekcji (domyślnie 25, maksymalnie 100). Kod wyjścia 0 oznacza wykonanie raportu, nie sprawność całej integracji. Błędny argument daje 2, nieznane zamówienie 1.
+
+```bash
+docker compose exec app php artisan sales:diagnose --limit=25
+docker compose exec app php artisan sales:diagnose --order=NUMER_ZAMOWIENIA_ULID --limit=10
+```
+
+Parametr `--order` przyjmuje publiczny numer widoczny na zakupie. Raport podaje wewnętrzny `payments.id` potrzebny do uzgodnienia i ID wysyłki, bez nazwisk, kontaktów, cen, tokenów, kluczy, ścieżek plików lub treści wyjątków. Przy filtrowaniu pokazuje również zakończone próby; globalnie pomija potwierdzone płatności i wysłane dokumenty. `paid_orders_without_membership` wymaga sprawdzenia przez utrzymanie — polecenie nie naprawia danych. `pdf_recorded` oznacza zapis ścieżki w bazie, nie sprawdzenie fizycznej obecności pliku.
+
+`configuration_valid` sprawdza lokalne ustawienia; `callback_path_matches` i `return_path_matches` porównują tylko ścieżki tras. Żaden z tych znaczników nie potwierdza DNS, certyfikatu, dostępu z P24 ani działających danych uwierzytelniających. `external_connectivity`, SMTP, worker i scheduler pozostają `not_checked`. `can_reconcile` oznacza wyłącznie istniejącą sesję o obsługiwanym stanie i zgodnej przestrzeni środowiska/sprzedawcy/POS, a nie dowód opłaty.
+
+Nie zapisuj w raporcie odbioru callback body, Basic Auth, kluczy API/CRC, adresów klientów, zawartości `jobs.payload`, `failed_jobs.exception` ani dokumentów PDF. Wystarczą ID, stan, liczba prób, znaczniki UTC i wynik kontroli. Pełne logi/proxy HAR mogą zawierać dane płatności — nie dołączaj ich do repozytorium.
+
+### Scenariusz A — brak lub opóźnione potwierdzenie płatności
+
+1. Odszukaj zamówienie po numerze i odczytaj raport. Powrót przeglądarki z P24 ani potwierdzenie klienta o pobraniu środków nie nadają lokalnie statusu paid.
+2. Sprawdź dostępność callbacku, działanie aplikacji, zgodność konfiguracji oraz bezpieczne kody błędów z logów. Nie twórz drugiego zamówienia i nie wykonuj kolejnej rejestracji dla stanu unknown/initiated.
+3. Jeśli raport wskazuje istniejącą sesję do uzgodnienia, operator z dostępem do serwera uruchamia pojedynczy odczyt stanu operatora:
+
+```bash
+docker compose exec app php artisan payments:reconcile-p24 --payment=123 --limit=1
+```
+
+`123` zastąp wewnętrznym ID płatności z raportu, nie ID zamówienia lub transakcji P24. Polecenie może potwierdzić opłatę i wydać PDF/karnet, ale nie rejestruje nowego obciążenia. Wykonuj je wyłącznie w odpowiednim środowisku. Brak sesji lub stan nieopłacony nie dowodzi, że nowa rejestracja jest bezpieczna. Konflikt kwoty/waluty/sesji, zwrot lub zmiana sprzedawcy wymagają analizy, bez ręcznego ustawiania paid.
+4. Po skutecznym uzgodnieniu sprawdź: jedno zamówienie, jedna potwierdzona płatność, jeden karnet i jedno początkowe zlecenie PDF. Nowy karnet ma puste daty do pierwszej wizyty; przyszłe przedłużenie zachowuje ustalony okres. Kolejne uzgodnienie/duplikat callbacku nie dodają drugiego karnetu ani początkowej wysyłki.
+5. Rejestracja płatności ma limit 3 prób na zamówienie i wznawia zapisany token zamiast rejestrować go ponownie. `payments:reconcile-p24` ma limit 1–100 sesji na wywołanie (domyślnie 25), bez automatycznej pętli/schedulera i bez stałego globalnego limitu weryfikacji; operator ocenia kolejne próby po usunięciu przyczyny. Nie uruchamiaj go w ciasnej pętli. Nie używaj `queue:retry all` jako naprawy płatności.
+
+Odbiór sandbox: na dedykowanym stagingu przygotuj testowy zakup, a dla jednej kontrolowanej próby spowoduj czasową niedostępność wyłącznie callbacku na warstwie proxy (np. 503). Przywróć trasę, uzgodnij istniejącą sesję i sprawdź wynik powyżej. Nie dodawaj produkcyjnego „potwierdź testowo” i nie osłabiaj sprawdzania podpisów. Dla osobnego testowego zamówienia można po przywróceniu trasy odczekać na naturalne ponowienie operatora zamiast od razu uzgadniać sesję. Oficjalny kontrakt przewiduje ponowienia przy braku poprawnej weryfikacji; udana weryfikacja je kończy, więc nie wymagamy następnego callbacku po skutecznym uzgodnieniu. Nie traktuj czasu oczekiwania jako dowodu nieopłacenia. Powtórzenia samego odbioru można dodatkowo sprawdzić w izolowanych testach HTTP/MySQL, bez kopiowania podpisanych payloadów do raportu.
+
+### Scenariusz B — opłacony karnet, nieudany PDF/e-mail
+
+1. Potwierdź w historii opłatę i obecność właściwego karnetu. Odszukaj ID wysyłki w panelu administratora **Wysyłki PDF** lub diagnostyce. Nie ponawiaj zakupu/płatności z powodu braku e-maila.
+2. Sprawdź prywatny dysk, uprawnienia, wolne miejsce, SMTP, worker database/default i scheduler. Brakujący PDF generator może odtworzyć; po opłacie komunikat oczekiwania na pierwszą wizytę jest prawidłowy. `MAIL_MAILER=log` nie przechwytuje wiadomości membership — używają dedykowanego SMTP. Na stagingu ustaw jego host na przechwytującą skrzynkę.
+3. Dla znanego błędu wysyłka ma maksymalnie 5 prób, z odstępami 60/300/900/3600 sekund. Po usunięciu przyczyny odczekaj do `scheduled_for_utc`. Jeśli job nie został zapisany, scheduler odtworzy go; można też wywołać:
+
+```bash
+docker compose exec app php artisan documents:retry-deliveries --limit=100
+```
+
+Polecenie zleca pracę; bez workera e-mail nie zostanie wysłany. Nie zeruj licznika prób, nie zmieniaj `scheduled_for`, `sent_at`, `processing_token` ani immutable historii w SQL/tinker. Zduplikowany/stary job nie powinien zużyć nowej próby.
+4. Po wyczerpaniu limitu administrator może wybrać **Wyślij ponownie** i potwierdzić dotychczasowego odbiorcę. Powstaje osobne audytowane zlecenie, bez zmiany oryginalnego sent_at, płatności i karnetu. Nie ma zmiany e-maila z tego ekranu. Przy trwających automatycznych próbach przycisk pozostaje niedostępny.
+5. Wynik niepewny (proces przerwany na ponad 180 sekund lub przyjęcie SMTP z nieutrwalonym potwierdzeniem) wymaga sprawdzenia skrzynki/logów transportu. Scheduler oznacza go do sprawdzenia i nie wysyła automatycznie ponownie. Ewentualny ponowny egzemplarz musi być świadomą decyzją administratora. SMTP nie gwarantuje dokładnie jednej dostawy, a „przekazano do serwera” nie oznacza dostarczenia do skrzynki.
+
+Odbiór staging: zatrzymaj przechwytujący serwer SMTP dla kontrolowanego testu, opłać testowy zakup w sandboxie i potwierdź, że awaria zmienia tylko wysyłkę. Uruchom SMTP przed kolejną zaplanowaną próbą, sprawdź wiadomość z jednym właściwym PDF i niezmieniony karnet. Następnie sprawdź anulowanie/potwierdzenie ręcznego ponowienia, zachowanie historii i brak nowego zakupu. Nie odłączaj produkcyjnego SMTP ani dysku klubu na potrzeby testu.
+
+### Scenariusz C — awaria po weryfikacji u operatora
+
+Nie cofaj lokalnie płatności ani nie rejestruj drugiej. Po przywróceniu bazy/aplikacji uruchom uzgodnienie istniejącej sesji ze scenariusza A. Tylko zgodny uwierzytelniony stan P24 pozwala dokończyć zapis. Przerwana transakcja lokalna powinna pozostawić brak nowego karnetu i wysyłki; ponowienie po naprawie tworzy je raz. Nie wymuszaj awarii transakcji na produkcji. Ten przypadek jest deterministycznie testowany przez symulację utraconej odpowiedzi/błędu lokalnego, a rzeczywista łączność jest osobnym krokiem odbioru.
+
+### Raport wykonania — 2026-11-25
+
+| Kontrola | Wynik / dowód |
+| --- | --- |
+| Lokalny odczyt `sales:diagnose --limit=5` | Wykonany; brak gotowej konfiguracji P24, brak rekordów płatności/zleceń wysyłki, bez zmian bazy i bez połączeń z operatorem. |
+| Deterministyczne odzyskanie callbacku i e-maila | Test `OperationalRecoveryTest.php`: rejestracja, odrzucenie zmienionego callbacku, utracona weryfikacja, późniejsze uzgodnienie, duplikat callbacku, utracony job, awaria SMTP, prawdziwy worker database, ponowienie i ręczne wysłanie tego samego karnetu. HTTP fake, prywatny testowy dysk i transport array. |
+| Diagnostyka i ochrona danych | `SalesDiagnosticsTest.php`: odczyt bez mutacji/HTTP/Queue/Mail, limit i scoping zamówienia, zgodność przestrzeni sprzedawcy, brak ujawnienia sekretów/kontaktów/ścieżek/wyjątków. |
+| Automatyczne kontrole wykonane | 9 nowych testów / 100 asercji; regresja 751 testów / 4781 asercji (30 testów tylko MySQL pominiętych w SQLite); osobny MySQL 100 testów / 759 asercji, w tym współbieżność. Pint (335 plików) i PHPStan przeszły. |
+| Rzeczywista rejestracja i opłata sandbox P24 | **NIEWYKONANE:** potrzebne gotowe osobne środowisko testowe, publiczny HTTPS oraz jego konfiguracja sandbox. |
+| Rzeczywisty callback P24 i jego ponowienie | **NIEWYKONANE:** ta sama zależność; lokalne/fake testy nie zastępują odbioru. |
+| Rzeczywisty odbiór przez testowy SMTP | **NIEWYKONANE:** potrzebny przechwytujący serwer testowy. Nie wysyłano wiadomości do prawdziwych klientów. |
+
+Przy rzeczywistym odbiorze dopisz datę UTC, osobę wykonującą, identyfikator wersji kodu, adres stagingu (bez sekretów), numery testowych zamówień/wewnętrzne ID płatności/wysyłki oraz wynik każdego scenariusza A–C. Zapisuj liczbę karnetów i zmianę stanów, nie dane osób. TASK-034 pozostaje otwarty do potwierdzenia zewnętrznego sandboxu i testowego SMTP; nie włączamy sprzedaży produkcyjnej na podstawie samych atrap.
