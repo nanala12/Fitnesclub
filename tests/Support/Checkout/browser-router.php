@@ -88,6 +88,7 @@ Route::post('__checkout_test/deliver', function () {
 Route::get('__checkout_test/state', fn () => response()->json([
     'orders' => Order::count(), 'payments' => Payment::count(), 'memberships' => Membership::count(), 'deliveries' => DocumentDelivery::count(),
     'entries' => MembershipEntry::count(),
+    'staffId' => User::where('email', 'staff@example.test')->value('id'),
     'latestMembership' => Membership::latest('id')->first() === null ? null : ['startsOn' => Membership::latest('id')->first()->starts_on, 'balance' => Membership::latest('id')->first()->entries_remaining],
     'lastReference' => Order::latest('id')->first()?->public_reference,
     'order' => Order::first() === null ? null : ['buyer' => Order::first()->purchaser_email, 'holder' => Order::first()->holder_email,

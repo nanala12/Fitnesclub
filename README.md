@@ -601,7 +601,7 @@ Sprzedaż domyślnie obejmuje okres od początku bieżącego miesiąca do dzisia
 
 Lista **Najnowsze zamówienia** pokazuje ostatnich 10 zakupów we wszystkich stanach, niezależnie od okresu sprzedaży. Szczegóły prowadzą do istniejącego administracyjnego przeglądu sprzedaży. Pozostałe liczniki opisują bieżący stan i nie zmieniają się przy wyborze historycznego okresu opłat.
 
-Sposób liczenia zatwierdzonej metryki „liczba klientów” wymaga jeszcze wyboru: wszystkie zarejestrowane konta klientów albo tylko konta z opłaconym karnetem. Ten licznik nie jest wyświetlany do czasu doprecyzowania; nie wyprowadzamy liczby osób z kontaktów gości.
+Licznik „Konta klientów” obejmuje wszystkie zarejestrowane konta roli klient, także niezweryfikowane i zawieszone, niezależnie od zakupów (decyzja właścicielki z 2026-11-26). Pomija administratorów, pracowników i gości.
 
 Migracja `2026_11_26_010000_add_dashboard_indexes` dodaje wyłącznie indeksy dla okresu opłat, kolejności ostatnich zamówień i okna wygasania. Nie zmienia zakupów ani dat ważności. Dashboard jest dostępny wyłącznie dla aktywnego, zweryfikowanego administratora i nie wykonuje operacji płatniczych, aktywacji, odliczania wejść lub wysyłania wiadomości.
 
@@ -617,3 +617,9 @@ Migracja `2026_11_26_010000_add_dashboard_indexes` dodaje wyłącznie indeksy dl
 ## Wersjonowanie dokumentów
 
 Ostatni przegląd paczki: 2026-11-05. Szczegóły rozbieżności i decyzji znaleźć można w `docs/architecture/decisions/` oraz w polach `OPEN` dokumentacji. Przed wykonaniem zadania należy zweryfikować wymogi jego modułu i przygotować testy.
+
+## Regresja wydania (TASK-039)
+
+Po pobraniu zmian zaktualizuj zależności przez `composer install`. Testy przeglądarkowe uruchom poleceniem `bash tests/Browser/run.sh --docker` (Chrome i Node na hoście, PHP w Dockerze) lub `bash tests/Browser/run.sh` przy lokalnym PHP 8.4. Skrypt korzysta wyłącznie z odrębnej, odtwarzanej bazy SQLite w `/tmp`, atrap płatności i poczty oraz portów 18080/19222. Nie uruchamiaj go równolegle z innym scenariuszem używającym tych portów.
+
+CI uruchamia także audyty Composer/npm i scenariusz Chrome. Testy z atrapami nie zastępują odbioru sandbox P24 i SMTP opisanego w TASK-034. Szczegóły i wyniki: [strategia testowania](docs/development/testing-strategy.md).

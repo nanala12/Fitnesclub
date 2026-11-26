@@ -7,8 +7,10 @@ use App\Enums\PaymentMethod;
 use App\Enums\PaymentProvider;
 use App\Enums\PaymentStatus;
 use App\Enums\SalesChannel;
+use App\Enums\UserRole;
 use App\Models\Membership;
 use App\Models\Order;
+use App\Models\User;
 use App\Support\OrderSummary;
 use App\Support\PlanPrice;
 use Carbon\CarbonImmutable;
@@ -39,6 +41,7 @@ class AdminDashboard
         $recent = Order::query()->with(['payments', 'membership'])->orderByDesc('ordered_at')->orderByDesc('id')->limit(10)->get();
 
         return ['today' => $today->toDateString(), 'from' => $from, 'to' => $to,
+            'customerAccounts' => User::query()->where('role', UserRole::Customer)->count(),
             'activeMemberships' => (clone $active)->count(),
             'expiringMemberships' => $active->whereNotNull('expires_on')->where('expires_on', '<', $today->addDays(8)->toDateString())->count(),
             'salesCount' => (int) $totals->sales_count, 'salesLabel' => PlanPrice::label($amount),

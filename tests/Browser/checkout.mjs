@@ -700,6 +700,12 @@ try {
     await until(`!!document.querySelector('[data-metric="active"]')`);
     assert.equal(
         await evaluate(
+            `document.querySelector('[data-metric="customers"]').textContent.trim()`,
+        ),
+        '2',
+    );
+    assert.equal(
+        await evaluate(
             `document.querySelector('[data-metric="active"]').textContent.trim()`,
         ),
         '2',
@@ -752,9 +758,173 @@ try {
         '/tmp/activefit-admin-dashboard-mobile.png',
         Buffer.from(dashboardShot.data, 'base64'),
     );
+    // Publication must sanitize stored content and keep its confirmation boundary.
+    await navigate('/admin/cms/regulamin/nowa-wersja');
+    await until(`!!document.querySelector('[contenteditable="true"]')`);
+    await evaluate(
+        `(() => { const editor = document.querySelector('[contenteditable="true"]'); editor.innerHTML = '<h2>Regulamin regresyjny</h2><script>window.__cmsXss = true</script><a href="javascript:alert(1)">Treść testowa</a>'; editor.dispatchEvent(new Event('input', { bubbles: true })); })()`,
+    );
+    await evaluate(`document.querySelector('button[type="submit"]').click()`);
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await until(
+        `document.querySelector('[role="dialog"]')?.contains(document.activeElement)`,
+    );
+    await call('Input.dispatchKeyEvent', {
+        type: 'keyDown',
+        key: 'Escape',
+        code: 'Escape',
+        windowsVirtualKeyCode: 27,
+    });
+    await call('Input.dispatchKeyEvent', {
+        type: 'keyUp',
+        key: 'Escape',
+        code: 'Escape',
+        windowsVirtualKeyCode: 27,
+    });
+    await until(`!document.querySelector('[role="dialog"]')`);
+    await evaluate(`document.querySelector('button[type="submit"]').click()`);
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await dialogButton('Potwierdź zapis');
+    await until(
+        `document.querySelector('h1')?.textContent.trim() === 'Regulamin'`,
+    );
+    await pageButton('Opublikuj');
+    await until(`!!document.querySelector('[role="dialog"]')`);
+    await dialogButton('Opublikuj regulamin');
+    await until(`!document.querySelector('[role="dialog"]')`);
+    await navigate('/regulamin');
+    await until(`document.body.textContent.includes('Regulamin regresyjny')`);
+    assert.equal(
+        await evaluate(
+            `!!document.querySelector('a[href^="javascript:"]') || window.__cmsXss === true`,
+        ),
+        false,
+    );
+    assert.equal(
+        await evaluate(`document.body.textContent.includes('window.__cmsXss')`),
+        false,
+    );
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+
+    // Update only the current profile; email changes are intentionally outside this synthetic flow.
+    await evaluate(
+        `fetch('/__checkout_test/login-customer', { method: 'POST' })`,
+    );
+    await navigate('/settings/profile');
+    await until(`!!document.getElementById('first_name')`);
+    await evaluate(
+        `(() => { const field = document.getElementById('first_name'); field.value = 'AlicjaRegresja'; field.dispatchEvent(new Event('input', { bubbles: true })); })()`,
+    );
+    await evaluate(`document.querySelector('button[type="submit"]').click()`);
+    await until(
+        `document.body.textContent.includes('Dane profilu zostały zapisane.')`,
+    );
+    await navigate('/settings/profile');
+    await until(
+        `document.getElementById('first_name')?.value === 'AlicjaRegresja'`,
+    );
+
+    // Redeem the last remaining entry through the UI, then confirm it is unavailable.
+    const receiptReference = (await state()).lastReference;
+    await evaluate(`fetch('/__checkout_test/login-staff', { method: 'POST' })`);
+    await navigate(`/recepcja/karnety/${receiptReference}`);
+    await until(`document.body.textContent.includes('Odlicz jedno wejście')`);
+    while ((await state()).latestMembership.balance > 0) {
+        const previous = (await state()).latestMembership.balance;
+        await pageButton('Odlicz jedno wejście');
+        await until(`!!document.querySelector('[role="dialog"]')`);
+        await dialogButton('Potwierdź');
+        await until(`!document.querySelector('[role="dialog"]')`);
+        assert.equal((await state()).latestMembership.balance, previous - 1);
+    }
+    assert.equal(
+        await evaluate(
+            `[...document.querySelectorAll('button')].some((button) => button.textContent.includes('Odlicz jedno wejście'))`,
+        ),
+        false,
+    );
+    const denied = await evaluate(
+        `(async () => (await fetch('/admin/sprzedaz', { headers: { Accept: 'application/json' } })).status)()`,
+    );
+    assert.equal(denied, 403);
+
+    // A separate administrator HTTP session suspends the still-authenticated browser employee.
+    const administratorEntry = await fetch(base + '/');
+    const entryCookies = administratorEntry.headers
+        .getSetCookie()
+        .map((cookie) => cookie.split(';')[0]);
+    const entryCsrf = entryCookies.find((cookie) =>
+        cookie.startsWith('XSRF-TOKEN='),
+    );
+    assert.ok(entryCsrf);
+    const administrator = await fetch(base + '/__checkout_test/login-admin', {
+        method: 'POST',
+        redirect: 'manual',
+        headers: {
+            Cookie: entryCookies.join('; '),
+            'X-XSRF-TOKEN': decodeURIComponent(
+                entryCsrf.slice('XSRF-TOKEN='.length),
+            ),
+        },
+    });
+    assert.equal(
+        administrator.status,
+        200,
+        'Administrator fixture login must succeed',
+    );
+    const administratorCookie = administrator.headers
+        .getSetCookie()
+        .map((cookie) => cookie.split(';')[0])
+        .join('; ');
+    const administratorPage = await fetch(base + '/admin/pracownicy', {
+        headers: { Cookie: administratorCookie },
+        redirect: 'manual',
+    });
+    assert.equal(
+        administratorPage.status,
+        200,
+        'Separate administrator session must be authenticated',
+    );
+    const csrfCookie = administratorPage.headers
+        .getSetCookie()
+        .find((cookie) => cookie.startsWith('XSRF-TOKEN='));
+    assert.ok(csrfCookie, 'Administrator page must issue a CSRF cookie');
+    const suspension = await fetch(
+        base + '/admin/pracownicy/' + (await state()).staffId + '/dostep',
+        {
+            method: 'PATCH',
+            redirect: 'manual',
+            headers: {
+                Cookie: administratorCookie,
+                'X-XSRF-TOKEN': decodeURIComponent(
+                    csrfCookie.split(';')[0].slice('XSRF-TOKEN='.length),
+                ),
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ suspended: true, return_to: 'list' }),
+        },
+    );
+    assert.equal(suspension.status, 302);
+    assert.ok(
+        suspension.headers.get('location')?.includes('/admin/pracownicy'),
+        'Suspension must redirect to the employee index',
+    );
+    await navigate('/recepcja/karnety');
+    await until(
+        `document.body.textContent.includes('Nie możesz teraz korzystać z konta')`,
+    );
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('Nie możesz teraz korzystać z konta')`,
+        ),
+        true,
+    );
     assert.deepEqual(errors, [], 'Unexpected browser JavaScript exceptions');
     console.log(
-        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup, own membership pending/scheduled/expired/empty states, protected PDF, admin sales filters, scoped audit/delivery links, administrator metrics, date window and desktop/mobile layouts.',
+        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup, own membership pending/scheduled/expired/empty states, protected PDF, admin sales filters, scoped audit/delivery links, administrator metrics, date window, sanitized CMS publication, profile update, final entry, existing-session suspension and desktop/mobile layouts.',
     );
 } finally {
     ws?.close();

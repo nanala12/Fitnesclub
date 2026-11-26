@@ -12,6 +12,7 @@ const props = defineProps<{
         today: string;
         from: string;
         to: string;
+        customerAccounts: number;
         activeMemberships: number;
         expiringMemberships: number;
         salesCount: number;
@@ -36,7 +37,16 @@ const form = useForm({ from: props.dashboard.from, to: props.dashboard.to });
             Stan karnetów na {{ businessDate(dashboard.today) }}.
         </p>
     </header>
-    <div class="mb-7 grid gap-4 sm:grid-cols-2">
+    <div class="mb-7 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        <section class="rounded-2xl border bg-card p-5">
+            <h2 class="font-semibold">Konta klientów</h2>
+            <p class="my-3 text-4xl font-bold" data-metric="customers">
+                {{ dashboard.customerAccounts }}
+            </p>
+            <p class="text-sm text-muted-foreground">
+                Wszystkie zarejestrowane konta klientów, niezależnie od zakupów.
+            </p>
+        </section>
         <section class="rounded-2xl border bg-card p-5">
             <h2 class="font-semibold">Aktywne karnety</h2>
             <p class="my-3 text-4xl font-bold" data-metric="active">

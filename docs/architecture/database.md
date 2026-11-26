@@ -840,4 +840,4 @@ Active passes use the same calendar/balance semantics as the personal/staff stat
 
 Sales use paid_at in [local from midnight, local day-after-to midnight), converted to UTC with CarbonImmutable, including 23/25-hour DST days. Default period is current Warsaw month through today. Membership counters and the latest-order list are labelled as current/global, independent of the sales date window. New migration adds `(status, paid_at, id)`, `(ordered_at, id)` and `(expires_on, starts_on, id)` indexes only; rollback preserves rows. Query-count tests bound dashboard SELECTs independently of candidate count.
 
-The approved KPI list includes customers but its exact account/paid-customer definition is awaiting owner clarification. No guest contact deduplication or provisional client count is implemented.
+Owner confirmed on 2026-11-26: customer KPI counts every users row with the customer role, including unverified and suspended accounts, independently of purchases. Administrator/employee rows and guest contacts are excluded; no guest deduplication or identity merging is performed.

@@ -399,6 +399,38 @@ The guarded Chrome scenario checks method filtering, phone search without contac
 
 ## 19. TASK-038 — Dashboard aggregate coverage (2026-11-26)
 
-Dashboard tests exercise paid-but-pending versus active/future/expired/exhausted passes, inclusive today/+7-day expiry boundaries, verified online and receipt revenue, duplicate callback idempotency, multiple failed attempts, missing/mismatched/multiple confirmed evidence, exact grosz totals beyond JavaScript safe-integer precision, both Warsaw DST transitions, bounded recent-order DTOs, invalid ranges, constant SELECT count and fresh-role revocation. Index migration/schema round-trips preserve historical rows. All provider/mail traffic uses fakes; no customer count definition is assumed while the owner question is pending.
+Dashboard tests exercise paid-but-pending versus active/future/expired/exhausted passes, inclusive today/+7-day expiry boundaries, verified online and receipt revenue, duplicate callback idempotency, multiple failed attempts, missing/mismatched/multiple confirmed evidence, exact grosz totals beyond JavaScript safe-integer precision, both Warsaw DST transitions, bounded recent-order DTOs, invalid ranges, constant SELECT count and fresh-role revocation. Index migration/schema round-trips preserve historical rows. All provider/mail traffic uses fakes; the subsequent owner decision defines customer count as all customer-role accounts, including unverified/suspended ones, excluding staff/admin and guests.
 
-Executed: 106 targeted tests / 456 assertions; broader regression 995 passed / 6501 assertions with 30 MySQL-only skipped and 512 MB CLI memory; isolated MySQL 106 passed / 456 assertions. Pint (349 files), PHPStan, Vue/TypeScript, formatting/lint and production build passed. Chrome's guarded disposable fixture flow validated empty and mixed-state metrics, 6 paid purchases totalling 881,00 zł without counting pending/future/expired passes active, date filtering to an empty historical window while current counters/latest orders stay unchanged, and mobile layout. Screenshot inspected; browser exited successfully. Local index migration verified unchanged row counts. External sandbox acceptance remains TASK-034 and the customers KPI remains pending definition.
+Executed: 106 targeted tests / 456 assertions; broader regression 995 passed / 6501 assertions with 30 MySQL-only skipped and 512 MB CLI memory; isolated MySQL 106 passed / 456 assertions. Pint (349 files), PHPStan, Vue/TypeScript, formatting/lint and production build passed. Chrome's guarded disposable fixture flow validated empty and mixed-state metrics, 6 paid purchases totalling 881,00 zł without counting pending/future/expired passes active, date filtering to an empty historical window while current counters/latest orders stay unchanged, and mobile layout. Screenshot inspected; browser exited successfully. Local index migration verified unchanged row counts. External sandbox acceptance remains TASK-034 and the customer KPI definition was subsequently confirmed on the same day.
+
+
+## 20. TASK-039 — Release regression (2026-11-26)
+
+The existing Chrome/CDP scenario now also checks CMS draft confirmation/publication and stored script/javascript-link removal, persisted own-profile editing, final-entry exhaustion, employee denial of administrator sales, and suspension of an existing employee session by a separate administrator session. Existing guest/third-party-holder checkout, fake payment failure/retry, private PDFs, delivery failure/resend, first-visit activation, renewal, role separation and mobile overflow checks remain enabled. No browser testing package was added.
+
+Run `bash tests/Browser/run.sh --docker` with host Chrome/Node and Docker PHP, or `bash tests/Browser/run.sh` with native PHP 8.4. The runner requires free ports 18080/19222, uses a lock and disposable SQLite, and cleans up its server. Ordinary application tests assert fixture helper routes return 404. PHP test processes use 512 MB; the long-running recovery worker inside its test also receives that limit. Runtime worker configuration is unchanged. Run SQLite and MySQL suites sequentially: their filesystem fakes share a test-storage directory despite separate databases.
+
+CI adds Composer/npm audits and the same browser runner after existing checks. Patched nine existing Composer dependencies; subsequent audits report no Composer advisories and zero npm vulnerabilities. No secrets or new packages were added.
+
+Release gates still pending: hosted CI execution and TASK-034 real sandbox payment/callback/recovery plus captured test SMTP delivery. These cannot be inferred from fake HTTP/array mail results. No production release, migration or customer email was performed.
+
+Verified locally after dependency updates: Composer strict validation, Pint (350 files), PHPStan, Vue/TypeScript, formatting/lint, production build, CI YAML parsing and shell/JavaScript syntax checks passed. Composer audit reports no advisories; npm audit reports zero vulnerabilities. The full Chrome scenario passed, including modal focus, Escape cancellation, then deliberate save confirmation; the mobile dashboard screenshot was inspected.
+
+The first full SQLite run exposed the recovery worker's default 128 MB memory cap when invoked within the large test process; its test invocation now uses 512 MB. A simultaneous SQLite/MySQL run also interfered through shared filesystem fakes. The SQLite repeat isolates these fake disks using `TEST_TOKEN=sqlite-task039`; subsequent MySQL checks must run without concurrent writers to their fake directory.
+
+Full SQLite regression with isolated fake disks: **1344 passed / 9472 assertions**, 40 skipped (MySQL-only or disabled optional authentication features), 113.41 seconds.
+
+CI pins `ubuntu-24.04`; Chrome is provided by that [official runner image](https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md#browsers-and-drivers) and the wrapper checks its executable before seeding fixtures. This avoids inheriting the November 2026 migration of `ubuntu-latest` to a different Ubuntu release.
+
+| Release evidence | Local result |
+| --- | --- |
+| Guest / another holder checkout and fake verified payment | Chrome + PHP regression passed; holder and purchaser remain separate. |
+| First visit / entry use / exhaustion | Chrome passed; activation and entry deduction remain separate conscious actions. |
+| CMS publication and unsafe HTML | Chrome passed; modal focus and Escape cancellation checked. |
+| Profile / existing employee session suspension | Chrome passed using separate administrator session and CSRF token. |
+| Private PDF / failed delivery / explicit resend | Chrome + PHP regression passed using private test files and array mail. |
+| Dashboard all customer accounts / mobile view | Chrome + PHP regression passed; mobile screenshot inspected. |
+| Dependency audit | Composer no advisories; npm zero vulnerabilities. |
+| Hosted CI / real sandbox P24 / captured SMTP | Pending external evidence; release gate remains open. |
+
+Full MySQL regression: **1380 passed / 9767 assertions**, four failures in 933.46 seconds. Three MediaManagement cases were affected by the earlier shared-fake-disk collision; OperationalRecovery was loaded before its worker memory-limit adjustment. Re-ran both complete affected test files sequentially on MySQL after the fixes: **46 passed / 307 assertions**, 54.23 seconds, including all four failed cases. The full MySQL command was not repeated a second time; these are separate runs, not a claimed single green full-suite result. Final formatting/lint, CI YAML parsing and diff checks passed.

@@ -119,7 +119,7 @@ test('runbook recovers delayed payment failed mail lost queue dispatch and expli
     $mailFails = false;
     $this->travel(60)->seconds();
     $this->artisan('documents:retry-deliveries', ['--limit' => 1])->assertSuccessful();
-    $this->artisan('queue:work', ['connection' => 'database', '--queue' => 'default', '--stop-when-empty' => true, '--tries' => 1, '--timeout' => 60])->assertSuccessful();
+    $this->artisan('queue:work', ['connection' => 'database', '--queue' => 'default', '--stop-when-empty' => true, '--memory' => 512, '--tries' => 1, '--timeout' => 60])->assertSuccessful();
     expect($delivery->fresh()->status)->toBe(DeliveryStatus::Sent)->and($delivery->fresh()->attempts_count)->toBe(2)
         ->and($accepted)->toBe(1)->and(DocumentDeliveryAttempt::count())->toBe(2);
     $sentAt = $delivery->fresh()->sent_at->toISOString();

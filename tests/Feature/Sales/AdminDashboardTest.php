@@ -171,3 +171,14 @@ test('verified online payment contributes once while its issued pass still await
         ->where('dashboard.activeMemberships', 0)->where('dashboard.salesCount', 1)->where('dashboard.salesLabel', '223,00 zł'));
     Http::assertSentCount(1);
 });
+
+test('customer metric counts every registered customer account independently of payment verification or suspension', function () {
+    User::factory()->create();
+    User::factory()->unverified()->create();
+    User::factory()->suspended()->create();
+    User::factory()->employee()->create();
+    User::factory()->admin()->create();
+    dashboardReceipt(); // Guest purchase does not create a registered client.
+    $this->actingAs($this->admin)->get(route('admin.dashboard'))->assertInertia(fn (Assert $page) => $page
+        ->where('dashboard.customerAccounts', 3));
+});
