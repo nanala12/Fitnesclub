@@ -386,3 +386,12 @@ Nie cofaj lokalnie płatności ani nie rejestruj drugiej. Po przywróceniu bazy/
 | Rzeczywisty odbiór przez testowy SMTP | **NIEWYKONANE:** potrzebny przechwytujący serwer testowy. Nie wysyłano wiadomości do prawdziwych klientów. |
 
 Przy rzeczywistym odbiorze dopisz datę UTC, osobę wykonującą, identyfikator wersji kodu, adres stagingu (bez sekretów), numery testowych zamówień/wewnętrzne ID płatności/wysyłki oraz wynik każdego scenariusza A–C. Zapisuj liczbę karnetów i zmianę stanów, nie dane osób. TASK-034 pozostaje otwarty do potwierdzenia zewnętrznego sandboxu i testowego SMTP; nie włączamy sprzedaży produkcyjnej na podstawie samych atrap.
+
+
+## 18. TASK-037 — Administrator sales review coverage (2026-11-26)
+
+New HTTP tests cover channel/method/order-state filters, exact normalized holder versus purchaser lookup, separate guest records, preserved purchaser/holder snapshots, all payment attempts with receipt actor attribution, order-scoped audit and delivery navigation, explicit account/renewal histories, validated pagination, role revocation in an existing session and absence of provider secrets in DTOs. Existing delivery retry/idempotency and immutable audit tests are retained. Audit actor lookup now includes a fresh authorization read plus one eager actor query, remaining constant for a full page.
+
+`SalesHistoryIndexMigrationTest` reverses/reapplies the three order indexes and verifies unchanged historical rows. The core sales schema round-trip includes the new index migration in dependency order. MySQL validation covers these tests together with sales, delivery and audit: 132 passed / 678 assertions. Full domain/auth/admin regression is also run with a 512 MB CLI memory limit after the default 128 MB long-running test process exhausted memory; this does not change application/runtime configuration. Final regression: 981 passed / 6372 assertions, 30 MySQL-only skipped in SQLite.
+
+The guarded Chrome scenario checks method filtering, phone search without contact query strings, clearing filters, sale confirmation actor details, an audit containing only the selected receipt sale/visit, masked order-scoped PDF deliveries and mobile overflow. Existing checkout, membership/customer and reception scenarios remain in the same run. No real provider or customer-mail call is used; the mobile sales screenshot was inspected. Local index migration preserves users, catalog, financial records and audit row counts. External P24 acceptance remains the independent TASK-034 gate.

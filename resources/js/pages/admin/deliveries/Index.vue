@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import ActionButton from '@/components/shared/ActionButton.vue';
 import ConfirmDialog from '@/components/shared/ConfirmDialog.vue';
@@ -7,6 +7,7 @@ import EmptyState from '@/components/shared/EmptyState.vue';
 import FeedbackMessage from '@/components/shared/FeedbackMessage.vue';
 import Pagination from '@/components/shared/Pagination.vue';
 import { index, resend } from '@/routes/admin/deliveries';
+import { show as sale } from '@/routes/admin/sales';
 import type { PaginationLink } from '@/types/pagination';
 
 type Delivery = {
@@ -26,6 +27,7 @@ type Delivery = {
     attempts: { number: number; status: string; attemptedAt: string }[];
 };
 defineProps<{
+    orderReference: string | null;
     deliveries: { data: Delivery[]; links: PaginationLink[]; total: number };
 }>();
 const labels = {
@@ -62,6 +64,12 @@ function submit() {
 </script>
 <template>
     <Head title="Wysyłki PDF karnetów" />
+    <p v-if="orderReference" class="mb-5 text-sm break-all">
+        Wysyłki dla zakupu {{ orderReference }} ·
+        <Link :href="sale(orderReference)" class="underline"
+            >Wróć do szczegółów sprzedaży</Link
+        >
+    </p>
     <header class="mb-7 flex flex-wrap items-start justify-between gap-4">
         <div>
             <h1 class="text-3xl font-bold">Wysyłki PDF karnetów</h1>

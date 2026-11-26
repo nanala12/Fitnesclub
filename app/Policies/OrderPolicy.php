@@ -8,6 +8,11 @@ use App\Models\User;
 
 class OrderPolicy
 {
+    public function viewSales(User $actor): bool
+    {
+        return ! $actor->isSuspended() && $actor->hasVerifiedEmail() && $actor->role === UserRole::Admin;
+    }
+
     public function view(User $actor, Order $order): bool
     {
         return ! $actor->isSuspended() && $order->purchaser_user_id === $actor->id;

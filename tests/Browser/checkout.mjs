@@ -586,9 +586,101 @@ try {
         await evaluate(`document.querySelectorAll('article').length`),
         0,
     );
+    await evaluate(`fetch('/__checkout_test/login-admin', { method: 'POST' })`);
+    await navigate('/admin/sprzedaz');
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Sprzedaż i karnety')`,
+    );
+    await evaluate(
+        `(() => { const method = document.getElementById('method'); method.value = 'card'; method.dispatchEvent(new Event('change', { bubbles: true })); document.querySelectorAll('form')[0].querySelector('button[type="submit"]').click(); })()`,
+    );
+    await until(
+        `document.querySelectorAll('article').length > 0 && [...document.querySelectorAll('article')].every((row) => row.textContent.includes('Karta w recepcji'))`,
+    );
+    await evaluate(
+        `(() => { const field = document.getElementById('sales-phone'); field.value = '0048 600 111 222'; field.dispatchEvent(new Event('input', { bubbles: true })); })()`,
+    );
+    await evaluate(
+        `document.querySelectorAll('form')[1].querySelector('button[type="submit"]').click()`,
+    );
+    await until(
+        `document.querySelectorAll('article').length >= 2 && document.getElementById('method').value === ''`,
+    );
+    assert.equal(await evaluate(`location.search.includes('600')`), false);
+    await pageButton('Wyczyść wyszukiwanie');
+    await until(`document.getElementById('sales-phone').value === ''`);
+    await evaluate(
+        `[...document.querySelectorAll('article')].find((row) => row.textContent.includes('Maria Testowy')).querySelector('a').click()`,
+    );
+    await until(`document.body.textContent.includes('Próby płatności')`);
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('Sprzedaż zapisał') && document.body.textContent.includes('Potwierdzona')`,
+        ),
+        true,
+    );
+    await evaluate(
+        `[...document.querySelectorAll('a')].find((link) => link.textContent.includes('Historia operacji tego zakupu')).click()`,
+    );
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Historia zmian')`,
+    );
+    assert.equal(
+        await evaluate(`document.querySelectorAll('[data-audit-id]').length`),
+        5,
+        'Audit must contain only this receipt sale and visit',
+    );
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('reception@example.test')`,
+        ),
+        false,
+    );
+    await evaluate(
+        `[...document.querySelectorAll('a')].find((link) => link.textContent.includes('Wróć do szczegółów sprzedaży')).click()`,
+    );
+    await until(`document.body.textContent.includes('Próby płatności')`);
+    await evaluate(
+        `[...document.querySelectorAll('a')].find((link) => link.textContent.includes('Wysyłki PDF tego zakupu')).click()`,
+    );
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Wysyłki PDF')`,
+    );
+    assert.equal(
+        await evaluate(`document.querySelectorAll('article').length`),
+        1,
+        'Delivery filter must exclude other orders',
+    );
+    assert.equal(
+        await evaluate(
+            `document.body.textContent.includes('reception@example.test')`,
+        ),
+        false,
+    );
+    await navigate('/admin/sprzedaz');
+    await until(
+        `document.querySelector('h1')?.textContent.includes('Sprzedaż i karnety')`,
+    );
+    await call('Emulation.setDeviceMetricsOverride', {
+        width: 390,
+        height: 844,
+        deviceScaleFactor: 1,
+        mobile: true,
+    });
+    assert.equal(
+        await evaluate('document.documentElement.scrollWidth <= innerWidth'),
+        true,
+    );
+    const salesShot = await call('Page.captureScreenshot', {
+        captureBeyondViewport: true,
+    });
+    await writeFile(
+        '/tmp/activefit-admin-sales-mobile.png',
+        Buffer.from(salesShot.data, 'base64'),
+    );
     assert.deepEqual(errors, [], 'Unexpected browser JavaScript exceptions');
     console.log(
-        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup, own membership pending/scheduled/expired/empty states, protected PDF and desktop/mobile layouts.',
+        'PASS: checkout, private PDF, timeout, admin delivery history, masked contacts, resend confirmation/cancel, mail failure, own order history, scheduled renewal, rejected payment retry, reception sale, separate activation/redemption, shared-phone staff lookup, own membership pending/scheduled/expired/empty states, protected PDF, admin sales filters, scoped audit/delivery links and desktop/mobile layouts.',
     );
 } finally {
     ws?.close();

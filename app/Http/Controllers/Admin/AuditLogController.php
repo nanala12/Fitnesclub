@@ -5,24 +5,36 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\AuditAction;
 use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
+use App\Models\Order;
 use App\Support\AuditPayload;
+use App\Support\OrderAuditScope;
 use App\Support\PlanPrice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
-use Inertia\Response;
+use Symfony\Component\HttpFoundation\Response;
 
 class AuditLogController extends Controller
 {
     public function index(Request $request, AuditPayload $payload): Response
     {
-        Gate::authorize('viewAny', AuditLog::class);
-        $request->validate(['page' => ['sometimes', 'integer', 'min:1']]);
+        Gate::forUser($request->user()->fresh())->authorize('viewAny', AuditLog::class);
+        $data = $request->validate(['page' => ['sometimes', 'integer', 'min:1'], 'order' => ['nullable', 'ulid']]);
+        $query = AuditLog::query()->with('actor:id,name');
+        if (! empty($data['order'])) {
+            $order = Order::query()->where('public_reference', $data['order'])->firstOrFail();
+            app(OrderAuditScope::class)->apply($query, $order);
+        }
+        Inertia::encryptHistory();
 
-        return Inertia::render('admin/audit/Index', [
-            'entries' => AuditLog::query()->with('actor:id,name')->orderByDesc('id')->paginate(20)
+        $response = Inertia::render('admin/audit/Index', [
+            'orderReference' => $data['order'] ?? null,
+            'entries' => $query->orderByDesc('id')->paginate(20)->appends(array_intersect_key($data, ['order' => true]))
                 ->through(fn (AuditLog $entry): array => $this->present($entry, $payload)),
-        ]);
+        ])->toResponse($request);
+        $response->headers->add(['Cache-Control' => 'private, no-store', 'Referrer-Policy' => 'no-referrer', 'X-Robots-Tag' => 'noindex, nofollow']);
+
+        return $response;
     }
 
     /** @return array<string, mixed> */

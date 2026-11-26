@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { Head, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import AuditLogController from '@/actions/App/Http/Controllers/Admin/AuditLogController';
 import EmptyState from '@/components/shared/EmptyState.vue';
 import Pagination from '@/components/shared/Pagination.vue';
+import { show as sale } from '@/routes/admin/sales';
 import type { AuthenticatedPageProps, PaginationLink } from '@/types';
 
 defineProps<{
+    orderReference: string | null;
     entries: {
         data: {
             id: number;
@@ -43,6 +45,12 @@ function date(instant: string) {
 </script>
 <template>
     <Head title="Historia zmian" />
+    <p v-if="orderReference" class="mb-5 text-sm break-all">
+        Historia zakupu {{ orderReference }} ·
+        <Link :href="sale(orderReference)" class="underline"
+            >Wróć do szczegółów sprzedaży</Link
+        >
+    </p>
     <div class="space-y-6">
         <div class="space-y-2">
             <h1 class="text-2xl font-semibold">Historia zmian</h1>

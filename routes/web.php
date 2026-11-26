@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\DocumentDeliveryController;
 use App\Http\Controllers\Admin\EmployeeController;
 use App\Http\Controllers\Admin\MembershipPlanController;
 use App\Http\Controllers\Admin\PriceListController;
+use App\Http\Controllers\Admin\SalesController;
 use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\CustomerMembershipController;
 use App\Http\Controllers\DashboardController;
@@ -50,6 +51,11 @@ Route::name('public.')->group(function (): void {
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::prefix('admin/sprzedaz')->name('admin.sales.')->middleware('can:access-admin-panel')->group(function (): void {
+        Route::get('/', [SalesController::class, 'index'])->middleware('throttle:60,1,admin-sales:')->name('index');
+        Route::post('/szukaj', [SalesController::class, 'search'])->middleware('throttle:30,1,admin-sales-search:')->name('search');
+        Route::get('/{reference}', [SalesController::class, 'show'])->whereUlid('reference')->middleware('throttle:60,1,admin-sales:')->name('show');
+    });
     Route::get('moje-karnety', [CustomerMembershipController::class, 'index'])->middleware('throttle:60,1,own-memberships:')->name('memberships.index');
     Route::get('moje-karnety/{membership}', [CustomerMembershipController::class, 'show'])->whereNumber('membership')->middleware('throttle:60,1,own-memberships:')->name('memberships.show');
     Route::prefix('recepcja/karnety')->name('staff.memberships.')->middleware('can:access-staff-panel')->group(function (): void {

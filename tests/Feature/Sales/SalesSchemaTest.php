@@ -161,6 +161,8 @@ test('core migration rolls back and reapplies without changing existing users CM
     $verificationMigration = require database_path('migrations/2026_11_24_020000_add_p24_verification_tracking.php');
     $checkoutMigration = require database_path('migrations/2026_11_24_030000_add_online_checkout_request.php');
     $deliveryMigration = require database_path('migrations/2026_11_24_040000_add_document_delivery_processing.php');
+    $historyIndexes = require database_path('migrations/2026_11_26_000000_add_sales_history_indexes.php');
+    $historyIndexes->down();
     $deliveryMigration->down();
     $checkoutMigration->down();
     $verificationMigration->down();
@@ -191,6 +193,7 @@ test('core migration rolls back and reapplies without changing existing users CM
     $verificationMigration->up();
     $checkoutMigration->up();
     $deliveryMigration->up();
+    $historyIndexes->up();
     expect(Membership::factory()->create()->starts_on)->toBeNull()->and(User::findOrFail($user->id)->email)->toBe($user->email);
 });
 

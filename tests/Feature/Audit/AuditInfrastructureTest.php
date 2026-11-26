@@ -178,7 +178,7 @@ test('audit mutations have no web endpoint', function (string $method) {
     $this->assertDatabaseCount('audit_logs', 1);
 })->with(['post', 'patch', 'put', 'delete']);
 
-test('actor lookup uses one eager query for a full audit page', function () {
+test('audit actor lookup stays bounded with a fresh authorization read', function () {
     $admin = User::factory()->admin()->create();
     foreach (range(1, 20) as $index) {
         recordTestAudit(User::factory()->employee()->create());
@@ -190,7 +190,7 @@ test('actor lookup uses one eager query for a full audit page', function () {
         }
     });
     $this->actingAs($admin)->get(route('admin.audit.index'))->assertOk();
-    expect($actorQueries)->toHaveCount(1);
+    expect($actorQueries)->toHaveCount(2); // Fresh administrator plus one eager actor query, regardless of 20 rows.
 });
 
 test('unknown historic event payloads do not expose their raw action or subject values', function () {

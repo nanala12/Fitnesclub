@@ -19,6 +19,7 @@ import PriceListController from '@/actions/App/Http/Controllers/Admin/PriceListC
 import PanelLayout from '@/layouts/PanelLayout.vue';
 import { dashboard as adminDashboard } from '@/routes/admin';
 import { index as employees } from '@/routes/admin/employees';
+import { index as sales } from '@/routes/admin/sales';
 import { index as audit } from '@/routes/admin/audit';
 import { index as deliveries } from '@/routes/admin/deliveries';
 import { edit } from '@/routes/profile';
@@ -33,6 +34,7 @@ withDefaults(defineProps<PanelLayoutProps>(), {
             href: adminDashboard(),
             icon: LayoutGrid,
         },
+        { title: 'Sprzedaż i karnety', href: sales(), icon: ClipboardList },
         { title: 'Pracownicy', href: employees(), icon: Users },
         {
             title: 'Kategorie i usługi cennika',

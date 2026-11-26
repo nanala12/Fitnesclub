@@ -573,6 +573,24 @@ Powiązanie wynika wyłącznie z identyfikatorów kont zapisanych przy zakupie. 
 
 Nie jest potrzebna migracja ani dodatkowa konfiguracja. Odbiór zewnętrznego sandboxu P24 z TASK-034 nadal pozostaje osobnym krokiem.
 
+## Sprzedaż, karnety i audyt administratora (TASK-037)
+
+W panelu administratora wybierz **Sprzedaż i karnety** (`/admin/sprzedaz`). Lista pokazuje zamówienia z kupującym i posiadaczem, historycznym planem/ceną, kanałem, metodą płatności i stanem karnetu. Można filtrować kanał **Online/Recepcja**, metodę **Przelewy24/Gotówka/Karta** i stan zamówienia. Wyniki mają paginację po 20 pozycji; wygasłe karnety oraz nieudane próby pozostają w historii.
+
+Wyszukaj pełny numer telefonu kupującego albo posiadacza lub numer zamówienia. Telefon trafia przez POST do filtra sesyjnego, bez umieszczania go w adresie strony. **Wyczyść wyszukiwanie i filtry** przywraca całą listę. Osoby o wspólnym kontakcie pozostają osobnymi zapisami; dopasowanie danych nie tworzy powiązania z kontem.
+
+**Szczegóły sprzedaży** pokazują oddzielne dane kupującego i posiadacza, wszystkie zapisane próby płatności, datę potwierdzenia i pracownika, który zapisał sprzedaż lub potwierdził opłatę w recepcji. Przy istniejącym powiązaniu z kontem dostępna jest jego historia zakupów. Dla karnetu można przejrzeć jego jawnie powiązane przedłużenia — bez zgadywania tożsamości gościa po telefonie/nazwisku.
+
+Odnośniki w szczegółach prowadzą do:
+
+- **Obsługi karnetu i wejść** — dotychczasowych potwierdzanych operacji recepcyjnych.
+- **Historii operacji tego zakupu** — audytu zamówienia, jego płatności, karnetu i zleceń PDF: wykonawca, czas, rodzaj zdarzenia i bezpieczne zmiany wartości.
+- **Wysyłek PDF tego zakupu** — statusów i prób dostarczenia oraz istniejącej, potwierdzanej ponownej wysyłki przez administratora.
+
+Audyt i wysyłki mają odnośnik powrotny do sprzedaży. Globalne widoki **Historia zmian** i **Wysyłki PDF** nadal działają. Nie dodano edycji audytu, ręcznego ustawiania wyniku płatności, zwrotów, korekt ani eksportów. Dane operatora, klucze, tokeny i prywatne ścieżki PDF nie trafiają do widoków. Dostęp do sprzedaży i audytu jest wyłącznie administracyjny, także przy użyciu bezpośredniego adresu.
+
+Migracja `2026_11_26_000000_add_sales_history_indexes` dodaje wyłącznie indeksy wspierające filtry kanału/metody i telefonu kupującego; nie zmienia treści zakupów. Po pobraniu zmian wykonaj zwykłe `php artisan migrate` w odpowiednim środowisku zgodnie z procedurą wdrożenia. Rzeczywisty odbiór sandboxu P24 z TASK-034 pozostaje osobnym oczekującym krokiem.
+
 ## Kluczowe ustalenia
 
 - Opłacenie karnetu **nie rozpoczyna jego ważności**. Pierwszą aktywację wykonuje pracownik lub administrator przy pierwszej wizycie posiadacza.
